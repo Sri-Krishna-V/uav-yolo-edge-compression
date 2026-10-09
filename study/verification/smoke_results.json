@@ -1,0 +1,356 @@
+{
+  "environment": {
+    "recorded_on": "2026-09-12",
+    "host": "Mr-W-R-A-T-H",
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.6",
+    "torch": "2.14.0+cu130",
+    "torch_cuda": "13.0",
+    "cudnn": 92400,
+    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
+    "nvidia_driver": "616.64",
+    "ultralytics": "8.4.149",
+    "faster-coco-eval": "1.8.0",
+    "torchvision": "0.29.0+cu130",
+    "numpy": "2.5.2",
+    "opencv-python": "5.0.0.93"
+  },
+  "invariants": {
+    "shared": {
+      "max_det": 500,
+      "iou": 0.7,
+      "conf": 0.001,
+      "nms": null
+    },
+    "train": {
+      "seed": 0,
+      "deterministic": true
+    },
+    "eval": {
+      "save_json": true,
+      "rect": true,
+      "batch": 16,
+      "coco_max_dets": [
+        1,
+        10,
+        100,
+        500
+      ]
+    }
+  },
+  "conversion": {
+    "train": {
+      "images": 6471,
+      "label_files": 6471,
+      "label_rows": 343205,
+      "per_class": [
+        79337,
+        27059,
+        10480,
+        144867,
+        24956,
+        12875,
+        4812,
+        3246,
+        5926,
+        29647
+      ],
+      "max_objects_per_image": 902
+    },
+    "val": {
+      "images": 548,
+      "label_files": 548,
+      "label_rows": 38759,
+      "per_class": [
+        8844,
+        5125,
+        1287,
+        14064,
+        1975,
+        750,
+        1045,
+        532,
+        251,
+        4886
+      ],
+      "max_objects_per_image": 317
+    },
+    "test": {
+      "images": 1610,
+      "label_files": 1610,
+      "label_rows": 75102,
+      "per_class": [
+        21006,
+        6376,
+        1302,
+        28074,
+        5771,
+        2659,
+        530,
+        599,
+        2940,
+        5845
+      ],
+      "max_objects_per_image": 461
+    }
+  },
+  "models": {
+    "yolo11s.pt": {
+      "train_args": {
+        "max_det": 500,
+        "iou": 0.7,
+        "conf": 0.001,
+        "nms": null,
+        "seed": 0,
+        "deterministic": true
+      },
+      "eval_val": {
+        "stats": {
+          "metrics/precision(B)": 0.26718453377253726,
+          "metrics/recall(B)": 0.06221093187355699,
+          "metrics/mAP50(B)": 0.03963610168324165,
+          "metrics/mAP50-95(B)": 0.021867495048882593,
+          "fitness": 0.021867495048882593,
+          "metrics/mAP_small(B)": 0.0095694149163656,
+          "metrics/mAP_medium(B)": 0.04559971156046018,
+          "metrics/mAP_large(B)": 0.04759281528098685,
+          "coco/AP_all": 0.022528404121118974,
+          "coco/AP_50": 0.04034456627687035,
+          "coco/AP_75": 0.023093105566712156,
+          "coco/AP_small": 0.0095694149163656,
+          "coco/AP_medium": 0.04559971156046018,
+          "coco/AP_large": 0.04759281528098685,
+          "coco/AR_1": 0.008728299397036406,
+          "coco/AR_10": 0.04609781903488288,
+          "coco/AR_100": 0.0920306678640097,
+          "coco/AR_500": 0.09633957659566057,
+          "coco/AR_small": 0.041880040569304874,
+          "coco/AR_medium": 0.15232242639903748,
+          "coco/AR_large": 0.2003072995354056,
+          "coco/AR_50": 0.17204983124750278,
+          "coco/AR_75": 0.09745949610941318
+        },
+        "validator_args": {
+          "max_det": 500,
+          "iou": 0.7,
+          "conf": 0.001,
+          "nms": null,
+          "save_json": true,
+          "rect": true,
+          "batch": 16,
+          "split": "val",
+          "imgsz": 640,
+          "quantize": null
+        },
+        "coco_max_dets": [
+          1,
+          10,
+          100,
+          500
+        ],
+        "end2end_head_scored": false,
+        "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\smoke\\yolo11s-eval-val"
+      },
+      "eval_test": {
+        "stats": {
+          "metrics/precision(B)": 0.25275025723165656,
+          "metrics/recall(B)": 0.049977744622252684,
+          "metrics/mAP50(B)": 0.026161614513741133,
+          "metrics/mAP50-95(B)": 0.013235991580394853,
+          "fitness": 0.013235991580394853,
+          "metrics/mAP_small(B)": 0.006964844385360561,
+          "metrics/mAP_medium(B)": 0.03227831182261862,
+          "metrics/mAP_large(B)": 0.028448847386384306,
+          "coco/AP_all": 0.013990301916463005,
+          "coco/AP_50": 0.027124962674044822,
+          "coco/AP_75": 0.013353999985502041,
+          "coco/AP_small": 0.006964844385360561,
+          "coco/AP_medium": 0.03227831182261862,
+          "coco/AP_large": 0.028448847386384306,
+          "coco/AR_1": 0.008221764004816329,
+          "coco/AR_10": 0.042040136775122576,
+          "coco/AR_100": 0.08048823001035038,
+          "coco/AR_500": 0.08514564263799658,
+          "coco/AR_small": 0.031288835721372824,
+          "coco/AR_medium": 0.13833840342126705,
+          "coco/AR_large": 0.17630467385184712,
+          "coco/AR_50": 0.1606241873998887,
+          "coco/AR_75": 0.08195271156119667
+        },
+        "validator_args": {
+          "max_det": 500,
+          "iou": 0.7,
+          "conf": 0.001,
+          "nms": null,
+          "save_json": true,
+          "rect": true,
+          "batch": 16,
+          "split": "test",
+          "imgsz": 640,
+          "quantize": null
+        },
+        "coco_max_dets": [
+          1,
+          10,
+          100,
+          500
+        ],
+        "end2end_head_scored": false,
+        "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\smoke\\yolo11s-eval-test"
+      }
+    },
+    "yolo26s.pt": {
+      "train_args": {
+        "max_det": 500,
+        "iou": 0.7,
+        "conf": 0.001,
+        "nms": null,
+        "seed": 0,
+        "deterministic": true
+      },
+      "eval_val": {
+        "stats": {
+          "metrics/precision(B)": 0.23630313271570075,
+          "metrics/recall(B)": 0.16206133803059908,
+          "metrics/mAP50(B)": 0.09233838061019502,
+          "metrics/mAP50-95(B)": 0.05055372495864811,
+          "fitness": 0.05055372495864811,
+          "metrics/mAP_small(B)": 0.026235341717179676,
+          "metrics/mAP_medium(B)": 0.08691961387514449,
+          "metrics/mAP_large(B)": 0.145933965928436,
+          "coco/AP_all": 0.052148280794003,
+          "coco/AP_50": 0.09420554998798457,
+          "coco/AP_75": 0.05104284246883676,
+          "coco/AP_small": 0.026235341717179676,
+          "coco/AP_medium": 0.08691961387514449,
+          "coco/AP_large": 0.145933965928436,
+          "coco/AR_1": 0.023768668777198507,
+          "coco/AR_10": 0.1086218723473266,
+          "coco/AR_100": 0.18205603219701755,
+          "coco/AR_500": 0.1852131254944452,
+          "coco/AR_small": 0.11301188818895057,
+          "coco/AR_medium": 0.2842786807523576,
+          "coco/AR_large": 0.3668269697388148,
+          "coco/AR_50": 0.33191826028342714,
+          "coco/AR_75": 0.17947125509689194
+        },
+        "validator_args": {
+          "max_det": 500,
+          "iou": 0.7,
+          "conf": 0.001,
+          "nms": null,
+          "save_json": true,
+          "rect": true,
+          "batch": 16,
+          "split": "val",
+          "imgsz": 640,
+          "quantize": null
+        },
+        "coco_max_dets": [
+          1,
+          10,
+          100,
+          500
+        ],
+        "end2end_head_scored": false,
+        "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\smoke\\yolo26s-eval-val"
+      },
+      "eval_test": {
+        "stats": {
+          "metrics/precision(B)": 0.19810443766736877,
+          "metrics/recall(B)": 0.12802999636795329,
+          "metrics/mAP50(B)": 0.06079524072244673,
+          "metrics/mAP50-95(B)": 0.03180035012852838,
+          "fitness": 0.03180035012852838,
+          "metrics/mAP_small(B)": 0.01391541957843077,
+          "metrics/mAP_medium(B)": 0.06869000586444145,
+          "metrics/mAP_large(B)": 0.12852534049237754,
+          "coco/AP_all": 0.033199704701557635,
+          "coco/AP_50": 0.0623874784718722,
+          "coco/AP_75": 0.031996514719072555,
+          "coco/AP_small": 0.01391541957843077,
+          "coco/AP_medium": 0.06869000586444145,
+          "coco/AP_large": 0.12852534049237754,
+          "coco/AR_1": 0.016137148646385723,
+          "coco/AR_10": 0.07857768415532322,
+          "coco/AR_100": 0.13778933074206987,
+          "coco/AR_500": 0.14281162159212557,
+          "coco/AR_small": 0.07204295742556047,
+          "coco/AR_medium": 0.2384859739387621,
+          "coco/AR_large": 0.35768894096655385,
+          "coco/AR_50": 0.26538326075541335,
+          "coco/AR_75": 0.13552963635425214
+        },
+        "validator_args": {
+          "max_det": 500,
+          "iou": 0.7,
+          "conf": 0.001,
+          "nms": null,
+          "save_json": true,
+          "rect": true,
+          "batch": 16,
+          "split": "test",
+          "imgsz": 640,
+          "quantize": null
+        },
+        "coco_max_dets": [
+          1,
+          10,
+          100,
+          500
+        ],
+        "end2end_head_scored": false,
+        "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\smoke\\yolo26s-eval-test"
+      },
+      "probe_nms_free_head_val": {
+        "stats": {
+          "metrics/precision(B)": 0.44726284936614596,
+          "metrics/recall(B)": 0.0992141653978723,
+          "metrics/mAP50(B)": 0.07966179099431651,
+          "metrics/mAP50-95(B)": 0.04420854021767242,
+          "fitness": 0.04420854021767242,
+          "metrics/mAP_small(B)": 0.021252622155543882,
+          "metrics/mAP_medium(B)": 0.075018097292992,
+          "metrics/mAP_large(B)": 0.1269235603625159,
+          "coco/AP_all": 0.04613755680186064,
+          "coco/AP_50": 0.08200044765797551,
+          "coco/AP_75": 0.045496376061329405,
+          "coco/AP_small": 0.021252622155543882,
+          "coco/AP_medium": 0.075018097292992,
+          "coco/AP_large": 0.1269235603625159,
+          "coco/AR_1": 0.01966759424524507,
+          "coco/AR_10": 0.0788639403428176,
+          "coco/AR_100": 0.13961157735493923,
+          "coco/AR_500": 0.14569978091557717,
+          "coco/AR_small": 0.10127563439714335,
+          "coco/AR_medium": 0.20230682415082696,
+          "coco/AR_large": 0.24833739825369727,
+          "coco/AR_50": 0.26258909361084426,
+          "coco/AR_75": 0.14051399407821727
+        },
+        "validator_args": {
+          "max_det": 500,
+          "iou": 0.7,
+          "conf": 0.001,
+          "nms": false,
+          "save_json": true,
+          "rect": true,
+          "batch": 16,
+          "split": "val",
+          "imgsz": 640,
+          "quantize": null
+        },
+        "coco_max_dets": [
+          1,
+          10,
+          100,
+          500
+        ],
+        "end2end_head_scored": true,
+        "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\smoke\\yolo26s-probe-e2e-val"
+      }
+    }
+  },
+  "checks_passed": true,
+  "failures": []
+}

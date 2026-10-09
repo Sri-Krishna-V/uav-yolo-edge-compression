@@ -1,0 +1,20 @@
+# Environment and data: rebuilt by study/requirements.txt and study/scripts/fingerprint_visdrone.py
+study/.venv/
+study/datasets/
+study/runs/
+study/weights/
+study/.ultralytics/
+__pycache__/
+*.pyc
+
+# Model checkpoints: too large for git, and reproducible from the recipe
+*.pt
+*.onnx
+*.engine
+*.tflite
+
+# Assistant session logs
+.remember/
+
+# Publisher PDF that is not confirmed open access (see papers/README.md)
+s10489-026-07416-6.pdf

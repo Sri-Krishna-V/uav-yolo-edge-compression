@@ -1,0 +1,94 @@
+{
+  "fingerprinted_on": "2026-09-12",
+  "splits": {
+    "train": {
+      "zip": "VisDrone2019-DET-train.zip",
+      "zip_bytes": 1549875511,
+      "zip_sha256": "86a77eba93137bfc16e4993860de9245b0675c0dba0d3ab98fb458699e256f84",
+      "images": 6471,
+      "annotation_files": 6471,
+      "raw_rows": 353550,
+      "rows_kept_by_converter": 343205,
+      "kept_per_class_1_to_10": [
+        79337,
+        27059,
+        10480,
+        144867,
+        24956,
+        12875,
+        4812,
+        3246,
+        5926,
+        29647
+      ],
+      "score0_cat0": 8813,
+      "score0_cat11": 1532,
+      "score0_with_evaluated_category": 0,
+      "kept_rows_with_cat0_or_11": 0,
+      "score_values": [
+        "0",
+        "1"
+      ]
+    },
+    "val": {
+      "zip": "VisDrone2019-DET-val.zip",
+      "zip_bytes": 81638851,
+      "zip_sha256": "abeea063037e5d20398837deb11084e652402a34ddf4f207bdf541a6f2a35ef9",
+      "images": 548,
+      "annotation_files": 548,
+      "raw_rows": 40169,
+      "rows_kept_by_converter": 38759,
+      "kept_per_class_1_to_10": [
+        8844,
+        5125,
+        1287,
+        14064,
+        1975,
+        750,
+        1045,
+        532,
+        251,
+        4886
+      ],
+      "score0_cat0": 1378,
+      "score0_cat11": 32,
+      "score0_with_evaluated_category": 0,
+      "kept_rows_with_cat0_or_11": 0,
+      "score_values": [
+        "0",
+        "1"
+      ]
+    },
+    "test-dev": {
+      "zip": "VisDrone2019-DET-test-dev.zip",
+      "zip_bytes": 311251787,
+      "zip_sha256": "b28a94b06dfd9e36ce77ff8155fb82b9d2c030f198a76105933bd56c6ea6a68d",
+      "images": 1610,
+      "annotation_files": 1610,
+      "raw_rows": 77547,
+      "rows_kept_by_converter": 75102,
+      "kept_per_class_1_to_10": [
+        21006,
+        6376,
+        1302,
+        28074,
+        5771,
+        2659,
+        530,
+        599,
+        2940,
+        5845
+      ],
+      "score0_cat0": 2180,
+      "score0_cat11": 265,
+      "score0_with_evaluated_category": 0,
+      "kept_rows_with_cat0_or_11": 0,
+      "score_values": [
+        "0",
+        "1"
+      ]
+    }
+  },
+  "checks_passed": true,
+  "failures": []
+}

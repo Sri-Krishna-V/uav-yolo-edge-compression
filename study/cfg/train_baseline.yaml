@@ -1,0 +1,56 @@
+# Baseline training recipe. Resolved 2026-10-09 by the map ticket "Baseline training recipe".
+# Every training run in the study inherits this file, merged OVER cfg/invariants.yaml (shared + train).
+# Rationale: INVARIANTS.md section 7. Changing a value here invalidates every run trained before the change.
+#
+# NOT in this file, because they are per-run and recorded per run instead:
+#   model (yolo11s.pt | yolo26s.pt), imgsz (640 matrix | 960 | 1280), seed, device, batch.
+#   batch is per-GPU-batch x GPU count, so the per-GPU batch is what stays constant across machines.
+
+schedule:
+  epochs: 100 # matches the closest prior work (arXiv 2605.24831 Table 5), so our baselines line up with a published row
+  patience: 10000 # early stopping disabled: it truncates the LR schedule and makes compute per run unequal
+  close_mosaic: 10 # Ultralytics default: mosaic/mixup/cutmix off for the last N epochs
+
+optimizer:
+  optimizer: SGD # NEVER "auto": it picks MuSGD above 10k iterations and AdamW below (trainer.py:1145), so a
+  # 100-epoch baseline and a 30-50 epoch recovery run would silently use different optimizers.
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005 # trainer rescales this by batch*accumulate/nbs
+  warmup_epochs: 3.0
+  warmup_momentum: 0.8
+  warmup_bias_lr: 0.1
+  cos_lr: false # Ultralytics default linear schedule
+  nbs: 64 # nominal batch: the trainer accumulates to ~64 images per update whatever `batch` is
+
+augmentation: # Ultralytics defaults, written out so an upstream default change cannot silently move our numbers.
+  # No tuning, no mixup: the only VisDrone evidence for mixup=0.4 is one run on a different model, inside noise.
+  # copy_paste is segment/OBB-only in 8.4.149 and does nothing for boxes.
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 0.0
+  translate: 0.1
+  scale: 0.5
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  bgr: 0.0
+  mosaic: 1.0
+  mixup: 0.0
+  cutmix: 0.0
+  copy_paste: 0.0
+  multi_scale: 0.0
+
+runtime: # performance and bookkeeping. `workers` is recorded per run: it changes the augmentation RNG stream.
+  workers: 4 # PINNED, not a free knob: worker count changes the augmentation RNG stream, so runs with
+  # different worker counts are not strictly comparable. 4 suits a Kaggle GPU session; the probe confirms.
+  pretrained: true # COCO-pretrained init, correct for a deployment study
+  amp: true
+  cache: false # cache='ram' is non-deterministic (data/base.py:156); 'disk' is the deterministic alternative
+  rect: false
+  val: true # per-epoch val on `val` selects best.pt. Area splits are NOT computed per epoch; studyeval does that
+  plots: false
+  save_period: -1 # last.pt is written every epoch regardless, which is the resume granularity

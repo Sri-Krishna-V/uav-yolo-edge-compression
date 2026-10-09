@@ -1,0 +1,20 @@
+# Training + accuracy-evaluation environment, UAV YOLO edge-compression study.
+# Study-critical pins only; every machine installs these exactly. Rationale: INVARIANTS.md.
+# Full resolved set for the laptop (Python 3.12.6, CUDA 13.0 wheels): requirements.lock.txt.
+#
+# torch/torchvision are CUDA builds - install them from the PyTorch index first, e.g.
+#   uv pip install torch==2.14.0 torchvision==0.29.0 --index-url https://download.pytorch.org/whl/cu130
+# then:
+#   uv pip install -r requirements.txt
+
+# Hard floor 8.4.133 (area-split metrics). Pinned exactly because scripts/studyeval.py patches
+# detect/val.py coco_evaluate, and that patch was verified against this exact source.
+ultralytics==8.4.149
+
+# Ultralytics lists this only as an extra and would pip-install it mid-run; YOLO_AUTOINSTALL=false
+# (scripts/studyenv.py) turns a missing copy into a hard failure instead.
+faster-coco-eval==1.8.0
+
+torch==2.14.0
+torchvision==0.29.0
+pyyaml==6.0.3
