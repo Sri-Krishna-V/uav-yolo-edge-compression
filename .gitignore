@@ -18,3 +18,38 @@ __pycache__/
 
 # Publisher PDF that is not confirmed open access (see papers/README.md)
 s10489-026-07416-6.pdf
+
+# Python
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets and local config
+.env
+.env.*
+*.key
+kaggle.json
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Large artifacts and logs
+*.zip
+*.tar
+*.tar.gz
+*.npy
+*.csv.gz
+wandb/
