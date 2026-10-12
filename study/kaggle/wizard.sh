@@ -201,11 +201,69 @@ finish() {
 # Kaggle training wizard for the UAV YOLO study. Run it from inside the repo, in Git Bash (Windows),
 # Terminal (macOS) or any Linux shell:
 #
-#   bash study/kaggle/wizard.sh          # once per person: Kaggle account -> Session 0 -> first training session
+#   bash study/kaggle/wizard.sh          # once per person: computer check -> Kaggle -> first training session
 #   bash study/kaggle/wizard.sh next     # after EVERY training session: bring results home, start the next one
 #
-# It remembers your answers in study/kaggle/.env.kaggle (git-ignored). The written guide, with the
-# reasons behind each step, is study/kaggle/README.md.
+# It remembers your answers and how far you got in study/kaggle/.env.kaggle (git-ignored), so you can close
+# it during a long wait and run the same command again later. The written guide is study/kaggle/README.md.
+
+GUIDE_URL="https://github.com/Sri-Krishna-V/uav-yolo-edge-compression/blob/main/study/kaggle/README.md"
+
+# ── Look and feel ─────────────────────────────────────────────────────────
+
+gap()     { printf '\n'; }
+heading() { printf '\n  %s%s%s\n' "$BOLD" "$1" "$RESET"; }
+why()     { printf '  %s%s%s\n' "$DIM" "$1" "$RESET"; }
+ok()      { printf '  %s✓ %s%s\n' "$GREEN" "$1" "$RESET"; }
+bad()     { printf '  %s✗ %s%s\n' "$YELLOW" "$1" "$RESET"; }
+# num N "text": a numbered action, with a blank line before it so steps never run together.
+num()     { printf '\n  %s%s%s.%s %s\n' "$BOLD" "$BLUE" "$1" "$RESET" "$2"; }
+# more "text": a second line under the step above.
+more()    { printf '     %s\n' "$1"; }
+key()     { printf '%s%s%s' "$BOLD" "$1" "$RESET"; }
+
+# section "Title" "One line on why this stage exists": stage header, progress bar, reason.
+section() {
+  stage "$1"
+  local width=36 filled i done_part="" todo_part=""
+  filled=$(( _STAGE_INDEX * width / TOTAL_STAGES ))
+  for (( i = 0; i < width; i++ )); do
+    if (( i < filled )); then done_part+="━"; else todo_part+="─"; fi
+  done
+  printf '  %s%s%s%s%s\n' "$GREEN" "$done_part" "$DIM" "$todo_part" "$RESET"
+  [[ -z "${2:-}" ]] || { gap; why "$2"; }
+}
+
+# must "question": a yes/no check that only moves on at yes. Closed input (Ctrl-D) stops the wizard.
+must() {
+  local reply
+  gap
+  while :; do
+    printf '  %s? %s%s [y/N] ' "$YELLOW" "$1" "$RESET"
+    if ! read -r reply; then
+      gap; warn "Stopped. Run the same command again to continue from this stage."
+      exit 1
+    fi
+    [[ "$reply" =~ ^[Yy] ]] && return 0
+    warn "No rush. Fix it in the browser, then answer again."
+  done
+}
+
+# come_back MINUTES: the clock time a wait of that length ends.
+come_back() {
+  date -d "+$1 min" +%H:%M 2>/dev/null || date -v+"$1"M +%H:%M 2>/dev/null || printf 'in about %s min' "$1"
+}
+
+# wrap_up: the closing screen, without the list of internal keys the wizard saved for itself.
+wrap_up() { WRITTEN_ENV=(); finish; }
+
+# remember KEY VALUE: save quietly (internal progress, not something the person typed).
+remember() { write_env "$1" "$2" >/dev/null; }
+
+# saved KEY VALUE: save something the person typed, with a short confirmation.
+saved() { write_env "$1" "$2" >/dev/null; ok "Saved."; }
+
+# ── Doing things ──────────────────────────────────────────────────────────
 
 # helper runs the repo's Kaggle helper with whichever Python this machine has (standard library only).
 helper() {
@@ -216,188 +274,384 @@ helper() {
       return
     fi
   done
-  warn "No Python 3.9+ found. Install it from https://www.python.org/downloads/ and re-run."
+  warn "No Python 3.9+ found. Install it from https://www.python.org/downloads/ and run the wizard again."
   exit 1
 }
 
-# copy_cell TASK writes the notebook cell with that TASK line, copies it to the clipboard and prints it.
+has_python() {
+  local bin
+  for bin in python3 python py; do
+    if command -v "$bin" >/dev/null 2>&1 && "$bin" -c "import sys; sys.exit(sys.version_info < (3, 9))" >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+has_clipboard() {
+  command -v clip.exe >/dev/null 2>&1 || command -v pbcopy >/dev/null 2>&1 ||
+    command -v wl-copy >/dev/null 2>&1 || command -v xclip >/dev/null 2>&1
+}
+
+clipboard() {
+  if   command -v clip.exe >/dev/null 2>&1; then clip.exe
+  elif command -v pbcopy   >/dev/null 2>&1; then pbcopy
+  elif command -v wl-copy  >/dev/null 2>&1; then wl-copy
+  elif command -v xclip    >/dev/null 2>&1; then xclip -selection clipboard
+  else return 1; fi
+}
+
+# copy_cell TASK: write the notebook cell with that TASK line, put it on the clipboard and show it in a box.
 copy_cell() {
-  local task="$1" out="study/kaggle/.cell-to-paste.txt"
+  local task="$1" out="study/kaggle/.cell-to-paste.txt" line rule
   sed "s|^TASK = .*|TASK = \"$task\"|" study/kaggle/notebook_cell.txt > "$out"
-  if   command -v clip.exe >/dev/null 2>&1; then clip.exe < "$out"
-  elif command -v pbcopy   >/dev/null 2>&1; then pbcopy < "$out"
-  elif command -v wl-copy  >/dev/null 2>&1; then wl-copy < "$out"
-  elif command -v xclip    >/dev/null 2>&1; then xclip -selection clipboard < "$out"
-  else warn "Could not reach the clipboard: copy the cell from $out instead."; fi
-  printf '\n%s' "$DIM"; sed 's/^/    /' "$out"; printf '%s\n' "$RESET"
-  say "${GREEN}✓ The cell above is in your clipboard${RESET} (also saved in $out)."
-  say "Its TASK line is: ${BOLD}$task${RESET}"
+  rule=$(printf '─%.0s' {1..72})
+  gap
+  printf '  %s┌%s%s\n' "$DIM" "$rule" "$RESET"
+  while IFS= read -r line; do
+    if [[ "$line" == TASK* ]]; then
+      printf '  %s│%s %s%s%s\n' "$DIM" "$RESET" "$BOLD$YELLOW" "$line" "$RESET"
+    else
+      printf '  %s│ %s%s\n' "$DIM" "$line" "$RESET"
+    fi
+  done < "$out"
+  printf '  %s└%s%s\n' "$DIM" "$rule" "$RESET"
+  if clipboard < "$out" 2>/dev/null; then
+    ok "This cell is copied to your clipboard. The highlighted TASK line is this session's job."
+  else
+    warn "Could not copy to the clipboard. Open $out, select all and copy it yourself."
+  fi
 }
 
-# notebook_settings: the settings every notebook needs, checked before every Save.
+# ask_url KEY "Prompt": a Kaggle notebook address, asked again until it looks like one.
+ask_url() {
+  while :; do
+    ask "$1" "$2"
+    local v="${!1}"
+    v="${v%%\?*}"; v="${v%/edit}"; v="${v%/}"
+    if [[ "$v" =~ ^https://(www\.)?kaggle\.com/code/[^/]+/[^/]+$ ]]; then
+      printf -v "$1" '%s' "$v"
+      saved "$1" "$v"
+      return
+    fi
+    warn "That is not a notebook address. It looks like https://www.kaggle.com/code/<you>/<notebook-name>"
+  done
+}
+
+# ask_download KEY: the downloaded bring-home folder or .zip. Offers the newest one in Downloads.
+ask_download() {
+  local guess=""
+  guess=$(ls -td "$HOME"/Downloads/*bring-home* 2>/dev/null | head -n 1 || true)
+  if [[ -n "$guess" ]]; then
+    gap
+    say "Found $(key "$guess")"
+    if confirm "Is this the one you just downloaded?"; then
+      printf -v "$1" '%s' "$guess"
+      return
+    fi
+  fi
+  while :; do
+    gap
+    ask "$1" "Drag the downloaded bring-home folder or .zip into this window, then press Enter:"
+    local v="${!1}"
+    v="${v//\'/}"; v="${v//\"/}"; v="${v%"${v##*[![:space:]]}"}"
+    if [[ -e "$v" ]]; then
+      printf -v "$1" '%s' "$v"
+      return
+    fi
+    warn "Nothing found at: $v"
+  done
+}
+
+# notebook_settings: the two settings every session depends on, each confirmed.
 notebook_settings() {
-  step "Open the right-hand panel (if hidden, click the small arrow at the right edge of the editor)."
-  step "Under ${BOLD}Session options${RESET}: set ${BOLD}Accelerator = GPU T4 x2${RESET}. Never P100: it cannot run our CUDA 13 build."
-  step "Under ${BOLD}Session options${RESET}: switch ${BOLD}Internet${RESET} ON. (Not there? Your phone is not verified: see stage 2.)"
-  note "Leave Language = Python, Persistence = off, and Environment at its default."
+  num "$1" "Open the panel on the right side of the editor."
+  more "Hidden? Click the small arrow at the right edge of the page."
+  num "$(( $1 + 1 ))" "Under $(key 'Session options'), set $(key 'Accelerator') to $(key 'GPU T4 x2')."
+  more "Not P100: it cannot run this study's software."
+  num "$(( $1 + 2 ))" "Under $(key 'Session options'), switch $(key 'Internet') ON."
+  more "No Internet switch? Your phone is not verified yet (stage 3)."
+  must "Accelerator shows GPU T4 x2 and Internet is ON?"
 }
 
-# save_and_run "version name": the commit that runs the whole session in the background.
+# save_and_run "version name" FIRST_STEP_NUMBER: paste the cell and start the commit.
 save_and_run() {
-  step "Click inside the notebook's code cell, select everything (Ctrl+A / Cmd+A) and paste (Ctrl+V / Cmd+V)."
-  note "The notebook must have exactly this one code cell. Delete any other cell Kaggle created."
-  step "Top right: click ${BOLD}Save Version${RESET}. Version name: ${BOLD}$1${RESET}."
-  step "Choose ${BOLD}Save & Run All (Commit)${RESET} (not Quick Save), then click ${BOLD}Save${RESET}."
-  note "It now runs on Kaggle by itself: you can close the tab and the laptop. It uses your weekly GPU quota"
-  note "(about 30 h, resets Saturday 05:30 IST) only while it runs. Do not start an interactive GPU session as well."
+  num "$2" "In the notebook, click inside the code cell. Press $(key Ctrl+A), then $(key Ctrl+V) to paste."
+  more "(Mac: Cmd+A, Cmd+V.) The notebook must contain only this one cell: delete any others."
+  num "$(( $2 + 1 ))" "Top right: click $(key 'Save Version')."
+  num "$(( $2 + 2 ))" "Name the version $(key "$1"). Choose $(key 'Save & Run All (Commit)'), not Quick Save. Click $(key Save)."
+  must "Does Kaggle show the version as running (or queued)?"
+  gap
+  ok "It now runs on Kaggle by itself. You can close the browser and the laptop."
+  why "It uses your weekly GPU quota (~30 h, resets Saturday 05:30 IST) only while it runs."
+  why "Do not open an interactive GPU session at the same time."
 }
 
-# watch_and_download URL: find the finished version, read its result, download bring-home.
-watch_and_download() {
+# download_steps URL: find the finished version and download its bring-home folder.
+download_steps() {
   open_url "$1"
-  step "This is the notebook's page. While a version runs, Kaggle shows it as running; its ${BOLD}Logs${RESET} show progress."
-  step "When it has finished, open that version's ${BOLD}Logs${RESET} and scroll to the end. Look for a box saying"
-  say  "    ${BOLD}SMOKE TEST PASSED${RESET} or ${BOLD}SESSION RESULT${RESET} (good), or ${BOLD}STOP: ...${RESET} (it says why and what to do)."
-  step "Open that version's ${BOLD}Output${RESET}, find the folder ${BOLD}bring-home${RESET} and download it"
-  say  "    (the download icon next to it). A .zip is fine; so is downloading the whole output."
+  num 1 "On the notebook's page, open the version that just finished, then its $(key Logs)."
+  num 2 "Scroll to the very end. You should see a box with $(key 'SMOKE TEST PASSED') or $(key 'SESSION RESULT')."
+  more "A box with STOP: ... means something needs fixing. It says what. Screenshot it."
+  num 3 "Open that version's $(key Output). Find the folder $(key bring-home) and click its download icon."
+  more "It lands in your Downloads folder, usually as a .zip. That is fine."
 }
 
-setup_flow() {
-TOTAL_STAGES=9
-banner "UAV YOLO study: Kaggle setup"
+stuck() { gap; why "Stuck? Take a screenshot and send it to Krishna. Guide: $GUIDE_URL"; }
 
-stage "About you"
-say "Two people train, one model family each (study/RUNS.md): srikr trains YOLO11s, the teammate YOLO26s."
-ask KAGGLE_WHO "Your first name, lowercase, no spaces (used in notebook and file names):"
+# ── Setup: one stage per function, so a re-run continues where it stopped ─────
+
+setup_1() {
+section "Check your computer" "The wizard needs Git, Python and an up-to-date copy of the repo. It checks them now."
+local all=1
+gap
+if command -v git >/dev/null 2>&1; then ok "Git is installed"; else bad "Git is missing: install it from https://git-scm.com/downloads"; all=0; fi
+if has_python; then ok "Python 3.9+ is installed"; else bad "Python 3.9+ is missing: install it from https://www.python.org/downloads/ (Windows: tick 'Add python.exe to PATH')"; all=0; fi
+if git pull --ff-only -q >/dev/null 2>&1; then ok "The repo is up to date"; else bad "Could not update the repo (git pull). Carrying on with your copy."; fi
+if has_clipboard; then ok "The clipboard works: the wizard can copy the notebook code for you"; else bad "No clipboard tool: you will copy the code from a file instead"; fi
+if (( ! all )); then
+  gap; warn "Install what is missing, close this window, open a new one, and run the wizard again."
+  exit 1
+fi
+gap
+pause "All good. Press Enter to start."
+}
+
+setup_2() {
+section "About you" "Two people train, one model each. Your answers name your notebooks and pick your runs."
+heading "What is your first name?"
+why "Lowercase, no spaces. It goes into your notebook names, e.g. uav-priya-a."
+gap
+ask KAGGLE_WHO "Name:"
 KAGGLE_WHO=$(printf '%s' "$KAGGLE_WHO" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
-write_env KAGGLE_WHO "$KAGGLE_WHO"
-say "Which run list is yours? Type ${BOLD}srikr${RESET} (YOLO11s: A1 A3 A4 B1 B3) or ${BOLD}teammate${RESET} (YOLO26s: A2 A5 A6 B2 B4)."
-ask KAGGLE_OWNER "Your run list:"
-until [[ "$KAGGLE_OWNER" == "srikr" || "$KAGGLE_OWNER" == "teammate" ]]; do ask KAGGLE_OWNER "Type exactly srikr or teammate:"; done
-write_env KAGGLE_OWNER "$KAGGLE_OWNER"
-say "Every checkpoint is also kept on your computer, so no Kaggle account holds the only copy."
-ask KAGGLE_MIRROR "Folder for that copy (Enter for ~/uav-yolo-checkpoints):" || true
+until [[ -n "$KAGGLE_WHO" ]]; do
+  ask KAGGLE_WHO "Please type a name (letters and digits only):"
+  KAGGLE_WHO=$(printf '%s' "$KAGGLE_WHO" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+done
+saved KAGGLE_WHO "$KAGGLE_WHO"
+
+heading "Which model do you train?"
+gap
+printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3    %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4    %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+gap
+while :; do
+  ask OWNER_CHOICE "Type 1 or 2:"
+  case "$OWNER_CHOICE" in
+    1) KAGGLE_OWNER=srikr; break ;;
+    2) KAGGLE_OWNER=teammate; break ;;
+    *) warn "Please type 1 or 2." ;;
+  esac
+done
+remember OWNER_CHOICE "$OWNER_CHOICE"
+saved KAGGLE_OWNER "$KAGGLE_OWNER"
+
+heading "Where should your copies of the checkpoints go?"
+why "Every checkpoint is also copied to your computer, so no Kaggle account holds the only copy."
+why "Best: a folder inside Google Drive or OneDrive, so the copy is off your laptop too."
+gap
+ask KAGGLE_MIRROR "Folder (press Enter for $HOME/uav-yolo-checkpoints):" || true
 [[ -n "$KAGGLE_MIRROR" ]] || KAGGLE_MIRROR="$HOME/uav-yolo-checkpoints"
 mkdir -p "$KAGGLE_MIRROR"
-write_env KAGGLE_MIRROR "$KAGGLE_MIRROR"
-note "Tip: put that folder inside Google Drive / OneDrive and the copy is off your laptop too."
-pause
+saved KAGGLE_MIRROR "$KAGGLE_MIRROR"
+gap
+pause "Press Enter to continue."
+}
 
-stage "Kaggle account and phone verification"
+setup_3() {
+section "Kaggle account and phone" "Kaggle gives GPUs and Internet only to accounts with a verified phone number."
 open_url "https://www.kaggle.com/settings"
-step "Sign in (or register) with the account you will train on. One account per person: never share one."
-step "On the Settings page, find ${BOLD}Phone verification${RESET} and verify your number."
-note "Without it Kaggle hides the GPU and the Internet switch, and every session below fails."
-pause "Press Enter once your phone is verified."
+num 1 "Sign in to Kaggle, or register. Use one account that only you train on."
+num 2 "On the Settings page, find $(key 'Phone verification') and verify your number."
+must "Is your phone verified?"
+}
 
-stage "Create notebook A"
+setup_4() {
+section "Create notebook A" "You use two notebooks, A and B, in turn. A notebook cannot read its own earlier results, so each one reads the other's."
 open_url "https://www.kaggle.com/code"
-step "Click ${BOLD}+ New Notebook${RESET}."
-step "Click the title at the top left and rename it to ${BOLD}uav-$KAGGLE_WHO-a${RESET}."
-notebook_settings
-note "You will have TWO notebooks, A and B, used in turn. A Kaggle notebook cannot read its own earlier"
-note "output, so each one picks up the other's checkpoints. The wizard always tells you which is next."
-ask NOTEBOOK_A "Paste notebook A's address from the browser bar (https://www.kaggle.com/code/...):"
-write_env NOTEBOOK_A "$NOTEBOOK_A"
+num 1 "Click $(key '+ New Notebook')."
+num 2 "Click the notebook's title (top left) and rename it to $(key "uav-$KAGGLE_WHO-a")."
+notebook_settings 3
+num 6 "Copy the notebook's address from the browser's address bar."
+gap
+ask_url NOTEBOOK_A "Paste it here:"
+}
 
-stage "Session 0: prove this account's environment"
+setup_5() {
 if [[ "$KAGGLE_OWNER" == "srikr" ]]; then
-  TASK0="smoke --who $KAGGLE_WHO --probe"
-  say "Session 0 installs the pinned environment, verifies the dataset and runs the smoke test. Then the"
-  say "${BOLD}probe${RESET} measures the batch size every run must use, and whether two runs per session beat one. ~1.5 h."
+  TASK0="smoke --who $KAGGLE_WHO --probe"; MINUTES=90
+  section "Start Session 0" "Session 0 installs the software, checks the dataset and runs a short test. Yours also runs the probe, which measures the batch size everyone uses."
 else
-  TASK0="smoke --who $KAGGLE_WHO"
-  say "Session 0 installs the pinned environment, verifies the dataset and runs the smoke test. ~40 min."
-  say "An account without a passing smoke test may not produce numbers for the paper."
+  TASK0="smoke --who $KAGGLE_WHO"; MINUTES=40
+  section "Start Session 0" "Session 0 installs the software, checks the dataset and runs a short test. An account must pass this test before its results can go in the paper."
 fi
 copy_cell "$TASK0"
-save_and_run "session 0"
-pause "Press Enter once the version is running."
+open_url "$NOTEBOOK_A"
+save_and_run "session 0" 1
+remember SESSION0_STARTED "$(date +%s)"
+gap
+say "Session 0 takes about $(key "$MINUTES min"). Come back at about $(key "$(come_back "$MINUTES")")."
+why "You can close this window now. Run the same command later and the wizard continues from here."
+gap
+pause "Press Enter to continue (or close the window and come back later)."
+}
 
-stage "Session 0 result"
-watch_and_download "$NOTEBOOK_A"
-ask BRING_HOME_PATH "Path of the downloaded bring-home folder or .zip (you can drag it into this window):"
-BRING_HOME_PATH=${BRING_HOME_PATH//\'/}
-helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR"
+setup_6() {
+section "Session 0 result" "You download the session's results and the wizard checks that the test passed."
+if ! confirm "Has Session 0 finished on Kaggle?"; then
+  gap
+  say "No problem. Close this window and come back later. Run the same command:"
+  say "    $(key 'bash study/kaggle/wizard.sh')"
+  exit 0
+fi
+download_steps "$NOTEBOOK_A"
+ask_download BRING_HOME_PATH
+gap
+helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
 SMOKE="study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
+gap
 if [[ ! -f "$SMOKE" ]]; then
-  warn "No smoke record arrived. Read the end of the log and send it to Krishna before going on."
-  exit 1
+  bad "No test result came with this download."
+  why "Check that you downloaded bring-home from the version that finished, or read the end of its Logs."
+  stuck; exit 1
 fi
 if ! grep -q '"checks_passed": true' "$SMOKE"; then
-  warn "The smoke test FAILED (see the 'failures' list in $SMOKE)."
-  warn "Do not train. Send that file and the log to Krishna."
-  exit 1
+  bad "The test FAILED on this account. Do not train yet."
+  why "Send Krishna this file: $SMOKE"
+  stuck; exit 1
 fi
-say "${GREEN}✓ Smoke test passed on this account.${RESET}"
-pause
+ok "The test passed. This account is ready to train."
+gap
+pause "Press Enter to continue."
+}
 
-stage "The batch sizes every run uses"
+setup_7() {
+section "The batch sizes" "Every run must use the same batch size, so they are measured once, by Krishna's probe, and shared."
 if [[ "$KAGGLE_OWNER" == "srikr" ]]; then
   if [[ ! -f study/verification/kaggle_probe.json ]]; then
-    warn "kaggle_probe.json did not arrive: the probe did not finish. Read the log, then rerun Session 0."
+    bad "The probe's result did not arrive: the probe did not finish."
+    why "Read the end of Session 0's Logs, then start Session 0 again (stage 5)."
+    remember SETUP_AT 4
     exit 1
   fi
-  helper apply-probe study/verification/kaggle_probe.json
-  git --no-pager diff -- study/kaggle/runs.yaml
-  say "These values are frozen for the whole study. Your teammate's sessions refuse to start until they are pushed."
-  if confirm "Commit and push runs.yaml, the probe record and your smoke record now?"; then
-    git add study/kaggle/runs.yaml study/verification/kaggle_probe.json "$SMOKE"
+  gap
+  helper apply-probe study/verification/kaggle_probe.json | sed "s/^/  /"
+  gap
+  heading "The numbers the probe measured"
+  gap
+  grep -E '^  [0-9]+:' study/kaggle/runs.yaml | sed 's/^  \([0-9]*\): \(.*\)/      images \1 px  ->  batch \2 per GPU/'
+  grep -E '^pairing:' study/kaggle/runs.yaml | sed 's/^pairing: pair/      two runs per session (one per GPU)/; s/^pairing: single/      one run per session/'
+  gap
+  why "These numbers are frozen for the whole study. Your teammate cannot start training until you push them."
+  gap
+  if confirm "Commit and push them to GitHub now?"; then
+    git add study/kaggle/runs.yaml study/verification/kaggle_probe.json "study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
     git commit -q -m "Freeze Kaggle batch sizes and pairing from the probe" -m "Smoke record for kaggle-$KAGGLE_WHO."
-    git push -q || { warn "Push failed: push by hand before your teammate starts training."; SKIPPED+=("git push of runs.yaml"); }
+    if git push -q; then
+      ok "Pushed. Tell your teammate the batch sizes are ready."
+    else
+      warn "The push failed. If you have two GitHub accounts, switch to the one that owns the repo"
+      warn "(gh auth switch), then run: git push"
+      SKIPPED+=("git push (your teammate is blocked until the batch sizes are on GitHub)")
+    fi
   else
     SKIPPED+=("commit + push study/kaggle/runs.yaml (your teammate is blocked until then)")
   fi
-  pause
 else
-  say "Krishna's probe decides the batch sizes. Checking whether they are pushed yet..."
-  git pull --ff-only -q || warn "git pull failed: run it by hand."
+  gap
+  say "Checking GitHub for Krishna's batch sizes..."
+  git pull --ff-only -q || warn "git pull failed: run it yourself in this folder."
   until grep -qE '^pairing: (pair|single)' study/kaggle/runs.yaml; do
-    warn "Not yet. Ask Krishna to finish the probe and push, then press Enter to check again."
-    pause
+    gap
+    bad "Not there yet. Krishna's probe has not been pushed."
+    why "Ask Krishna. When they say it is pushed, press Enter to check again (or close this window and come back)."
+    if ! read -r _; then exit 0; fi
     git pull --ff-only -q || true
   done
-  say "${GREEN}✓ Batch sizes are in:${RESET}"
-  grep -E '^  [0-9]+:|^pairing:' study/kaggle/runs.yaml | sed 's/^/    /'
-  say "Send Krishna $SMOKE (or commit and push it if you have access)."
-  pause
+  gap
+  ok "The batch sizes are in:"
+  grep -E '^  [0-9]+:|^pairing:' study/kaggle/runs.yaml | sed 's/^/      /'
+  gap
+  why "Also send Krishna your test result: study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
 fi
-
-stage "Create notebook B, which reads notebook A"
-open_url "https://www.kaggle.com/code"
-step "Click ${BOLD}+ New Notebook${RESET} and rename it to ${BOLD}uav-$KAGGLE_WHO-b${RESET}."
-notebook_settings
-step "In the right-hand panel under ${BOLD}Input${RESET}, click ${BOLD}+ Add Input${RESET}. Filter to ${BOLD}Your Work${RESET} / ${BOLD}Notebooks${RESET},"
-say  "    search ${BOLD}uav-$KAGGLE_WHO-a${RESET} and add it. It then appears under Input."
-ask NOTEBOOK_B "Paste notebook B's address from the browser bar:"
-write_env NOTEBOOK_B "$NOTEBOOK_B"
-
-stage "Session 1: your first training session (notebook B)"
-TASK1=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR")
-say "Runs go in the order of study/RUNS.md. This session:"
-copy_cell "$TASK1"
-note "--new marks runs that start from zero. Later sessions resume them automatically, and a session"
-note "stops at once rather than silently restarting a run whose checkpoint it cannot find."
-save_and_run "session 1"
-write_env LAST_NOTEBOOK "B"
-write_env SESSIONS_STARTED "1"
-pause "Press Enter once the version is running."
-
-stage "What happens now"
-say "The session trains for up to ~11 h, then stops cleanly after a saved epoch. A run that is not finished"
-say "simply continues next session, so nothing is lost. A 640 run needs very roughly 5 GPU-hours."
-say ""
-say "${BOLD}When it has finished${RESET} (check the notebook page), run:"
-say "    ${BOLD}bash study/kaggle/wizard.sh next${RESET}"
-say "It tells you what to download, files it in the repo and your checkpoint folder, and starts the next session."
-pause
-finish
+gap
+pause "Press Enter to continue."
 }
+
+setup_8() {
+section "Create notebook B" "Notebook B reads notebook A's results. From now on you use B, then A, then B, and so on."
+open_url "https://www.kaggle.com/code"
+num 1 "Click $(key '+ New Notebook')."
+num 2 "Rename it to $(key "uav-$KAGGLE_WHO-b")."
+notebook_settings 3
+num 6 "In the right panel, under $(key Input), click $(key '+ Add Input')."
+num 7 "Choose $(key 'Your Work') (or $(key Notebooks)), search $(key "uav-$KAGGLE_WHO-a"), and click its $(key '+') to add it."
+must "Is uav-$KAGGLE_WHO-a now listed under Input?"
+num 8 "Copy notebook B's address from the browser's address bar."
+gap
+ask_url NOTEBOOK_B "Paste it here:"
+}
+
+setup_9() {
+section "Start your first training session" "This session trains your first runs. It stops by itself before Kaggle's 12-hour limit; unfinished runs continue next time."
+TASK1=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR")
+copy_cell "$TASK1"
+why "--new means: this run starts from zero. Later sessions continue it automatically."
+open_url "$NOTEBOOK_B"
+save_and_run "session 1" 1
+remember LAST_NOTEBOOK "B"
+remember SESSIONS_STARTED "1"
+}
+
+setup_10() {
+section "You are set up" ""
+gap
+ok "Your first training session is running in notebook B."
+gap
+say "It runs for up to about 11 hours. Come back after $(key "$(come_back 660)") or when its page says it has finished."
+gap
+heading "Then, every time a session finishes, run:"
+gap
+say "    $(key 'bash study/kaggle/wizard.sh next')"
+gap
+why "It shows you what to download, saves your results, and starts the next session in the other notebook."
+why "It takes about 5 minutes. Repeat until it says every run on your list is finished."
+gap
+pause "Press Enter to finish."
+}
+
+setup_flow() {
+TOTAL_STAGES=10
+local from="${SETUP_AT:-0}" i
+if (( from >= TOTAL_STAGES )); then
+  gap; ok "Your setup is already complete."
+  say "After a session finishes, run: $(key 'bash study/kaggle/wizard.sh next')"
+  gap
+  confirm "Start the setup again from the beginning anyway?" || exit 0
+  from=0
+fi
+if (( from == 0 )); then
+  banner "UAV YOLO study · Kaggle setup"
+else
+  _clear
+  gap; say "$(key 'Welcome back.') You stopped after stage $from of $TOTAL_STAGES."
+  gap
+  if ! confirm "Continue from stage $(( from + 1 ))?"; then from=0; fi
+fi
+_STAGE_INDEX=$from
+for (( i = from + 1; i <= TOTAL_STAGES; i++ )); do
+  "setup_$i"
+  remember SETUP_AT "$i"
+done
+wrap_up
+}
+
+# ── After every session ───────────────────────────────────────────────────
 
 next_flow() {
 TOTAL_STAGES=4
 if [[ -z "${NOTEBOOK_A:-}" || -z "${NOTEBOOK_B:-}" || -z "${LAST_NOTEBOOK:-}" ]]; then
-  warn "Run the setup first: bash study/kaggle/wizard.sh"
+  warn "Finish the setup first: bash study/kaggle/wizard.sh"
   exit 1
 fi
 if [[ "$LAST_NOTEBOOK" == "A" ]]; then
@@ -405,79 +659,110 @@ if [[ "$LAST_NOTEBOOK" == "A" ]]; then
 else
   LAST_URL="$NOTEBOOK_B"; NEXT="A"; NEXT_URL="$NOTEBOOK_A"; LAST_SLUG="uav-$KAGGLE_WHO-b"
 fi
-banner "UAV YOLO study: between two Kaggle sessions"
+banner "UAV YOLO study · Between two sessions"
 
-stage "Bring the last session's results home (notebook $LAST_NOTEBOOK)"
-watch_and_download "$LAST_URL"
-ask BRING_HOME_PATH "Path of the downloaded bring-home folder or .zip (you can drag it into this window):"
-BRING_HOME_PATH=${BRING_HOME_PATH//\'/}
-helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR"
-note "PAUSED is normal: that run continues next session."
-note "INVALID, or the same run CRASHED twice in a row: stop here and tell Krishna."
-pause
+section "Bring the results home" "You download what the last session made (in notebook $LAST_NOTEBOOK). The wizard files it for you."
+if ! confirm "Has the last session (notebook $LAST_NOTEBOOK) finished on Kaggle?"; then
+  gap
+  say "No problem. Come back when it has finished and run the same command:"
+  say "    $(key 'bash study/kaggle/wizard.sh next')"
+  exit 0
+fi
+download_steps "$LAST_URL"
+ask_download BRING_HOME_PATH
+gap
+helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
+gap
+heading "What the result means"
+why "FINISHED   the run is done and evaluated."
+why "PAUSED     normal: the run continues in the next session."
+why "CRASHED    start the next session normally. If the same run crashes twice, tell Krishna."
+why "INVALID    stop here and tell Krishna."
+gap
+pause "Press Enter to continue."
 
-stage "Share the finished records"
+section "Share the finished results" "Finished runs produce a small result file. It goes to GitHub, so the paper uses it."
+gap
 if [[ -n "$(git status --porcelain -- study/verification)" ]]; then
-  git status --short -- study/verification | sed 's/^/    /'
-  if confirm "Commit and push these result records?"; then
+  say "New result files:"
+  git status --short -- study/verification | sed 's/^/      /'
+  gap
+  if confirm "Commit and push them to GitHub?"; then
     git add study/verification
     git commit -q -m "Add Kaggle run records from $KAGGLE_WHO's session"
-    git push -q || { warn "Push failed (no access?): send these files to Krishna instead."; SKIPPED+=("send the study/verification records to Krishna"); }
+    if git push -q; then
+      ok "Pushed."
+    else
+      warn "The push failed (no access, or the wrong GitHub account). Send these files to Krishna instead."
+      SKIPPED+=("send the new study/verification files to Krishna")
+    fi
   else
-    SKIPPED+=("commit + push the study/verification records")
+    SKIPPED+=("commit + push the new study/verification files")
   fi
 else
-  say "No new finished records this time (runs still in progress). That is fine."
+  ok "Nothing new to share this time: your runs are still in progress. That is normal."
 fi
-pause
+gap
+pause "Press Enter to continue."
 
-stage "Get notebook $NEXT ready"
+section "Get notebook $NEXT ready" "The next session runs in the other notebook, so it can read the results the last one made."
 open_url "$NEXT_URL"
-step "Click ${BOLD}Edit${RESET} to open the notebook."
+num 1 "Click $(key Edit) to open the notebook."
 if [[ "$NEXT" == "A" && "${A_READS_B:-}" != "yes" ]]; then
-  step "First time only: in the right-hand panel under ${BOLD}Input${RESET}, click ${BOLD}+ Add Input${RESET} -> ${BOLD}Your Work${RESET} / ${BOLD}Notebooks${RESET},"
-  say  "    search ${BOLD}uav-$KAGGLE_WHO-b${RESET} and add it."
-  pause "Press Enter once uav-$KAGGLE_WHO-b is listed under Input."
-  write_env A_READS_B "yes"
+  num 2 "First time only: in the right panel under $(key Input), click $(key '+ Add Input')."
+  num 3 "Choose $(key 'Your Work') (or $(key Notebooks)), search $(key "uav-$KAGGLE_WHO-b"), and click its $(key '+')."
+  must "Is uav-$KAGGLE_WHO-b now listed under Input?"
+  remember A_READS_B "yes"
+  n=4
+else
+  num 2 "Look under $(key Input) in the right panel: $(key "$LAST_SLUG") must be listed."
+  more "If Kaggle offers to update it to a newer version, accept."
+  must "Is $LAST_SLUG listed under Input?"
+  n=3
 fi
-step "Check that the Input panel lists ${BOLD}$LAST_SLUG${RESET}. If Kaggle offers to update it to a newer version, accept."
-notebook_settings
-pause
+notebook_settings "$n"
 
-stage "Start the next session (notebook $NEXT)"
+section "Start the next session" "The wizard picks the runs: unfinished ones first, then the next ones on your list."
 TASK=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR")
 if [[ "$TASK" == "ALL-DONE" ]]; then
-  say "${GREEN}${BOLD}Every run on your list is finished and evaluated.${RESET} Nothing to start. Tell Krishna."
-  pause
-  finish
+  gap
+  ok "Every run on your list is finished and evaluated. There is nothing to start."
+  say "Tell Krishna. Well done!"
+  gap
+  pause "Press Enter to finish."
+  wrap_up
   return
 fi
 N=$(( ${SESSIONS_STARTED:-1} + 1 ))
 copy_cell "$TASK"
-save_and_run "session $N"
-write_env LAST_NOTEBOOK "$NEXT"
-write_env SESSIONS_STARTED "$N"
-say "When this one finishes, run ${BOLD}bash study/kaggle/wizard.sh next${RESET} again."
-pause
-finish
+open_url "$NEXT_URL"
+save_and_run "session $N" 1
+remember LAST_NOTEBOOK "$NEXT"
+remember SESSIONS_STARTED "$N"
+gap
+say "Come back after $(key "$(come_back 660)"), or when the notebook's page says it has finished, and run:"
+say "    $(key 'bash study/kaggle/wizard.sh next')"
+gap
+pause "Press Enter to finish."
+wrap_up
 }
 
 run_wizard() {
 cd "$(git rev-parse --show-toplevel 2>/dev/null || dirname "$0")" || exit 1
 if [[ ! -f study/kaggle/session.py ]]; then
-  printf 'Run this from inside the uav-yolo-edge-compression repo.\n'
+  printf 'Run this from inside the uav-yolo-edge-compression folder (cd into it first).\n'
   exit 1
 fi
 ENV_FILE="study/kaggle/.env.kaggle"
-# Load values saved by earlier runs, so `next` knows your notebooks.
-for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B; do
+# Load what earlier runs saved, so the wizard knows your notebooks and where you stopped.
+for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT; do
   v=$(_existing "$k" || true)
   printf -v "$k" '%s' "$v"
 done
 case "${1:-setup}" in
   setup) setup_flow ;;
   next)  next_flow ;;
-  *)     printf 'Usage: bash study/kaggle/wizard.sh [setup|next]\n'; exit 1 ;;
+  *)     printf 'Usage:\n  bash study/kaggle/wizard.sh        first-time setup\n  bash study/kaggle/wizard.sh next   after every Kaggle session\n'; exit 1 ;;
 esac
 }
 

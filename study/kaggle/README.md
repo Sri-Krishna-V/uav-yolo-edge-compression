@@ -59,21 +59,27 @@ bash study/kaggle/wizard.sh
 The wizard opens each web page for you, says exactly what to click, copies the notebook code into your
 clipboard, and remembers your answers. You can stop it with **Ctrl-C** at any time and run it again later.
 
-It has 9 stages:
+It has 10 stages. A bar at the top shows how far you are, and every stage starts with one line saying why it
+exists. When a setting really matters (GPU T4 x2, Internet on, the version is running), the wizard asks
+you to confirm it before moving on.
 
 | Stage | What you do | Time |
 |---|---|---|
-| 1. About you | Your name, your run list, a folder for checkpoint copies | 1 min |
-| 2. Kaggle account | Sign in and verify your phone. Without this, Kaggle hides the GPU and Internet settings | 5 min |
-| 3. Notebook A | Create a notebook called `uav-<you>-a`; set **GPU T4 x2** and **Internet on** | 3 min |
-| 4. Session 0 | Paste the cell and start it. It installs everything, checks the dataset and runs the **smoke test** (proof this account's setup is sound). srikr's Session 0 also runs the **probe**, which measures the batch size everyone must use | 40 min (srikr: ~1.5 h) of waiting |
-| 5. Session 0 result | Download the `bring-home` folder; the wizard checks the smoke test passed | 2 min |
-| 6. Batch sizes | srikr pushes the probe's numbers to GitHub. The teammate waits until they arrive (the wizard checks for them) | 2 min |
-| 7. Notebook B | Create a second notebook `uav-<you>-b` that reads notebook A's output | 3 min |
-| 8. Session 1 | Your first training session starts, in notebook B | 2 min |
-| 9. What happens now | When to come back | |
+| 1. Check your computer | Nothing: the wizard checks Git, Python, the clipboard, and updates the repo | 10 s |
+| 2. About you | Your name, your model (type 1 or 2), and a folder for checkpoint copies | 1 min |
+| 3. Kaggle account | Sign in and verify your phone. Without this, Kaggle hides the GPU and Internet settings | 5 min |
+| 4. Notebook A | Create a notebook called `uav-<you>-a`; set **GPU T4 x2** and **Internet on**; paste its address | 3 min |
+| 5. Session 0 | Paste the cell and start it. It installs everything, checks the dataset and runs the **smoke test** (proof this account's setup is sound). srikr's Session 0 also runs the **probe**, which measures the batch size everyone must use. The wizard tells you what time to come back | 40 min (srikr: ~1.5 h) of waiting |
+| 6. Session 0 result | Download the `bring-home` folder. The wizard finds it in your Downloads and checks the smoke test passed | 2 min |
+| 7. Batch sizes | srikr pushes the probe's numbers to GitHub. The teammate waits until they arrive (the wizard checks for them) | 2 min |
+| 8. Notebook B | Create a second notebook `uav-<you>-b` that reads notebook A's output | 3 min |
+| 9. Session 1 | Your first training session starts, in notebook B | 2 min |
+| 10. You are set up | When to come back, and what to run then | |
 
-**The teammate can do stages 1–5 at the same time as srikr.** Only stage 6 waits for srikr's probe.
+**You can close the wizard at any time**, for example during Session 0's wait. Run the same command again
+later: it says *"Welcome back"* and continues from the stage where you stopped.
+
+**The teammate can do stages 1–6 at the same time as srikr.** Only stage 7 waits for srikr's probe.
 
 ### Why two notebooks?
 
@@ -99,7 +105,8 @@ When a session has finished (check the notebook's page on Kaggle), run:
 bash study/kaggle/wizard.sh next
 ```
 
-It has 4 stages, about 5 minutes in total:
+It has 4 stages, about 5 minutes in total. If the session has not finished yet, answer *no* to the first
+question and the wizard closes without changing anything:
 
 1. **Bring the results home.** Download the `bring-home` folder from the finished version's Output. The
    wizard files the result records into the repo and copies the checkpoints into your checkpoint folder.
