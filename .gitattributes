@@ -1,0 +1,2 @@
+# Shell scripts must keep LF endings on every OS: bash fails on CRLF (Windows checkouts convert by default).
+*.sh text eol=lf

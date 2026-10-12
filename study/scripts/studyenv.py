@@ -19,6 +19,12 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = ROOT / ".ultralytics"
 DATA = "VisDrone.yaml"
 
+# On Kaggle everything under /kaggle/working is saved as the version's output, so the dataset (~4 GB once
+# extracted) lives outside it. It is re-downloaded and re-fingerprinted every session anyway.
+ON_KAGGLE = Path("/kaggle/working").is_dir()
+DATASETS_DIR = Path(os.environ.get("STUDY_DATASETS_DIR") or ("/tmp/study-datasets" if ON_KAGGLE else ROOT / "datasets"))
+VISDRONE_DIR = DATASETS_DIR / "VisDrone"
+
 os.environ["YOLO_CONFIG_DIR"] = str(CONFIG_DIR)
 os.environ["YOLO_AUTOINSTALL"] = "false"
 
@@ -28,7 +34,7 @@ if _installed < _floor:
     sys.exit(f"ultralytics {version('ultralytics')} < 8.4.133: AP-small/medium/large would be missing. See INVARIANTS.md.")
 
 WANTED_SETTINGS = {
-    "datasets_dir": str(ROOT / "datasets"),
+    "datasets_dir": str(DATASETS_DIR),
     "weights_dir": str(ROOT / "weights"),
     "runs_dir": str(ROOT / "runs"),
     "sync": False,
@@ -49,3 +55,12 @@ TRAIN_ARGS = {**INVARIANTS["shared"], **INVARIANTS["train"]}
 EVAL_ARGS = {**INVARIANTS["shared"], **{k: v for k, v in INVARIANTS["eval"].items() if k != "coco_max_dets"}}
 COCO_MAX_DETS = list(INVARIANTS["eval"]["coco_max_dets"])
 AREA_KEYS = ["metrics/mAP_small(B)", "metrics/mAP_medium(B)", "metrics/mAP_large(B)"]
+
+
+def git_commit():
+    """The commit this code was checked out at, so every record says which code produced it."""
+    try:
+        out = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True)
+    except OSError:
+        return None
+    return out.stdout.strip() or None

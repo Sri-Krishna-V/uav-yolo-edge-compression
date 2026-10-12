@@ -52,4 +52,4 @@ VisDrone2019-DET: `train` (6,471), `val` (548), `test-dev` (1,610). The split th
 
 ## Destination vs execution
 
-This repo is currently running a **wayfinder map**: the work in progress is deciding *how* to run the study, not running it. Training runs, exports, and benchmarks are **execution**, and begin only once the map is clear.
+The **map** decides *how* the study runs; **execution** is running it: training runs, exports, and benchmarks. Baseline training executes alongside the map (since 2026-10-09, once the recipe was frozen); exports and benchmarks each wait for the decision ticket that governs them.

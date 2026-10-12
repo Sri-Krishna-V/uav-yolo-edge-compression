@@ -9,62 +9,31 @@ Proves, on this machine and in this environment, that:
 
 1 epoch on 10% of train per study model: the mAP values are meaningless, only the plumbing matters.
 Run fingerprint_visdrone.py first - conversion deletes the raw annotations it needs.
+
+  python smoke.py                    # the laptop: verification/smoke_results.json
+  python smoke.py --tag kaggle-srikr # any other machine: verification/smoke_results-kaggle-srikr.json
 """
 
+import argparse
 import json
 import math
 import platform
 import subprocess
 import sys
-from collections import Counter
 from datetime import date
 from importlib.metadata import version
 from pathlib import Path
 
 import studyenv  # noqa: F401  must precede ultralytics
 import studyeval
+from fingerprint_visdrone import verify_conversion
 
 import torch  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
-from ultralytics.data.utils import check_det_dataset  # noqa: E402
 
 ROOT = studyenv.ROOT
-OUT = ROOT / "verification" / "smoke_results.json"
 SMOKE_MODELS = ["yolo11s.pt", "yolo26s.pt"]
-SPLIT_TO_FINGERPRINT = {"train": "train", "val": "val", "test": "test-dev"}
 REQUIRED_STATS = [*studyenv.AREA_KEYS, "coco/AP_all", "coco/AP_50", "coco/AP_75", "coco/AP_small", "coco/AR_500"]
-
-
-def verify_conversion(failures):
-    fp_file = ROOT / "verification" / "visdrone_fingerprint.json"
-    if not fp_file.exists():
-        sys.exit("Run fingerprint_visdrone.py first: conversion deletes the raw annotations.")
-    fp = json.loads(fp_file.read_text(encoding="utf-8"))
-    if not fp["checks_passed"]:
-        sys.exit("Raw-zip fingerprint failed its checks; refusing to convert a suspect download.")
-
-    data = check_det_dataset(studyenv.DATA)  # first call converts, reusing the already-downloaded zips
-    base = Path(data["path"])
-    report = {}
-    for split, fp_split in SPLIT_TO_FINGERPRINT.items():
-        raw = fp["splits"][fp_split]
-        images = len(list((base / "images" / split).glob("*.jpg")))
-        label_files = list((base / "labels" / split).glob("*.txt"))
-        classes = Counter()
-        max_objects = 0
-        for f in label_files:
-            lines = [line for line in f.read_text(encoding="utf-8").splitlines() if line.strip()]
-            max_objects = max(max_objects, len(lines))
-            classes.update(int(line.split()[0]) for line in lines)
-        per_class = [classes[k] for k in range(10)]
-        report[split] = {"images": images, "label_files": len(label_files), "label_rows": sum(classes.values()), "per_class": per_class, "max_objects_per_image": max_objects}
-        if images != raw["images"] or len(label_files) != raw["annotation_files"]:
-            failures.append(f"{split}: {images} images / {len(label_files)} label files, raw zip had {raw['images']}")
-        if per_class != raw["kept_per_class_1_to_10"]:
-            failures.append(f"{split}: converted per-class rows {per_class} != raw kept rows {raw['kept_per_class_1_to_10']}")
-        if set(classes) - set(range(10)):
-            failures.append(f"{split}: out-of-range class ids {sorted(set(classes) - set(range(10)))}")
-    return report
 
 
 def check_eval(where, result, failures):
@@ -129,15 +98,20 @@ def environment():
 
 
 def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--tag", default=None, help="machine tag for the record file, e.g. kaggle-srikr. Omit only on the laptop")
+    a = p.parse_args()
+    out = ROOT / "verification" / (f"smoke_results-{a.tag}.json" if a.tag else "smoke_results.json")
+
     failures = []
-    result = {"environment": environment(), "invariants": studyenv.INVARIANTS}
+    result = {"environment": environment(), "invariants": studyenv.INVARIANTS, "git_commit": studyenv.git_commit()}
     result["conversion"] = verify_conversion(failures)
     result["models"] = {w: smoke_model(w, failures) for w in SMOKE_MODELS}
     result["checks_passed"] = not failures
     result["failures"] = failures
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
-    print(json.dumps({"checks_passed": result["checks_passed"], "failures": failures}, indent=2))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+    print(json.dumps({"checks_passed": result["checks_passed"], "failures": failures, "written": str(out)}, indent=2))
     sys.exit(1 if failures else 0)
 
 

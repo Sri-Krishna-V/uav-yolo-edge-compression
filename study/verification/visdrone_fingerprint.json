@@ -1,5 +1,7 @@
 {
-  "fingerprinted_on": "2026-09-12",
+  "fingerprinted_on": "2026-10-12",
+  "host": "Mr-W-R-A-T-H",
+  "zip_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\datasets\\VisDrone",
   "splits": {
     "train": {
       "zip": "VisDrone2019-DET-train.zip",

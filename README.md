@@ -39,7 +39,7 @@ per-level sensitivity map at matched parameters *and matched measured device lat
 | [`study/INVARIANTS.md`](study/INVARIANTS.md) | Every frozen setting with its justification. Read this first |
 | [`study/cfg/`](study/cfg) | `invariants.yaml` (shared/train/eval) and `train_baseline.yaml` (the recipe) |
 | [`study/scripts/`](study/scripts) | `studyenv` (environment guard), `studyeval` (the only sanctioned evaluator), `studytrain` (launcher), `fingerprint_visdrone`, `smoke` |
-| [`study/kaggle/`](study/kaggle) | How a training session is run, and the machine probe |
+| [`study/kaggle/`](study/kaggle) | The team guide to training on Kaggle, its wizard, the session runner, the run table and the machine probe |
 | [`study/RUNS.md`](study/RUNS.md) | The baseline run plan: 10 runs, owners, order, cut order |
 | [`study/verification/`](study/verification) | Per-machine smoke records, dataset fingerprint, per-run result records |
 | [`CONTEXT.md`](CONTEXT.md) | Glossary. *Cell*, *configuration*, *platform* vs *runtime*, *matrix resolution* |
@@ -48,12 +48,19 @@ per-level sensitivity map at matched parameters *and matched measured device lat
 ## Reproducing a run
 
 Training runs on Kaggle (accelerator **T4 x2**; the P100 option cannot run a CUDA 13 build of PyTorch).
+**Start with the team guide, [`study/kaggle/README.md`](study/kaggle/README.md)**, and its wizard:
 
 ```bash
-pip install -r study/requirements.txt
-python study/scripts/fingerprint_visdrone.py   # verify the dataset BEFORE conversion deletes the raw annotations
-python study/scripts/smoke.py                  # this machine may now produce reported numbers
-python study/scripts/studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu 16
+bash study/kaggle/wizard.sh        # once per person: Kaggle account -> smoke test -> first training session
+bash study/kaggle/wizard.sh next   # after every Kaggle session
+```
+
+What one Kaggle session runs, step by step (any machine with the pinned environment can run the same):
+
+```bash
+python study/scripts/fingerprint_visdrone.py --download --convert   # fetch, SHA-256-check and convert VisDrone
+python study/scripts/smoke.py --tag kaggle-<name>                   # this machine may now produce reported numbers
+python study/scripts/studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu <runs.yaml>
 ```
 
 A machine without a passing `smoke.py` record does not produce numbers that go in the paper.

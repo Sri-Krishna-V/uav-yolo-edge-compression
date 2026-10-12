@@ -1,0 +1,8 @@
+# UAV YOLO study: one Kaggle session. This is the notebook's ONLY cell.
+# Each session, change only the TASK line (the wizard gives you the exact line), then Save Version -> Save & Run All.
+# Guide: https://github.com/Sri-Krishna-V/uav-yolo-edge-compression/blob/main/study/kaggle/README.md
+TASK = "status"
+
+!rm -rf /kaggle/working/uav && git clone -q --depth 1 https://github.com/Sri-Krishna-V/uav-yolo-edge-compression.git /kaggle/working/uav
+!cd /kaggle/working/uav && git log -1 --format="code version: %h %s"
+!python /kaggle/working/uav/study/kaggle/session.py setup && python /kaggle/working/uav/study/kaggle/session.py {TASK}

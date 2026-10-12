@@ -53,16 +53,26 @@ Never cut A1-A4: they carry the critical path and the noise floor.
 
 ## Running one
 
+On Kaggle, follow [`kaggle/README.md`](kaggle/README.md): `bash study/kaggle/wizard.sh` once, then
+`bash study/kaggle/wizard.sh next` after every session. The machine-readable copy of the table above, plus
+the frozen per-GPU batch per imgsz and the pairing verdict, is [`kaggle/runs.yaml`](kaggle/runs.yaml).
+`kaggle/session.py train` chooses fresh / `--resume` / `--eval-only` per run and calls:
+
 ```bash
-python scripts/studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu <from probe>
-python scripts/studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu <same> --resume
+python scripts/studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu <runs.yaml> --stop-by <unix time>
 ```
 
 - `batch-per-gpu` is held constant for a given imgsz across every machine and both executors. Ultralytics splits
-  `batch` across GPUs and does not sync BatchNorm, so the per-GPU batch is the comparable quantity.
-- A run that will not fit in one Kaggle session is continued with `--resume` in the next session. `last.pt` is
-  written every epoch, so a killed session costs at most one epoch.
-- `studytrain.py` evaluates on `val` and `test-dev` through `studyeval` when training ends, and writes the record.
+  `batch` across GPUs and does not sync BatchNorm, so the per-GPU batch is the comparable quantity. The probe
+  picks it with 20% memory headroom; a run whose batch Ultralytics halves after an out-of-memory error is
+  renamed `*-INVALID-batch` and never resumed.
+- One run per GPU, never DDP: Ultralytics does not pass callbacks into its DDP subprocess, so neither the pause
+  nor the batch check would work. Two runs share a session only if the probe's verdict is `pair`.
+- A run that will not fit in one Kaggle session pauses after the last epoch that ends before ~11 h (exit 75) and
+  continues with `--resume` in the next session. Each person alternates two notebooks, because a Kaggle notebook
+  cannot attach its own output.
+- `studytrain.py` evaluates on `val` and `test-dev` through `studyeval`, on the run's own GPU, when training ends,
+  and writes the record. A run trained to the end but not evaluated is finished with `--eval-only`.
 
 ## Provisional schedule (one month from 2026-10-09)
 

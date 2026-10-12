@@ -53,3 +53,6 @@ desktop.ini
 *.npy
 *.csv.gz
 wandb/
+
+# Kaggle wizard: per-person answers and the scratch cell it copies to the clipboard
+study/kaggle/.cell-to-paste.txt

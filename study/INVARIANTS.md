@@ -31,7 +31,7 @@ On this laptop, the machine-global Ultralytics `settings.json` points `datasets_
 
 ### 1.2 Per-machine record
 
-Run `scripts/smoke.py` once on every machine that trains or evaluates (laptop, Kaggle, Colab). The `environment` block of `verification/smoke_results.json` is that machine's record: torch CUDA build, cuDNN, GPU, driver. A machine without a passing smoke run does not produce reported numbers.
+Run `scripts/smoke.py` once on every machine that trains or evaluates (laptop, Kaggle, Colab). The `environment` block of its record is that machine's record: torch CUDA build, cuDNN, GPU, driver. The laptop's is `verification/smoke_results.json`; every other machine passes `--tag` and gets its own file, e.g. `verification/smoke_results-kaggle-srikr.json`, so no record overwrites another. A machine without a passing smoke run does not produce reported numbers.
 
 ### 1.3 Export toolchains: **not frozen here**
 
@@ -54,7 +54,7 @@ VisDrone2019-DET, from the Ultralytics mirror `https://github.com/ultralytics/as
 | test-dev | `b28a94b06dfd9e36ce77ff8155fb82b9d2c030f198a76105933bd56c6ea6a68d` | 1,610 | 77,547 | 75,102 | 2,180 | 265 | 46.6 / 461 |
 
 - **Converter verified on our own download.** `score == 0` is exactly `category ∈ {0, 11}` on every row of every split, with zero exceptions. Image counts, ignored/others counts and test-dev per-class counts match an independent download made during the VisDrone research. The smoke run also checks the converted YOLO labels row for row against the raw zips.
-- **Any re-download** (a new machine, Kaggle): run `fingerprint_visdrone.py` *before* the first Ultralytics use. The conversion deletes the raw annotations. A SHA-256 mismatch means different data, so stop.
+- **Any re-download** (a new machine, Kaggle): run `fingerprint_visdrone.py` *before* the first Ultralytics use. The conversion deletes the raw annotations. A SHA-256 mismatch means different data, so stop: the script checks the three hashes above and fails on a mismatch. `--download --convert` fetches the zips, fingerprints them, converts once and checks every label row; Kaggle's `session.py setup` runs exactly that every session. The fingerprint record carries the machine's host name, and the conversion check refuses a record from another machine (the repo ships the laptop's).
 - The test-challenge split is not downloaded and never used.
 
 ---
@@ -154,7 +154,7 @@ Frozen 2026-10-09 by the map ticket *Baseline training recipe*. Machine-readable
 
 ### 7.1 Training machines
 
-**Kaggle only, accelerator T4 ×2.** The P100 option cannot run this environment: torch 2.14 is a CUDA 13 build and CUDA 13 dropped Pascal support. The RTX 4050 laptop does not train. Each executor uses one account; `scripts/smoke.py` and `kaggle/probe_kaggle.py` run once per account before it produces numbers, and both records are kept. Checkpoints are mirrored off Kaggle after every session.
+**Kaggle only, accelerator T4 ×2.** The P100 option cannot run this environment: torch 2.14 is a CUDA 13 build and CUDA 13 dropped Pascal support. The RTX 4050 laptop does not train. Each executor uses one account. `scripts/smoke.py` runs once per account before it produces numbers; `kaggle/probe_kaggle.py` runs once for the study (the machine class is the same on both accounts) and its per-imgsz batch and pairing verdict are frozen in `kaggle/runs.yaml`. Both records are kept. Checkpoints are mirrored off Kaggle after every session. The procedure is [`kaggle/README.md`](kaggle/README.md).
 
 ---
 

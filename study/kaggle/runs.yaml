@@ -1,0 +1,25 @@
+# The baseline runs, machine-readable. kaggle/session.py reads this file; ../RUNS.md explains it.
+# Edit the run table in RUNS.md and here together.
+
+# Per-GPU batch for each input resolution: ONE value per resolution, the same for every run, both families
+# and both executors. Written once by `session.py apply-probe` from verification/kaggle_probe.json, then frozen:
+# changing it after the first run at that resolution makes the runs incomparable.
+batch_per_gpu:
+  640: null
+  960: null
+  1280: null
+
+# "pair": two runs per Kaggle session, one per GPU. "single": one run per session. From the same probe.
+pairing: null
+
+runs: # in each owner's order of work (RUNS.md, "Order of work")
+  A1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0}
+  A3: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 1}
+  A4: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 2}
+  B1: {owner: srikr, model: yolo11s.pt, imgsz: 960, seed: 0}
+  B3: {owner: srikr, model: yolo11s.pt, imgsz: 1280, seed: 0}
+  A2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0}
+  A5: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 1}
+  A6: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 2}
+  B2: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0}
+  B4: {owner: teammate, model: yolo26s.pt, imgsz: 1280, seed: 0}
