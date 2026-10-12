@@ -187,7 +187,9 @@ fair. The code enforces most of them. Please don't work around the ones it can't
    every run at a given resolution, or the runs aren't comparable. Report it instead.
 5. **Keep the checkpoints off Kaggle.** `wizard.sh next` copies them into your checkpoint folder. Put
    that folder in Google Drive or OneDrive, so the only copy is never on one account or one laptop.
-6. **Don't evaluate or report numbers any other way** (no `model.val()`, no Kaggle-side tweaks). The
+6. **Attach only your own two notebooks as inputs.** A session loads every checkpoint it finds in its inputs,
+   and loading a checkpoint can run code stored in it. Never attach someone else's notebook or dataset.
+7. **Don't evaluate or report numbers any other way** (no `model.val()`, no Kaggle-side tweaks). The
    only reported numbers are the ones in `study/verification/runs/*.json`.
 
 ---

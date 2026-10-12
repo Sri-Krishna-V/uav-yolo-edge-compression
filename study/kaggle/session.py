@@ -206,12 +206,15 @@ def apply_probe(path, force):
 def checkpoint_epoch(path):
     import torch
 
-    # Our own Ultralytics checkpoints from our own Kaggle outputs: they pickle model objects, so weights_only=False.
+    # Unpickles (Ultralytics checkpoints hold model objects, so weights_only=True cannot load them), which can run
+    # code from the file. Only checkpoints this study wrote reach here: find_in_inputs() reads nothing but the
+    # uav/study tree our own notebook cell creates, and Ultralytics unpickles the same last.pt again to resume.
     return torch.load(path, map_location="cpu", weights_only=False).get("epoch", -1)
 
 
 def find_in_inputs(pattern):
-    return sorted(INPUTS.glob(pattern)) if INPUTS.is_dir() else []
+    """Files under an attached input's uav/study/ tree: only the output of our own notebook cell is ever read."""
+    return sorted(INPUTS.glob(f"**/uav/study/{pattern}")) if INPUTS.is_dir() else []
 
 
 def carry_forward():
@@ -222,7 +225,7 @@ def carry_forward():
     version of either notebook a complete copy of the study so far, whichever run it trained.
     """
     runs = {}
-    for last in find_in_inputs("**/runs/baseline/*/weights/last.pt"):
+    for last in find_in_inputs("runs/baseline/*/weights/last.pt"):
         runs.setdefault(last.parents[1].name, []).append(last)
     for name, candidates in runs.items():
         local = RUNS_DIR / name / "weights" / "last.pt"
@@ -232,11 +235,11 @@ def carry_forward():
         if best != local:
             shutil.copytree(best.parents[1], RUNS_DIR / name, dirs_exist_ok=True)
             print(f"carried forward {name} (epoch {'final' if checkpoint_epoch(best) == -1 else checkpoint_epoch(best) + 1}) from {best.parents[1]}", flush=True)
-    for d in find_in_inputs("**/runs/baseline/*-eval-*"):
+    for d in find_in_inputs("runs/baseline/*-eval-*"):
         if d.is_dir() and not (RUNS_DIR / d.name).exists():
             shutil.copytree(d, RUNS_DIR / d.name)
-    for pattern, dest in (("**/verification/runs/*.json", RECORD_DIR), ("**/verification/smoke_results-kaggle-*.json", VERIFICATION),
-                          ("**/verification/kaggle_probe.json", VERIFICATION)):
+    for pattern, dest in (("verification/runs/*.json", RECORD_DIR), ("verification/smoke_results-kaggle-*.json", VERIFICATION),
+                          ("verification/kaggle_probe.json", VERIFICATION)):
         for f in find_in_inputs(pattern):
             if not (dest / f.name).exists():
                 dest.mkdir(parents=True, exist_ok=True)
