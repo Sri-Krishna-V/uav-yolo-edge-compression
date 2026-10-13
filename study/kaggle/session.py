@@ -177,7 +177,7 @@ def smoke(who, also_probe):
     bring_home([])
     if not ok:
         fail(f"smoke test FAILED: this account must not produce numbers yet. Send bring-home/smoke_results-kaggle-{who}.json to Krishna.")
-    banner("SMOKE TEST PASSED" + (" + PROBE DONE: download bring-home/kaggle_probe.json" if also_probe else ""))
+    banner("SMOKE TEST PASSED" + (" + PROBE DONE" if also_probe else ""))
 
 
 def apply_probe(path, force):
@@ -349,8 +349,8 @@ def train(ids, new):
     (BRING_HOME / "SESSION_RESULT.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     banner("SESSION RESULT")
     print("\n".join(f"  {line}" for line in lines))
-    print("\n  Next: download the bring-home folder from this version's Output, then run the wizard\n"
-          "  on your computer: bash study/kaggle/wizard.sh next", flush=True)
+    print("\n  Next: on your computer, run the wizard. It downloads these results by itself:\n"
+          "  bash study/kaggle/wizard.sh next", flush=True)
 
 
 # ── laptop side: used by kaggle/wizard.sh ────────────────────────────────────
@@ -370,7 +370,7 @@ def import_bring_home(path, mirror):
         fail(f"{path} is neither a folder nor a .zip")
     homes = [d for d in [src, *src.rglob("bring-home")] if d.is_dir() and ((d / "records").is_dir() or (d / "checkpoints").is_dir() or list(d.glob("*.json")))]
     if not homes:
-        fail(f"No bring-home contents under {src}. Download the bring-home folder from the version's Output.")
+        fail(f"No bring-home contents under {src}. Is this the output of a session that finished?")
     home = homes[0]
     mirror = Path(mirror).expanduser()
     for f in sorted((home / "records").glob("*.json")):

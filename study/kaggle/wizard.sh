@@ -203,6 +203,7 @@ finish() {
 #
 #   bash study/kaggle/wizard.sh          # once per person: computer check -> Kaggle -> first training session
 #   bash study/kaggle/wizard.sh next     # after EVERY training session: bring results home, start the next one
+#   bash study/kaggle/wizard.sh token    # only if Kaggle stops accepting your API token: paste a new one
 #
 # It remembers your answers and how far you got in study/kaggle/.env.kaggle (git-ignored), so you can close
 # it during a long wait and run the same command again later. The written guide is study/kaggle/README.md.
@@ -265,28 +266,55 @@ saved() { write_env "$1" "$2" >/dev/null; ok "Saved."; }
 
 # ── Doing things ──────────────────────────────────────────────────────────
 
-# helper runs the repo's Kaggle helper with whichever Python this machine has (standard library only).
-helper() {
+# python_bin prints the name of this machine's Python 3.9+, or fails.
+python_bin() {
   local bin
   for bin in python3 python py; do
     if command -v "$bin" >/dev/null 2>&1 && "$bin" -c "import sys; sys.exit(sys.version_info < (3, 9))" >/dev/null 2>&1; then
-      "$bin" study/kaggle/session.py "$@"
-      return
-    fi
-  done
-  warn "No Python 3.9+ found. Install it from https://www.python.org/downloads/ and run the wizard again."
-  exit 1
-}
-
-has_python() {
-  local bin
-  for bin in python3 python py; do
-    if command -v "$bin" >/dev/null 2>&1 && "$bin" -c "import sys; sys.exit(sys.version_info < (3, 9))" >/dev/null 2>&1; then
+      printf '%s' "$bin"
       return 0
     fi
   done
   return 1
 }
+
+has_python() { python_bin >/dev/null; }
+
+# helper runs the repo's Kaggle helper with whichever Python this machine has (standard library only).
+helper() {
+  local bin
+  if ! bin=$(python_bin); then
+    warn "No Python 3.9+ found. Install it from https://www.python.org/downloads/ and run the wizard again."
+    exit 1
+  fi
+  "$bin" study/kaggle/session.py "$@"
+}
+
+# The Kaggle CLI lives in its own small Python environment inside the repo (git-ignored), so it needs nothing on
+# PATH and leaves the person's own Python alone.
+CLI_DIR="study/kaggle/.kaggle-cli"
+
+cli_python() {
+  if [[ -x "$CLI_DIR/Scripts/python.exe" ]]; then printf '%s' "$CLI_DIR/Scripts/python.exe"; else printf '%s' "$CLI_DIR/bin/python"; fi
+}
+
+# install_cli: create that environment and install the kaggle package, once.
+install_cli() {
+  if [[ -x "$(cli_python)" ]] && "$(cli_python)" -c "import kaggle.cli" >/dev/null 2>&1; then return 0; fi
+  say "Installing the Kaggle command-line tool. This takes about a minute and happens once..."
+  if "$(python_bin)" -m venv "$CLI_DIR" && "$(cli_python)" -m pip install -q --disable-pip-version-check kaggle; then
+    ok "Installed."
+  else
+    bad "Could not install the Kaggle command-line tool (pip install kaggle failed)."
+    stuck; exit 1
+  fi
+}
+
+# kaggle_cli ARGS: run the Kaggle CLI, signed in with the saved token.
+kaggle_cli() { KAGGLE_API_TOKEN="$KAGGLE_TOKEN" PYTHONIOENCODING=utf-8 "$(cli_python)" -m kaggle "$@"; }
+
+# notebook_ref URL: owner/notebook-slug, the name the Kaggle CLI uses for a notebook.
+notebook_ref() { printf '%s' "${1#*kaggle.com/code/}"; }
 
 has_clipboard() {
   command -v clip.exe >/dev/null 2>&1 || command -v pbcopy >/dev/null 2>&1 ||
@@ -338,29 +366,71 @@ ask_url() {
   done
 }
 
-# ask_download KEY: the downloaded bring-home folder or .zip. Offers the newest one in Downloads.
-ask_download() {
-  local guess=""
-  guess=$(ls -td "$HOME"/Downloads/*bring-home* 2>/dev/null | head -n 1 || true)
-  if [[ -n "$guess" ]]; then
-    gap
-    say "Found $(key "$guess")"
-    if confirm "Is this the one you just downloaded?"; then
-      printf -v "$1" '%s' "$guess"
-      return
-    fi
+# fetch_output KEY URL "re-run command": check that the notebook's newest version has finished, then download its
+# bring-home folder into a new folder under study/kaggle/.downloads and put that folder's path in KEY.
+fetch_output() {
+  local ref status dir
+  ref=$(notebook_ref "$2")
+  if [[ -z "${KAGGLE_TOKEN:-}" ]]; then
+    heading "First, connect the wizard to Kaggle (once)."
+    ask_token
   fi
+  install_cli
+  gap
+  say "Asking Kaggle about $(key "$ref")..."
+  if ! status=$(kaggle_cli kernels status "$ref" 2>&1); then
+    bad "Kaggle did not answer:"
+    printf '%s\n' "$status" | sed 's/^/      /'
+    why "Check your Internet connection. If the token was deleted or expired, run: bash study/kaggle/wizard.sh token"
+    stuck; exit 1
+  fi
+  case "$status" in
+    *QUEUED*|*RUNNING*|*NEW_SCRIPT*)
+      gap
+      say "The session is still running. Come back later and run the same command:"
+      say "    $(key "$3")"
+      exit 0 ;;
+    *COMPLETE*)
+      ok "The session has finished." ;;
+    *)
+      bad "The session did not finish normally. Kaggle says:"
+      printf '%s\n' "$status" | sed 's/^/      /'
+      why "Open $2 , click Logs, and send Krishna a screenshot of the end."
+      stuck; exit 1 ;;
+  esac
+  dir="study/kaggle/.downloads/$(date +%Y%m%d-%H%M%S)-${ref#*/}"
+  mkdir -p "$dir"
+  say "Downloading its results..."
+  if ! kaggle_cli kernels output "$ref" -p "$dir" --file-pattern '^bring-home/' -o -q >/dev/null; then
+    bad "The download failed."
+    stuck; exit 1
+  fi
+  if [[ ! -d "$dir/bring-home" ]]; then
+    # Should not happen; if Kaggle ever names output files without their folder, take the whole output instead.
+    say "Downloading the whole output instead (can be a few hundred MB)..."
+    kaggle_cli kernels output "$ref" -p "$dir" -o -q >/dev/null || { bad "The download failed."; stuck; exit 1; }
+  fi
+  ok "Downloaded to $dir"
+  printf -v "$1" '%s' "$dir"
+}
+
+# ask_token: ask for a Kaggle API token until the CLI can see notebook A with it, then save it.
+ask_token() {
+  local out
+  install_cli
+  open_url "https://www.kaggle.com/settings/api"
+  num 1 "Under $(key API), click $(key 'Generate New Token'). Copy the token Kaggle shows."
+  more "Not $(key 'Create Legacy API Key'): that one downloads a file instead."
+  num 2 "Paste it below. It stays hidden while you paste and is saved only on this computer."
+  gap
   while :; do
-    gap
-    ask "$1" "Drag the downloaded bring-home folder or .zip into this window, then press Enter:"
-    local v="${!1}"
-    v="${v//\'/}"; v="${v//\"/}"; v="${v%"${v##*[![:space:]]}"}"
-    if [[ -e "$v" ]]; then
-      printf -v "$1" '%s' "$v"
-      return
-    fi
-    warn "Nothing found at: $v"
+    ask_secret KAGGLE_TOKEN "Token:"
+    if out=$(kaggle_cli kernels status "$(notebook_ref "$NOTEBOOK_A")" 2>&1); then break; fi
+    printf '%s\n' "$out" | sed 's/^/      /'
+    warn "Kaggle did not accept that token. Generate a new one and paste it again."
   done
+  remember KAGGLE_TOKEN "$KAGGLE_TOKEN"
+  ok "The wizard can see your notebook $(key "uav-$KAGGLE_WHO-a"). It downloads results by itself from now on."
 }
 
 # notebook_settings: the two settings every session depends on, each confirmed.
@@ -385,16 +455,6 @@ save_and_run() {
   ok "It now runs on Kaggle by itself. You can close the browser and the laptop."
   why "It uses your weekly GPU quota (~30 h, resets Saturday 05:30 IST) only while it runs."
   why "Do not open an interactive GPU session at the same time."
-}
-
-# download_steps URL: find the finished version and download its bring-home folder.
-download_steps() {
-  open_url "$1"
-  num 1 "On the notebook's page, open the version that just finished, then its $(key Logs)."
-  num 2 "Scroll to the very end. You should see a box with $(key 'SMOKE TEST PASSED') or $(key 'SESSION RESULT')."
-  more "A box with STOP: ... means something needs fixing. It says what. Screenshot it."
-  num 3 "Open that version's $(key Output). Find the folder $(key bring-home) and click its download icon."
-  more "It lands in your Downloads folder, usually as a .zip. That is fine."
 }
 
 stuck() { gap; why "Stuck? Take a screenshot and send it to Krishna. Guide: $GUIDE_URL"; }
@@ -497,22 +557,24 @@ pause "Press Enter to continue (or close the window and come back later)."
 }
 
 setup_6() {
-section "Session 0 result" "You download the session's results and the wizard checks that the test passed."
-if ! confirm "Has Session 0 finished on Kaggle?"; then
-  gap
-  say "No problem. Close this window and come back later. Run the same command:"
-  say "    $(key 'bash study/kaggle/wizard.sh')"
-  exit 0
-fi
-download_steps "$NOTEBOOK_A"
-ask_download BRING_HOME_PATH
+section "Connect the wizard to Kaggle" "With a Kaggle API token, the wizard sees when a session has finished and downloads its results itself."
+gap
+ask_token
+gap
+pause "Press Enter to continue."
+}
+
+setup_7() {
+section "Session 0 result" "The wizard checks that Session 0 has finished, downloads its results and checks that the test passed."
+fetch_output BRING_HOME_PATH "$NOTEBOOK_A" "bash study/kaggle/wizard.sh"
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
 SMOKE="study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
 gap
 if [[ ! -f "$SMOKE" ]]; then
   bad "No test result came with this download."
-  why "Check that you downloaded bring-home from the version that finished, or read the end of its Logs."
+  why "The end of the session's log says what went wrong (look for STOP: ...). Send Krishna this file:"
+  why "    $(ls "$BRING_HOME_PATH"/*.log 2>/dev/null | head -n 1 || echo "$BRING_HOME_PATH")"
   stuck; exit 1
 fi
 if ! grep -q '"checks_passed": true' "$SMOKE"; then
@@ -525,7 +587,7 @@ gap
 pause "Press Enter to continue."
 }
 
-setup_7() {
+setup_8() {
 section "The batch sizes" "Every run must use the same batch size, so they are measured once, by Krishna's probe, and shared."
 if [[ "$KAGGLE_OWNER" == "srikr" ]]; then
   if [[ ! -f study/verification/kaggle_probe.json ]]; then
@@ -578,7 +640,7 @@ gap
 pause "Press Enter to continue."
 }
 
-setup_8() {
+setup_9() {
 section "Create notebook B" "Notebook B reads notebook A's results. From now on you use B, then A, then B, and so on."
 open_url "https://www.kaggle.com/code"
 num 1 "Click $(key '+ New Notebook')."
@@ -592,7 +654,7 @@ gap
 ask_url NOTEBOOK_B "Paste it here:"
 }
 
-setup_9() {
+setup_10() {
 section "Start your first training session" "This session trains your first runs. It stops by itself before Kaggle's 12-hour limit; unfinished runs continue next time."
 TASK1=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR")
 copy_cell "$TASK1"
@@ -603,7 +665,7 @@ remember LAST_NOTEBOOK "B"
 remember SESSIONS_STARTED "1"
 }
 
-setup_10() {
+setup_11() {
 section "You are set up" ""
 gap
 ok "Your first training session is running in notebook B."
@@ -621,7 +683,7 @@ pause "Press Enter to finish."
 }
 
 setup_flow() {
-TOTAL_STAGES=10
+TOTAL_STAGES=11
 local from="${SETUP_AT:-0}" i
 if (( from >= TOTAL_STAGES )); then
   gap; ok "Your setup is already complete."
@@ -661,15 +723,8 @@ else
 fi
 banner "UAV YOLO study · Between two sessions"
 
-section "Bring the results home" "You download what the last session made (in notebook $LAST_NOTEBOOK). The wizard files it for you."
-if ! confirm "Has the last session (notebook $LAST_NOTEBOOK) finished on Kaggle?"; then
-  gap
-  say "No problem. Come back when it has finished and run the same command:"
-  say "    $(key 'bash study/kaggle/wizard.sh next')"
-  exit 0
-fi
-download_steps "$LAST_URL"
-ask_download BRING_HOME_PATH
+section "Bring the results home" "The wizard downloads what the last session made (in notebook $LAST_NOTEBOOK) and files it for you."
+fetch_output BRING_HOME_PATH "$LAST_URL" "bash study/kaggle/wizard.sh next"
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
 gap
@@ -755,14 +810,18 @@ if [[ ! -f study/kaggle/session.py ]]; then
 fi
 ENV_FILE="study/kaggle/.env.kaggle"
 # Load what earlier runs saved, so the wizard knows your notebooks and where you stopped.
-for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT; do
+for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT KAGGLE_TOKEN; do
   v=$(_existing "$k" || true)
   printf -v "$k" '%s' "$v"
 done
 case "${1:-setup}" in
   setup) setup_flow ;;
   next)  next_flow ;;
-  *)     printf 'Usage:\n  bash study/kaggle/wizard.sh        first-time setup\n  bash study/kaggle/wizard.sh next   after every Kaggle session\n'; exit 1 ;;
+  token)
+    [[ -n "$NOTEBOOK_A" ]] || { printf 'Finish the setup first: bash study/kaggle/wizard.sh
+'; exit 1; }
+    KAGGLE_TOKEN=""; _clear; heading "Replace your Kaggle API token"; ask_token; gap ;;
+  *)     printf 'Usage:\n  bash study/kaggle/wizard.sh        first-time setup\n  bash study/kaggle/wizard.sh next   after every Kaggle session\n  bash study/kaggle/wizard.sh token  replace the Kaggle API token\n'; exit 1 ;;
 esac
 }
 

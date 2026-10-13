@@ -59,7 +59,7 @@ bash study/kaggle/wizard.sh
 The wizard opens each web page for you, says exactly what to click, copies the notebook code into your
 clipboard, and remembers your answers. You can stop it with **Ctrl-C** at any time and run it again later.
 
-It has 10 stages. A bar at the top shows how far you are, and every stage starts with one line saying why it
+It has 11 stages. A bar at the top shows how far you are, and every stage starts with one line saying why it
 exists. When a setting really matters (GPU T4 x2, Internet on, the version is running), the wizard asks
 you to confirm it before moving on.
 
@@ -70,11 +70,12 @@ you to confirm it before moving on.
 | 3. Kaggle account | Sign in and verify your phone. Without this, Kaggle hides the GPU and Internet settings | 5 min |
 | 4. Notebook A | Create a notebook called `uav-<you>-a`; set **GPU T4 x2** and **Internet on**; paste its address | 3 min |
 | 5. Session 0 | Paste the cell and start it. It installs everything, checks the dataset and runs the **smoke test** (proof this account's setup is sound). srikr's Session 0 also runs the **probe**, which measures the batch size everyone must use. The wizard tells you what time to come back | 40 min (srikr: ~1.5 h) of waiting |
-| 6. Session 0 result | Download the `bring-home` folder. The wizard finds it in your Downloads and checks the smoke test passed | 2 min |
-| 7. Batch sizes | srikr pushes the probe's numbers to GitHub. The teammate waits until they arrive (the wizard checks for them) | 2 min |
-| 8. Notebook B | Create a second notebook `uav-<you>-b` that reads notebook A's output | 3 min |
-| 9. Session 1 | Your first training session starts, in notebook B | 2 min |
-| 10. You are set up | When to come back, and what to run then | |
+| 6. Connect to Kaggle | Generate a Kaggle API token and paste it (hidden). The wizard uses it to check on sessions and download their results by itself | 2 min |
+| 7. Session 0 result | Nothing: the wizard checks Session 0 has finished, downloads its results and checks the smoke test passed | 1 min |
+| 8. Batch sizes | srikr pushes the probe's numbers to GitHub. The teammate waits until they arrive (the wizard checks for them) | 2 min |
+| 9. Notebook B | Create a second notebook `uav-<you>-b` that reads notebook A's output | 3 min |
+| 10. Session 1 | Your first training session starts, in notebook B | 2 min |
+| 11. You are set up | When to come back, and what to run then | |
 
 **You can close the wizard at any time**, for example during Session 0's wait. Run the same command again
 later: it says *"Welcome back"* and continues from the stage where you stopped.
@@ -108,8 +109,8 @@ bash study/kaggle/wizard.sh next
 It has 4 stages, about 5 minutes in total. If the session has not finished yet, answer *no* to the first
 question and the wizard closes without changing anything:
 
-1. **Bring the results home.** Download the `bring-home` folder from the finished version's Output. The
-   wizard files the result records into the repo and copies the checkpoints into your checkpoint folder.
+1. **Bring the results home.** The wizard asks Kaggle whether the session has finished (if not, it says so
+   and closes), downloads the `bring-home` folder from its output, files the result records into the repo and copies the checkpoints into your checkpoint folder.
 2. **Share the records.** It offers to commit and push finished runs' records. If you can't push, send
    the files to Krishna.
 3. **Get the other notebook ready.** The first time you go back to notebook A, it shows you how to attach
@@ -253,7 +254,9 @@ The wizard only automates the steps below.
    Replace the notebook's content with the single cell from [`notebook_cell.txt`](notebook_cell.txt).
 3. Session 0: set `TASK = "smoke --who <you>"` (srikr: `"smoke --who srikr --probe"`).
    **Save Version → Save & Run All (Commit) → Save.**
-4. When it finishes: download `bring-home` from the version's Output.
+4. When it finishes, download its `bring-home` folder with the Kaggle CLI (`pip install kaggle`; token from
+   kaggle.com/settings/api → **Generate New Token**, in `KAGGLE_API_TOKEN`):
+   `kaggle kernels output <kaggle-user>/uav-<you>-a -p <folder> --file-pattern '^bring-home/'`.
    - srikr: run `python study/kaggle/session.py apply-probe <path>/kaggle_probe.json`, then commit and push
      `study/kaggle/runs.yaml`.
 5. Create notebook `uav-<you>-b`, same settings, and **Add Input → Your Work → uav-<you>-a**.
@@ -261,7 +264,7 @@ The wizard only automates the steps below.
    `python study/kaggle/session.py next-task --owner <srikr|teammate> --mirror <checkpoint folder>`.
    Put it in the cell and Save & Run All in notebook B.
 7. After each session:
-   - run `python study/kaggle/session.py import-bring-home <downloaded folder> --mirror <checkpoint folder>`;
+   - run `python study/kaggle/session.py import-bring-home <that folder> --mirror <checkpoint folder>`;
    - get the next TASK the same way;
    - run it in the *other* notebook. Each notebook needs the other attached as an input, once.
 
