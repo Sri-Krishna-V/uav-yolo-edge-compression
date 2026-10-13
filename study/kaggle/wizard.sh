@@ -310,8 +310,9 @@ install_cli() {
   fi
 }
 
-# kaggle_cli ARGS: run the Kaggle CLI, signed in with the saved token.
-kaggle_cli() { KAGGLE_API_TOKEN="$KAGGLE_TOKEN" PYTHONIOENCODING=utf-8 "$(cli_python)" -m kaggle "$@"; }
+# kaggle_cli ARGS: run the Kaggle CLI, signed in with the saved token. UTF-8 mode, because the CLI saves the
+# session log with Python's default file encoding, which on Windows cannot write the log's emoji.
+kaggle_cli() { KAGGLE_API_TOKEN="$KAGGLE_TOKEN" PYTHONUTF8=1 PYTHONIOENCODING=utf-8 "$(cli_python)" -m kaggle "$@"; }
 
 # notebook_ref URL: owner/notebook-slug, the name the Kaggle CLI uses for a notebook.
 notebook_ref() { printf '%s' "${1#*kaggle.com/code/}"; }
