@@ -295,7 +295,10 @@ helper() {
 CLI_DIR="study/kaggle/.kaggle-cli"
 
 cli_python() {
-  if [[ -x "$CLI_DIR/Scripts/python.exe" ]]; then printf '%s' "$CLI_DIR/Scripts/python.exe"; else printf '%s' "$CLI_DIR/bin/python"; fi
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) printf '%s' "$CLI_DIR/Scripts/python.exe" ;;
+    *)                    printf '%s' "$CLI_DIR/bin/python" ;;
+  esac
 }
 
 # install_cli: create that environment and install the kaggle package, once.
@@ -310,9 +313,16 @@ install_cli() {
   fi
 }
 
-# kaggle_cli ARGS: run the Kaggle CLI, signed in with the saved token. UTF-8 mode, because the CLI saves the
-# session log with Python's default file encoding, which on Windows cannot write the log's emoji.
-kaggle_cli() { KAGGLE_API_TOKEN="$KAGGLE_TOKEN" PYTHONUTF8=1 PYTHONIOENCODING=utf-8 "$(cli_python)" -m kaggle "$@"; }
+# kaggle_cli ARGS: run the Kaggle CLI, signed in with the saved token and nothing else.
+#   KAGGLE_CONFIG_DIR is an empty folder of our own. The CLI silently ignores a bad token and falls back to any
+#   ~/.kaggle/kaggle.json, so without this a wrong token can pass the check in ask_token.
+#   -X utf8, because the CLI saves the session log with Python's default file encoding, which on Windows
+#   (cp1252) cannot write the log's emoji.
+kaggle_cli() {
+  mkdir -p "$CLI_DIR/config"
+  KAGGLE_API_TOKEN="$KAGGLE_TOKEN" KAGGLE_CONFIG_DIR="$CLI_DIR/config" PYTHONIOENCODING=utf-8 \
+    "$(cli_python)" -X utf8 -m kaggle "$@"
+}
 
 # notebook_ref URL: owner/notebook-slug, the name the Kaggle CLI uses for a notebook.
 notebook_ref() { printf '%s' "${1#*kaggle.com/code/}"; }
@@ -403,13 +413,13 @@ fetch_output() {
   mkdir -p "$dir"
   say "Downloading its results..."
   if ! kaggle_cli kernels output "$ref" -p "$dir" --file-pattern '^bring-home/' -o -q >/dev/null; then
-    bad "The download failed."
+    rm -rf "$dir"; bad "The download failed."
     stuck; exit 1
   fi
   if [[ ! -d "$dir/bring-home" ]]; then
     # Should not happen; if Kaggle ever names output files without their folder, take the whole output instead.
     say "Downloading the whole output instead (can be a few hundred MB)..."
-    kaggle_cli kernels output "$ref" -p "$dir" -o -q >/dev/null || { bad "The download failed."; stuck; exit 1; }
+    kaggle_cli kernels output "$ref" -p "$dir" -o -q >/dev/null || { rm -rf "$dir"; bad "The download failed."; stuck; exit 1; }
   fi
   ok "Downloaded to $dir"
   printf -v "$1" '%s' "$dir"
@@ -432,6 +442,20 @@ ask_token() {
   done
   remember KAGGLE_TOKEN "$KAGGLE_TOKEN"
   ok "The wizard can see your notebook $(key "uav-$KAGGLE_WHO-a"). It downloads results by itself from now on."
+}
+
+# ask_mirror: the folder that gets a copy of every checkpoint.
+ask_mirror() {
+  heading "Where should your copies of the checkpoints go?"
+  why "Every checkpoint is also copied to your computer, so no Kaggle account holds the only copy."
+  why "Best: a folder inside Google Drive or OneDrive, so the copy is off your laptop too."
+  gap
+  KAGGLE_MIRROR=""
+  read -e -r -p "  ${BOLD}Folder (press Enter for $HOME/uav-yolo-checkpoints):${RESET} " KAGGLE_MIRROR || true
+  KAGGLE_MIRROR="${KAGGLE_MIRROR//\'/}"; KAGGLE_MIRROR="${KAGGLE_MIRROR//\"/}"
+  [[ -n "$KAGGLE_MIRROR" ]] || KAGGLE_MIRROR="$HOME/uav-yolo-checkpoints"
+  mkdir -p "$KAGGLE_MIRROR"
+  saved KAGGLE_MIRROR "$KAGGLE_MIRROR"
 }
 
 # notebook_settings: the two settings every session depends on, each confirmed.
@@ -507,14 +531,7 @@ done
 remember OWNER_CHOICE "$OWNER_CHOICE"
 saved KAGGLE_OWNER "$KAGGLE_OWNER"
 
-heading "Where should your copies of the checkpoints go?"
-why "Every checkpoint is also copied to your computer, so no Kaggle account holds the only copy."
-why "Best: a folder inside Google Drive or OneDrive, so the copy is off your laptop too."
-gap
-ask KAGGLE_MIRROR "Folder (press Enter for $HOME/uav-yolo-checkpoints):" || true
-[[ -n "$KAGGLE_MIRROR" ]] || KAGGLE_MIRROR="$HOME/uav-yolo-checkpoints"
-mkdir -p "$KAGGLE_MIRROR"
-saved KAGGLE_MIRROR "$KAGGLE_MIRROR"
+ask_mirror
 gap
 pause "Press Enter to continue."
 }
@@ -809,12 +826,29 @@ if [[ ! -f study/kaggle/session.py ]]; then
   printf 'Run this from inside the uav-yolo-edge-compression folder (cd into it first).\n'
   exit 1
 fi
+# On Windows the wizard runs in Git Bash. Typed in PowerShell, "bash" starts WSL (Linux) instead: settings it
+# passes do not reach the Windows programs it runs, its home folder is inside the Linux VM, and its git sees
+# every file as changed (line endings). So a repo on a Windows drive must not be driven from WSL.
+if [[ -n "${WSL_DISTRO_NAME:-}" || "$(uname -r)" == *[Mm]icrosoft* ]] && [[ "$PWD" == /mnt/* ]]; then
+  printf '\n  This window runs Linux (WSL), but the repo is on Windows. Run the wizard in Git Bash instead:\n\n'
+  printf '    - open Git Bash from the Start menu, go to the repo folder, and run the same command; or\n'
+  printf '    - in PowerShell, run:  & "C:\\Program Files\\Git\\bin\\bash.exe" study/kaggle/wizard.sh %s\n\n' "${1:-}"
+  exit 1
+fi
 ENV_FILE="study/kaggle/.env.kaggle"
 # Load what earlier runs saved, so the wizard knows your notebooks and where you stopped.
 for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT KAGGLE_TOKEN; do
   v=$(_existing "$k" || true)
   printf -v "$k" '%s' "$v"
 done
+# A saved checkpoint folder that no longer exists (another drive, or saved from another terminal): ask again,
+# so checkpoints never land somewhere the person cannot see.
+if [[ -n "$KAGGLE_MIRROR" && ! -d "$KAGGLE_MIRROR" ]]; then
+  _clear
+  gap; warn "Your checkpoint folder does not exist on this computer: $KAGGLE_MIRROR"
+  ask_mirror
+  gap; pause "Press Enter to continue."
+fi
 case "${1:-setup}" in
   setup) setup_flow ;;
   next)  next_flow ;;

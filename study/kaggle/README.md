@@ -56,6 +56,9 @@ From inside the repo folder, run:
 bash study/kaggle/wizard.sh
 ```
 
+On Windows, run it in **Git Bash**. Typed in PowerShell, `bash` starts WSL (Linux) instead, and the wizard
+stops. From PowerShell, use `& "C:\Program Files\Git\bin\bash.exe" study/kaggle/wizard.sh`.
+
 The wizard opens each web page for you, says exactly what to click, copies the notebook code into your
 clipboard, and remembers your answers. You can stop it with **Ctrl-C** at any time and run it again later.
 
@@ -218,6 +221,12 @@ If the schedule slips, the cut order is in [`../RUNS.md`](../RUNS.md): the 1280 
 ---
 
 ## Troubleshooting
+
+**The wizard says `This window runs Linux (WSL)`.** You typed `bash` in PowerShell, which starts WSL. Use
+Git Bash, or the PowerShell command in section 2.
+
+**The wizard says `Kaggle did not accept that token`.** Generate a new token at kaggle.com/settings/api and
+paste it. To replace a saved token later, run `bash study/kaggle/wizard.sh token`.
 
 **The wizard says `No Python 3.9+ found`.** Install Python (section 1). On Windows, reopen Git Bash
 afterwards.
