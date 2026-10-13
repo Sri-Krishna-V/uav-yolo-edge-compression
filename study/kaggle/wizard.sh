@@ -266,6 +266,21 @@ saved() { write_env "$1" "$2" >/dev/null; ok "Saved."; }
 
 # ── Doing things ──────────────────────────────────────────────────────────
 
+# open_url URL: replaces the library's version. On Windows, explorer.exe reports failure even when it has
+# opened the page, so the library's version warned "couldn't open a browser" in Git Bash every time.
+open_url() {
+  local url="$1"
+  printf '  %s↗ opening%s %s\n' "$GREEN" "$RESET" "$url"
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) explorer.exe "$url" >/dev/null 2>&1 || true; return ;;
+  esac
+  { if   command -v wslview  >/dev/null 2>&1; then wslview "$url"
+    elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url"
+    elif command -v open     >/dev/null 2>&1; then open "$url"
+    else false; fi
+  } >/dev/null 2>&1 || warn "couldn't open a browser, so visit it manually: $url"
+}
+
 # python_bin prints the name of this machine's Python 3.9+, or fails.
 python_bin() {
   local bin
@@ -287,7 +302,7 @@ helper() {
     warn "No Python 3.9+ found. Install it from https://www.python.org/downloads/ and run the wizard again."
     exit 1
   fi
-  "$bin" study/kaggle/session.py "$@"
+  "$bin" -X utf8 study/kaggle/session.py "$@"
 }
 
 # The Kaggle CLI lives in its own small Python environment inside the repo (git-ignored), so it needs nothing on
@@ -308,7 +323,9 @@ install_cli() {
   if "$(python_bin)" -m venv "$CLI_DIR" && "$(cli_python)" -m pip install -q --disable-pip-version-check kaggle; then
     ok "Installed."
   else
-    bad "Could not install the Kaggle command-line tool (pip install kaggle failed)."
+    bad "Could not install the Kaggle command-line tool."
+    why "Ubuntu or Debian: install venv first (sudo apt install python3-venv), then run the wizard again."
+    rm -rf "$CLI_DIR"
     stuck; exit 1
   fi
 }
