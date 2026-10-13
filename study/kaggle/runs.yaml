@@ -5,12 +5,12 @@
 # and both executors. Written once by `session.py apply-probe` from verification/kaggle_probe.json, then frozen:
 # changing it after the first run at that resolution makes the runs incomparable.
 batch_per_gpu:
-  640: null
-  960: null
-  1280: null
+  640: 24
+  960: 8
+  1280: 6
 
 # "pair": two runs per Kaggle session, one per GPU. "single": one run per session. From the same probe.
-pairing: null
+pairing: pair
 
 runs: # in each owner's order of work (RUNS.md, "Order of work")
   A1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0}
