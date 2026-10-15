@@ -12,6 +12,11 @@ Read it once, top to bottom. After that, the wizard does the remembering for you
 
 What each run is, and why, is in [`../RUNS.md`](../RUNS.md). You don't need it to follow this guide.
 
+**P1 is different.** It is a pruning run, not a baseline. The session cuts 30% of the channels from A1's
+finished checkpoint, then trains the smaller model for 30 epochs (about 1 hour). It needs nothing extra from
+you: A1 arrives through the same attached input as every other run. If the session stops with "best.pt is
+not in the attached inputs", that input is missing.
+
 ---
 
 ## The short version

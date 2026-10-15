@@ -825,12 +825,20 @@ if [[ "$TASK" == "ALL-DONE" ]]; then
 fi
 N=$(( ${SESSIONS_STARTED:-1} + 1 ))
 copy_cell "$TASK"
+COME_BACK_MIN=660
+if [[ " $TASK " =~ \ P[0-9]+\  ]]; then
+  why "P1 is a pruning run. The session cuts 30% of A1's channels, then trains the result for 30 epochs."
+  why "It reads A1 from the input you just checked. If it stops with \"best.pt is not in the attached inputs\","
+  why "that input is missing: add it under Input and run the session again."
+  # A P run alone is ~1 h of training plus setup and evaluation; paired with an A/B run, the A/B run sets the time.
+  [[ " $TASK " =~ \ [AB][0-9]+\  ]] || COME_BACK_MIN=120
+fi
 open_url "$NEXT_URL"
 save_and_run "session $N" 1
 remember LAST_NOTEBOOK "$NEXT"
 remember SESSIONS_STARTED "$N"
 gap
-say "Come back after $(key "$(come_back 660)"), or when the notebook's page says it has finished, and run:"
+say "Come back after $(key "$(come_back "$COME_BACK_MIN")"), or when the notebook's page says it has finished, and run:"
 say "    $(key 'bash study/kaggle/wizard.sh next')"
 gap
 pause "Press Enter to finish."
