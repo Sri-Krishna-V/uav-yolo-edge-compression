@@ -1,0 +1,106 @@
+{
+  "params_before": 9431662,
+  "params_after": 9431662,
+  "gflops_before": 21.6858112,
+  "gflops_after": 21.6858112,
+  "ratio": 0.0,
+  "round_to": 8,
+  "torch_pruning": "1.6.1",
+  "checkpoint": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-small-object\\prune0\\yolo11s-640-s0-prune0.pt",
+  "evals": {
+    "val": {
+      "stats": {
+        "metrics/precision(B)": 0.5198165570916191,
+        "metrics/recall(B)": 0.3989750357396497,
+        "metrics/mAP50(B)": 0.39279389103833406,
+        "metrics/mAP50-95(B)": 0.22717807596316336,
+        "fitness": 0.22717807596316336,
+        "metrics/mAP_small(B)": 0.13276604806036776,
+        "metrics/mAP_medium(B)": 0.3463452428368603,
+        "metrics/mAP_large(B)": 0.4980770309381063,
+        "coco/AP_all": 0.22945196900124964,
+        "coco/AP_50": 0.3943290914632873,
+        "coco/AP_75": 0.22703892537035072,
+        "coco/AP_small": 0.13276604806036776,
+        "coco/AP_medium": 0.3463452428368603,
+        "coco/AP_large": 0.4980770309381063,
+        "coco/AR_1": 0.10060740406931114,
+        "coco/AR_10": 0.28134529643846035,
+        "coco/AR_100": 0.3865373732701942,
+        "coco/AR_500": 0.38914126982399094,
+        "coco/AR_small": 0.29020363091674095,
+        "coco/AR_medium": 0.531675261141785,
+        "coco/AR_large": 0.6517916228995808,
+        "coco/AR_50": 0.6718939978839801,
+        "coco/AR_75": 0.37875194967093523
+      },
+      "validator_args": {
+        "max_det": 500,
+        "iou": 0.7,
+        "conf": 0.001,
+        "nms": null,
+        "save_json": true,
+        "rect": true,
+        "batch": 16,
+        "split": "val",
+        "imgsz": 640,
+        "quantize": null
+      },
+      "coco_max_dets": [
+        1,
+        10,
+        100,
+        500
+      ],
+      "end2end_head_scored": false,
+      "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\detect\\val-5"
+    },
+    "test": {
+      "stats": {
+        "metrics/precision(B)": 0.4613049909821808,
+        "metrics/recall(B)": 0.35120068655867487,
+        "metrics/mAP50(B)": 0.32397577405195355,
+        "metrics/mAP50-95(B)": 0.18503778675645863,
+        "fitness": 0.18503778675645863,
+        "metrics/mAP_small(B)": 0.09046972140909874,
+        "metrics/mAP_medium(B)": 0.28529733833128396,
+        "metrics/mAP_large(B)": 0.4479798880769712,
+        "coco/AP_all": 0.18773542968247858,
+        "coco/AP_50": 0.32616533019335653,
+        "coco/AP_75": 0.1899854123735085,
+        "coco/AP_small": 0.09046972140909874,
+        "coco/AP_medium": 0.28529733833128396,
+        "coco/AP_large": 0.4479798880769712,
+        "coco/AR_1": 0.08054025257587949,
+        "coco/AR_10": 0.2516190125737416,
+        "coco/AR_100": 0.3534592639562668,
+        "coco/AR_500": 0.3569691000420274,
+        "coco/AR_small": 0.2509512965584248,
+        "coco/AR_medium": 0.49693209852067305,
+        "coco/AR_large": 0.6346089222777214,
+        "coco/AR_50": 0.6271087236067269,
+        "coco/AR_75": 0.3526279272494071
+      },
+      "validator_args": {
+        "max_det": 500,
+        "iou": 0.7,
+        "conf": 0.001,
+        "nms": null,
+        "save_json": true,
+        "rect": true,
+        "batch": 16,
+        "split": "test",
+        "imgsz": 640,
+        "quantize": null
+      },
+      "coco_max_dets": [
+        1,
+        10,
+        100,
+        500
+      ],
+      "end2end_head_scored": false,
+      "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\detect\\val-7"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "stats": {
+    "metrics/precision(B)": 0.5208907056428067,
+    "metrics/recall(B)": 0.3962282998339542,
+    "metrics/mAP50(B)": 0.3919970611390747,
+    "metrics/mAP50-95(B)": 0.2268725117844238,
+    "fitness": 0.2268725117844238,
+    "metrics/mAP_small(B)": 0.133501819673697,
+    "metrics/mAP_medium(B)": 0.3452380417259165,
+    "metrics/mAP_large(B)": 0.491481920424617,
+    "coco/AP_all": 0.2291766604329885,
+    "coco/AP_50": 0.3934815103391638,
+    "coco/AP_75": 0.22597853514834543,
+    "coco/AP_small": 0.133501819673697,
+    "coco/AP_medium": 0.3452380417259165,
+    "coco/AP_large": 0.491481920424617,
+    "coco/AR_1": 0.1007540222260396,
+    "coco/AR_10": 0.28089411861254254,
+    "coco/AR_100": 0.38608379820102273,
+    "coco/AR_500": 0.3888158956708488,
+    "coco/AR_small": 0.2901901540351952,
+    "coco/AR_medium": 0.5303950432078797,
+    "coco/AR_large": 0.6408584674974085,
+    "coco/AR_50": 0.670452734545815,
+    "coco/AR_75": 0.3795592718619732
+  },
+  "validator_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": false,
+    "batch": 1,
+    "split": "val",
+    "imgsz": 640,
+    "quantize": null
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "end2end_head_scored": false,
+  "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\detect\\val",
+  "artifact": "onnx-fp32",
+  "export_kwargs": {
+    "format": "onnx"
+  },
+  "split": "val",
+  "eval_seconds": 139,
+  "toolchain": {
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0",
+    "onnxslim": "0.1.98",
+    "openvino": "2026.4.1",
+    "nncf": "3.4.0",
+    "ultralytics": "8.4.149"
+  }
+}
