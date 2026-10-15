@@ -39,6 +39,7 @@ NCNN, LiteRT/TFLite, TensorRT/JetPack and ONNX Runtime versions depend on *Preci
 
 | Platform | Runtime | Toolchain versions | Pinned on |
 |---|---|---|---|
+| Laptop CPU (accuracy only, *Confirm the small-object effect*) | ONNX Runtime static INT8; OpenVINO + NNCF INT8 | onnx 1.23.2, onnxruntime 1.31.0, onnxslim 0.1.98; openvino 2026.4.1, nncf 3.4.0 | 2026-10-15 |
 | *(first export on each platform)* | | | |
 
 ---

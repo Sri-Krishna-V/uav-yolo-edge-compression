@@ -18,3 +18,7 @@ faster-coco-eval==1.8.0
 torch==2.14.0
 torchvision==0.29.0
 pyyaml==6.0.3
+
+# Structured pruning (scripts/studyprune.py), for pruning-recovery runs. Pinned: the pruned model must be the
+# same on every machine that re-makes it from the same source checkpoint.
+torch-pruning==1.6.1

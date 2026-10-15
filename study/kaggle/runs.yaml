@@ -12,12 +12,15 @@ batch_per_gpu:
 # "pair": two runs per Kaggle session, one per GPU. "single": one run per session. From the same probe.
 pairing: pair
 
+# P runs are pruning-recovery runs: prune_from's best.pt, `prune`% of channels removed per layer by
+# scripts/studyprune.py inside the session, then `epochs` of the same recipe. Named <source run>-prune<prune>.
 runs: # in each owner's order of work (RUNS.md, "Order of work")
   A1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0}
   A3: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 1}
   A4: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 2}
   B1: {owner: srikr, model: yolo11s.pt, imgsz: 960, seed: 0}
   B3: {owner: srikr, model: yolo11s.pt, imgsz: 1280, seed: 0}
+  P1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0, prune_from: A1, prune: 30, epochs: 30}
   A2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0}
   A5: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 1}
   A6: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 2}

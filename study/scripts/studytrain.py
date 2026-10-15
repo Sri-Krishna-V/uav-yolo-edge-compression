@@ -4,6 +4,7 @@
   python studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 1 --batch-per-gpu 16 --resume
   python studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu 16 --eval-only
   python studytrain.py --model yolo26s.pt --imgsz 1280 --seed 0 --device 0,1 --batch-per-gpu 4   # one run, two GPUs (DDP)
+  python studytrain.py --model PRUNED.pt --pruned --epochs 30 --imgsz 640 --seed 0 --device 0 --batch-per-gpu 24 --name yolo11s-640-s0-prune30
 
 On Kaggle, do not call this directly: kaggle/session.py picks fresh / --resume / --eval-only per run and
 sets --stop-by. The study runs one run per GPU, never DDP (kaggle/README.md says why).
@@ -22,6 +23,9 @@ Two guards, both single-GPU only (Ultralytics does not pass callbacks into its D
 On success it writes verification/runs/<name>.json: environment, code commit, every resolved argument,
 both studyeval results (val and test-dev), and per-session wall-clock. That file is the run's record for
 the paper. Every session also appends one line to runs/baseline/<name>/sessions.jsonl.
+
+--pruned trains a studyprune.py checkpoint (a pruning-recovery run). A stock train() would rebuild the model
+from its yaml and keep only the weights whose shapes still match, i.e. silently train an unpruned model.
 """
 
 import argparse
@@ -41,6 +45,7 @@ import studyeval
 import yaml  # noqa: E402
 import torch  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
+from ultralytics.models.yolo.detect import DetectionTrainer  # noqa: E402
 
 RECIPE_FILE = studyenv.ROOT / "cfg" / "train_baseline.yaml"
 RUNS_DIR = studyenv.ROOT / "runs" / "baseline"
@@ -48,6 +53,15 @@ RECORD_DIR = studyenv.ROOT / "verification" / "runs"
 
 EXIT_PAUSED = 75  # stopped before the session limit; resume next session
 EXIT_BATCH_CHANGED = 76  # Ultralytics halved the batch on OOM; the run is invalid
+
+
+class PrunedTrainer(DetectionTrainer):
+    """Trains the checkpoint's own pruned module, fresh or resumed, instead of rebuilding it from yaml."""
+
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        if not isinstance(weights, torch.nn.Module):
+            raise RuntimeError("--pruned needs a pruned checkpoint (scripts/studyprune.py) as --model")
+        return self.set_model_names_for_load(weights)
 
 
 def recipe():
@@ -101,6 +115,8 @@ def main():
     p.add_argument("--batch-per-gpu", type=int, required=True)
     p.add_argument("--workers", type=int, default=None, help="default: the recipe value. Recorded, because it changes the augmentation RNG stream")
     p.add_argument("--name", default=None, help="default: <model stem>-<imgsz>-s<seed>")
+    p.add_argument("--pruned", action="store_true", help="--model is a studyprune.py checkpoint: train its pruned module as is")
+    p.add_argument("--epochs", type=int, default=None, help="default: the recipe value (100). Recovery runs are shorter")
     mode = p.add_mutually_exclusive_group()
     mode.add_argument("--resume", action="store_true", help="continue an unfinished run from its last.pt")
     mode.add_argument("--eval-only", action="store_true", help="training finished but no record: evaluate best.pt and write the record")
@@ -117,6 +133,11 @@ def main():
         args["seed"] = a.seed
     if a.workers is not None:
         args["workers"] = a.workers
+    if a.epochs is not None:
+        args["epochs"] = a.epochs
+    pruning = torch.load(a.model, map_location="cpu", weights_only=False).get("pruning") if a.pruned else None
+    if a.pruned and not pruning:
+        sys.exit(f"--pruned given but {a.model} has no 'pruning' record: make it with scripts/studyprune.py.")
     seed = args["seed"]
     planned_batch = a.batch_per_gpu * max(n_gpus, 1)
     name = a.name or f"{Path(a.model).stem}-{a.imgsz}-s{seed}"
@@ -180,6 +201,7 @@ def main():
             name=name,
             exist_ok=True,
             resume=a.resume,
+            **({"trainer": PrunedTrainer} if a.pruned else {}),
             **({"save_dir": str(run_dir)} if a.resume else {}),  # resume into this checkout even if the old path differs
             **args,
         )
@@ -206,6 +228,7 @@ def main():
         "environment": environment(),
         "train_args": train_args,
         "best_weights": str(best_weights),
+        **({"pruning": pruning} if pruning else {}),
     }
 
     if not a.no_eval:

@@ -534,7 +534,7 @@ saved KAGGLE_WHO "$KAGGLE_WHO"
 
 heading "Which model do you train?"
 gap
-printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3    %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3 P1 %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
 printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4    %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
 gap
 while :; do

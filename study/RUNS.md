@@ -23,6 +23,7 @@ labelled noise runs. Order within each owner is top to bottom.
 | B2 | teammate | YOLO26s | 960 | 0 | `yolo26s-960-s0` | Resolution study |
 | B3 | srikr | YOLO11s | 1280 | 0 | `yolo11s-1280-s0` | Resolution study. **Cut first if the schedule slips** |
 | B4 | teammate | YOLO26s | 1280 | 0 | `yolo26s-1280-s0` | Resolution study. **Cut first if the schedule slips** |
+| P1 | srikr | YOLO11s, A1 pruned 30% | 640 | 0 | `yolo11s-640-s0-prune30` | Pruning arm of *Confirm the small-object effect*: A1 re-pruned in the session by `scripts/studyprune.py` (uniform 30%, `round_to=8`), then a **30-epoch** recovery with this recipe (`studytrain.py --pruned`). ~1 T4-h (A1 took 3.6 h for 100 epochs) |
 
 Teacher runs (YOLO11m, YOLO26m) inherit this same recipe but are not scheduled: *Distillation method* decides
 whether they happen at all.

@@ -43,6 +43,7 @@ INPUTS = Path("/kaggle/input")
 BRING_HOME = WORKING / "bring-home"
 LOGS = WORKING / "logs"
 SESSION_START_FILE = Path("/tmp/study_session_start")
+PRUNED_DIR = Path("/tmp/study-pruned")  # re-made every session from the source run (deterministic), never saved
 
 SESSION_LIMIT_H = 12.0  # Kaggle's cap on one GPU session
 TRAIN_STOP_H = 11.0  # no epoch may end later than this; leaves time for evaluation and saving the output
@@ -82,13 +83,29 @@ def load_runs():
     cfg = {"batch_per_gpu": {}, "pairing": value(re.search(r"^pairing: (\S+)", text, re.M).group(1)), "runs": {}}
     for imgsz, b in re.findall(r"^  (\d+): (\S+)", text, re.M):
         cfg["batch_per_gpu"][int(imgsz)] = value(b)
-    for rid, body in re.findall(r"^  ([AB]\d+): \{(.*)\}", text, re.M):
+    for rid, body in re.findall(r"^  ([ABP]\d+): \{(.*)\}", text, re.M):
         cfg["runs"][rid] = {k.strip(): value(v.strip()) for k, v in (kv.split(":") for kv in body.split(","))}
+    for r in cfg["runs"].values():
+        if r.get("prune_from"):  # a pruning-recovery run is named after the run it prunes
+            r["name"] = f"{run_name(cfg['runs'][r['prune_from']])}-prune{r['prune']}"
     return cfg
 
 
 def run_name(r):
-    return f"{Path(r['model']).stem}-{r['imgsz']}-s{r['seed']}"
+    return r.get("name") or f"{Path(r['model']).stem}-{r['imgsz']}-s{r['seed']}"
+
+
+def make_pruned(cfg, r):
+    """Prune the source run's best.pt for a recovery run; the same source always gives the same model."""
+    source = RUNS_DIR / run_name(cfg["runs"][r["prune_from"]]) / "weights" / "best.pt"
+    if not source.exists():
+        fail(f"{run_name(r)} prunes {r['prune_from']}, but {r['prune_from']}'s best.pt is not in the attached inputs. "
+             "Attach the notebook output that holds it (Input panel -> Add Input).")
+    out = PRUNED_DIR / f"{run_name(r)}.pt"
+    if not out.exists():
+        if run([sys.executable, SCRIPTS / "studyprune.py", "--source", source, "--ratio", r["prune"] / 100, "--imgsz", r["imgsz"], "--out", out]).returncode:
+            fail(f"Pruning {r['prune_from']} for {run_name(r)} failed (see above). Send this log to Krishna.")
+    return out
 
 
 # ── setup ────────────────────────────────────────────────────────────────────
@@ -314,6 +331,9 @@ def train(ids, new):
             time.sleep(90)  # let the first run download weights and build the label cache alone
         cmd = [sys.executable, SCRIPTS / "studytrain.py", "--model", r["model"], "--imgsz", r["imgsz"], "--seed", r["seed"],
                "--device", gpu, "--batch-per-gpu", cfg["batch_per_gpu"][r["imgsz"]], "--stop-by", stop_by]
+        if r.get("prune_from"):
+            cmd[3] = make_pruned(cfg, r)
+            cmd += ["--pruned", "--epochs", r["epochs"], "--name", name]
         cmd += {"resume": ["--resume"], "eval-only": ["--eval-only"], "fresh": []}[state]
         log = open(LOGS / f"{rid}-{name}.log", "a", encoding="utf-8")
         print(f"{rid}: GPU {gpu}, log in /kaggle/working/logs/{rid}-{name}.log", flush=True)

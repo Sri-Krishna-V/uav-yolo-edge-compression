@@ -34,6 +34,7 @@ setuptools==78.1.0
 six==1.17.0
 sympy==1.14.0
 torch==2.14.0+cu130
+torch-pruning==1.6.1
 torchvision==0.29.0+cu130
 typing-extensions==4.16.0
 ultralytics==8.4.149
