@@ -264,18 +264,39 @@ remember() { write_env "$1" "$2" >/dev/null; }
 # saved KEY VALUE: save something the person typed, with a short confirmation.
 saved() { write_env "$1" "$2" >/dev/null; ok "Saved."; }
 
-# push_commit: push the commit just made. Both wizards file the same mirrored result files, so the teammate has
-# often pushed since this copy was last updated: replay the commit on top of theirs first (a file both added with
-# the same content combines cleanly). On failure, says why and returns 1.
+# sync_repo: bring this copy up to date with GitHub, replaying any commits not pushed yet on top. An untracked copy
+# of a file GitHub now has (a record imported here that someone else then committed) makes git refuse to update,
+# so copies identical to GitHub's are removed first. Returns 1 if GitHub could not be reached, 2 if this copy and
+# GitHub's could not be combined (a file differs).
+sync_repo() {
+  local f
+  # A rebase the person started is theirs to finish: the --abort below must only ever undo the wizard's own.
+  [[ -d "$(git rev-parse --git-path rebase-merge)" || -d "$(git rev-parse --git-path rebase-apply)" ]] && return 2
+  git fetch -q >/dev/null 2>&1 || return 1
+  while IFS= read -r f; do
+    if [[ "$(git rev-parse -q --verify "@{u}:$f" 2>/dev/null)" == "$(git hash-object -- "$f")" ]]; then rm -f -- "$f"; fi
+  done < <(git ls-files --others --exclude-standard -- study/verification)
+  git rebase -q --autostash "@{u}" >/dev/null 2>&1 && return
+  git rebase --abort >/dev/null 2>&1
+  return 2
+}
+
+# push_commit: push the commit just made, after replaying it on top of whatever the teammate pushed meanwhile.
+# Commits of this computer's that are not on GitHub yet go too, so they are shown and must be confirmed.
+# On failure, says why and returns 1.
 push_commit() {
-  if ! git pull --rebase --autostash -q >/dev/null 2>&1; then
-    if git rebase --abort >/dev/null 2>&1; then
-      warn "GitHub has a different version of one of these files, so the wizard cannot combine them."
-    else
-      warn "Could not reach GitHub (git pull failed)."
-    fi
-    return 1
+  local others rc=0
+  others=$(git log --format='%h %s' "@{u}..HEAD~1" 2>/dev/null || true)
+  if [[ -n "$others" ]]; then
+    warn "Pushing also sends these commits of yours, which are not on GitHub yet:"
+    printf '%s\n' "$others" | sed 's/^/        /'
+    confirm "Push them too?" || { warn "Not pushed."; return 1; }
   fi
+  sync_repo || rc=$?
+  case "$rc" in
+    1) warn "Could not reach GitHub."; return 1 ;;
+    2) warn "GitHub has a different version of one of these files, so the wizard cannot combine them."; return 1 ;;
+  esac
   git push -q && return
   warn "The push failed: no access, or the wrong GitHub account (two accounts? run: gh auth switch)."
   return 1
@@ -526,7 +547,7 @@ local all=1
 gap
 if command -v git >/dev/null 2>&1; then ok "Git is installed"; else bad "Git is missing: install it from https://git-scm.com/downloads"; all=0; fi
 if has_python; then ok "Python 3.9+ is installed"; else bad "Python 3.9+ is missing: install it from https://www.python.org/downloads/ (Windows: tick 'Add python.exe to PATH')"; all=0; fi
-if git pull --ff-only -q >/dev/null 2>&1; then ok "The repo is up to date"; else bad "Could not update the repo (git pull). Carrying on with your copy."; fi
+if sync_repo; then ok "The repo is up to date"; else bad "Could not update the repo (git pull). Carrying on with your copy."; fi
 if has_clipboard; then ok "The clipboard works: the wizard can copy the notebook code for you"; else bad "No clipboard tool: you will copy the code from a file instead"; fi
 if (( ! all )); then
   gap; warn "Install what is missing, close this window, open a new one, and run the wizard again."
@@ -618,6 +639,8 @@ pause "Press Enter to continue."
 
 setup_7() {
 section "Session 0 result" "The wizard checks that Session 0 has finished, downloads its results and checks that the test passed."
+# Update before the import, as in "Bring the results home": the session's download holds what GitHub had then.
+sync_repo || bad "Could not update the repo (git pull). Carrying on with your copy."
 fetch_output BRING_HOME_PATH "$NOTEBOOK_A" "bash study/kaggle/wizard.sh"
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
@@ -673,13 +696,13 @@ if [[ "$KAGGLE_OWNER" == "srikr" ]]; then
 else
   gap
   say "Checking GitHub for Krishna's batch sizes..."
-  git pull --ff-only -q || warn "git pull failed: run it yourself in this folder."
+  sync_repo || warn "git pull failed: run it yourself in this folder."
   until grep -qE '^pairing: (pair|single)' study/kaggle/runs.yaml; do
     gap
     bad "Not there yet. Krishna's probe has not been pushed."
     why "Ask Krishna. When they say it is pushed, press Enter to check again (or close this window and come back)."
     if ! read -r _; then exit 0; fi
-    git pull --ff-only -q || true
+    sync_repo || true
   done
   gap
   ok "The batch sizes are in:"
@@ -776,12 +799,8 @@ banner "UAV YOLO study · Between two sessions"
 
 section "Bring the results home" "The wizard downloads what the last session made (in notebook $LAST_NOTEBOOK) and files it for you."
 # Update first: the session cloned GitHub, so its bring-home also holds the teammate's records. Once they are in this
-# copy, the share stage lists only what this session made. It must come before the import: git will not pull over
-# the untracked copies the import leaves.
-if ! git pull --rebase --autostash -q >/dev/null 2>&1; then
-  git rebase --abort >/dev/null 2>&1
-  bad "Could not update the repo (git pull). Carrying on with your copy."
-fi
+# copy, the share stage lists only what this session made.
+sync_repo || bad "Could not update the repo (git pull). Carrying on with your copy."
 fetch_output BRING_HOME_PATH "$LAST_URL" "bash study/kaggle/wizard.sh next"
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
@@ -796,23 +815,29 @@ pause "Press Enter to continue."
 
 section "Share the finished results" "Finished runs produce a small result file. It goes to GitHub, so the paper uses it."
 gap
+# Only the files a session brings home: the rest of study/verification is this computer's own (the laptop smoke
+# test, the dataset fingerprint) and must not go out as a session's records.
+RECORD_PATHS=(study/verification/runs ':(glob)study/verification/smoke_results-kaggle-*.json' study/verification/kaggle_probe.json)
 # Stage first and list what a commit would change, not git status: the import rewrites the teammate's records
 # with LF endings over this checkout's CRLF, which git status reports as changed although the content is not.
-git add study/verification 2>/dev/null
-if ! git diff --cached --quiet -- study/verification; then
+git -c core.safecrlf=false add -- "${RECORD_PATHS[@]}"
+if ! git diff --cached --quiet -- "${RECORD_PATHS[@]}"; then
   say "New result files:"
-  git diff --cached --name-only -- study/verification | sed 's/^/      /'
+  git diff --cached --name-only -- "${RECORD_PATHS[@]}" | sed 's/^/      /'
   gap
   if confirm "Commit and push them to GitHub?"; then
-    git commit -q -m "Add Kaggle run records from $KAGGLE_WHO's session"
+    git -c core.safecrlf=false commit -q -m "Add Kaggle run records from $KAGGLE_WHO's session" -- "${RECORD_PATHS[@]}"
     if push_commit; then
       ok "Pushed."
+    elif [[ "$KAGGLE_OWNER" == "srikr" ]]; then
+      warn "They are committed on this computer. Push them later with: git push"
+      SKIPPED+=("git push the new study/verification files")
     else
       warn "Send these files to Krishna instead."
       SKIPPED+=("send the new study/verification files to Krishna")
     fi
   else
-    git reset -q -- study/verification
+    git reset -q -- "${RECORD_PATHS[@]}"
     SKIPPED+=("commit + push the new study/verification files")
   fi
 else

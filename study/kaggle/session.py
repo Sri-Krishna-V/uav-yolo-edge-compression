@@ -395,6 +395,10 @@ def import_bring_home(path, mirror):
     mirror = Path(mirror).expanduser()
     for f in sorted((home / "records").glob("*.json")):
         RECORD_DIR.mkdir(parents=True, exist_ok=True)
+        # A session writes a run's record once and never again, so a copy already here is current. The download's
+        # may be older: it holds every record GitHub had when the session started, the teammate's included.
+        if (RECORD_DIR / f.name).exists():
+            continue
         shutil.copy(f, RECORD_DIR / f.name)
         print(f"record     -> study/verification/runs/{f.name}")
     for f in sorted([*home.glob("smoke_results-kaggle-*.json"), *home.glob("kaggle_probe.json")]):
