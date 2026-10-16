@@ -775,6 +775,13 @@ fi
 banner "UAV YOLO study · Between two sessions"
 
 section "Bring the results home" "The wizard downloads what the last session made (in notebook $LAST_NOTEBOOK) and files it for you."
+# Update first: the session cloned GitHub, so its bring-home also holds the teammate's records. Once they are in this
+# copy, the share stage lists only what this session made. It must come before the import: git will not pull over
+# the untracked copies the import leaves.
+if ! git pull --rebase --autostash -q >/dev/null 2>&1; then
+  git rebase --abort >/dev/null 2>&1
+  bad "Could not update the repo (git pull). Carrying on with your copy."
+fi
 fetch_output BRING_HOME_PATH "$LAST_URL" "bash study/kaggle/wizard.sh next"
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
@@ -789,12 +796,14 @@ pause "Press Enter to continue."
 
 section "Share the finished results" "Finished runs produce a small result file. It goes to GitHub, so the paper uses it."
 gap
-if [[ -n "$(git status --porcelain -- study/verification)" ]]; then
+# Stage first and list what a commit would change, not git status: the import rewrites the teammate's records
+# with LF endings over this checkout's CRLF, which git status reports as changed although the content is not.
+git add study/verification 2>/dev/null
+if ! git diff --cached --quiet -- study/verification; then
   say "New result files:"
-  git status --short -- study/verification | sed 's/^/      /'
+  git diff --cached --name-only -- study/verification | sed 's/^/      /'
   gap
   if confirm "Commit and push them to GitHub?"; then
-    git add study/verification
     git commit -q -m "Add Kaggle run records from $KAGGLE_WHO's session"
     if push_commit; then
       ok "Pushed."
@@ -803,6 +812,7 @@ if [[ -n "$(git status --porcelain -- study/verification)" ]]; then
       SKIPPED+=("send the new study/verification files to Krishna")
     fi
   else
+    git reset -q -- study/verification
     SKIPPED+=("commit + push the new study/verification files")
   fi
 else
