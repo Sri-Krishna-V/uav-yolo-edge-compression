@@ -264,6 +264,23 @@ remember() { write_env "$1" "$2" >/dev/null; }
 # saved KEY VALUE: save something the person typed, with a short confirmation.
 saved() { write_env "$1" "$2" >/dev/null; ok "Saved."; }
 
+# push_commit: push the commit just made. Both wizards file the same mirrored result files, so the teammate has
+# often pushed since this copy was last updated: replay the commit on top of theirs first (a file both added with
+# the same content combines cleanly). On failure, says why and returns 1.
+push_commit() {
+  if ! git pull --rebase --autostash -q >/dev/null 2>&1; then
+    if git rebase --abort >/dev/null 2>&1; then
+      warn "GitHub has a different version of one of these files, so the wizard cannot combine them."
+    else
+      warn "Could not reach GitHub (git pull failed)."
+    fi
+    return 1
+  fi
+  git push -q && return
+  warn "The push failed: no access, or the wrong GitHub account (two accounts? run: gh auth switch)."
+  return 1
+}
+
 # ── Doing things ──────────────────────────────────────────────────────────
 
 # open_url URL: replaces the library's version. On Windows, explorer.exe reports failure even when it has
@@ -644,11 +661,10 @@ if [[ "$KAGGLE_OWNER" == "srikr" ]]; then
   if confirm "Commit and push them to GitHub now?"; then
     git add study/kaggle/runs.yaml study/verification/kaggle_probe.json "study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
     git commit -q -m "Freeze Kaggle batch sizes and pairing from the probe" -m "Smoke record for kaggle-$KAGGLE_WHO."
-    if git push -q; then
+    if push_commit; then
       ok "Pushed. Tell your teammate the batch sizes are ready."
     else
-      warn "The push failed. If you have two GitHub accounts, switch to the one that owns the repo"
-      warn "(gh auth switch), then run: git push"
+      warn "When that is fixed, run: git pull --rebase && git push"
       SKIPPED+=("git push (your teammate is blocked until the batch sizes are on GitHub)")
     fi
   else
@@ -780,10 +796,10 @@ if [[ -n "$(git status --porcelain -- study/verification)" ]]; then
   if confirm "Commit and push them to GitHub?"; then
     git add study/verification
     git commit -q -m "Add Kaggle run records from $KAGGLE_WHO's session"
-    if git push -q; then
+    if push_commit; then
       ok "Pushed."
     else
-      warn "The push failed (no access, or the wrong GitHub account). Send these files to Krishna instead."
+      warn "Send these files to Krishna instead."
       SKIPPED+=("send the new study/verification files to Krishna")
     fi
   else
