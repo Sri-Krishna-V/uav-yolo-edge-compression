@@ -1,0 +1,51 @@
+{
+  "stats": {
+    "metrics/precision(B)": 0.41006911368006904,
+    "metrics/recall(B)": 0.30987408844895864,
+    "metrics/mAP50(B)": 0.2760958584730492,
+    "metrics/mAP50-95(B)": 0.15259287611124533,
+    "fitness": 0.15259287611124533,
+    "metrics/mAP_small(B)": 0.07239175318579626,
+    "metrics/mAP_medium(B)": 0.2380577186416715,
+    "metrics/mAP_large(B)": 0.35529786331834795,
+    "coco/AP_all": 0.15563153241599842,
+    "coco/AP_50": 0.27861484967437433,
+    "coco/AP_75": 0.15524894523274266,
+    "coco/AP_small": 0.07239175318579626,
+    "coco/AP_medium": 0.2380577186416715,
+    "coco/AP_large": 0.35529786331834795,
+    "coco/AR_1": 0.07050397909603945,
+    "coco/AR_10": 0.2190184414063987,
+    "coco/AR_100": 0.31458605898777353,
+    "coco/AR_500": 0.31864575061479106,
+    "coco/AR_small": 0.21453419956226175,
+    "coco/AR_medium": 0.45426430227343906,
+    "coco/AR_large": 0.5683027792667903,
+    "coco/AR_50": 0.5773078588295801,
+    "coco/AR_75": 0.30660494237264047
+  },
+  "validator_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": true,
+    "batch": 16,
+    "split": "test",
+    "imgsz": 640,
+    "quantize": null
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "end2end_head_scored": false,
+  "save_dir": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\detect\\val-18",
+  "artifact": "prune30-recovered",
+  "weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-640-s0-prune30\\best.pt",
+  "split": "test",
+  "eval_seconds": 110
+}
