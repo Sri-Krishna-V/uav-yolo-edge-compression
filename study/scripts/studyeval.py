@@ -8,8 +8,8 @@ Verified against ultralytics 8.4.149 / faster-coco-eval 1.8.0 source, three trap
      metrics/mAP50-95(B) on its native trapezoidal integrator (detect/val.py coco_evaluate), so
      the headline AP and the area splits would come from different integrators.
   3. faster-coco-eval evaluates at maxDets=[1, 10, 100] and computes EVERY AP at 100 detections
-     per image, whatever max_det is. 19.5% of val images and 7.9% of test-dev images hold more
-     than 100 objects.
+     per image per category, whatever max_det is. 1.1% of val images and 2.6% of test-dev images
+     hold more than 100 objects of one class (19.5% / 7.9% hold more than 100 in total).
 evaluate() fixes all three: every coco/* stat comes from one integrator at maxDets=500, matching
 the official VisDrone AP@[.50:.95 | maxDets=500] and AR{1,10,100,500} family.
 """

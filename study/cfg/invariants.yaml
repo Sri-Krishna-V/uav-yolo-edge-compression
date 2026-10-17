@@ -5,7 +5,7 @@ shared: # every training run AND every accuracy evaluation
   max_det: 500 # official VisDrone maxDets. Left at 300, Ultralytics silently raises it per context (902 train / 317 val / 461 test-dev)
   iou: 0.7 # NMS IoU, held constant so NMS tuning is never confounded with compression
   conf: 0.001 # Ultralytics val default, made explicit
-  nms: null # external NMS on the one-to-many head, for BOTH families: the head every INT8 edge path runs
+  nms: null # external NMS on the one-to-many head, for BOTH families: the head most edge paths run (INVARIANTS.md §5)
 
 train: # merged into every training run
   seed: 0
