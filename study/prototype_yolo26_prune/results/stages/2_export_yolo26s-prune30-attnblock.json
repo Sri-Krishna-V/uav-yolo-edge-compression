@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "onnx": {
+    "shape": [
+      1,
+      84,
+      8400
+    ],
+    "max_abs_box_px": 0.00048828125,
+    "max_abs_score": 1.3816585919812496e-07,
+    "top100_max_abs_score": 1.207463355967775e-07,
+    "top100_max_abs_box_px": 0.0003662109375
+  },
+  "ncnn": {
+    "shape": [
+      1,
+      84,
+      8400
+    ],
+    "max_abs_box_px": 0.000946044921875,
+    "max_abs_score": 1.5425030142068863e-09,
+    "top100_max_abs_score": 1.5425030142068863e-09,
+    "top100_max_abs_box_px": 0.00054931640625
+  },
+  "onnx_one2one": {
+    "shape": [
+      1,
+      300,
+      6
+    ],
+    "max_abs_box_px": 641.0681762695312,
+    "max_abs_conf": 7.810376700945199e-08,
+    "class_mismatches_top100": 2
+  },
+  "seconds": 14.4
+}

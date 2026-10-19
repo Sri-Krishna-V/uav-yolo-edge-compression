@@ -1,0 +1,44 @@
+{
+  "env": {
+    "ultralytics": "8.4.149",
+    "torch": "2.14.0+cu130",
+    "torch-pruning": "1.6.1",
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0",
+    "ncnn": "1.0.20260526",
+    "pnnx": "20260526",
+    "image": "0000001_02999_d_0000005.jpg"
+  },
+  "0_unpruned_export": {
+    "ok": true,
+    "onnx": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.00360107421875,
+      "max_abs_score": 1.9669532775878906e-06,
+      "top100_max_abs_score": 1.9669532775878906e-06,
+      "top100_max_abs_box_px": 6.103515625e-05
+    },
+    "ncnn": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.0059356689453125,
+      "max_abs_score": 4.9620866775512695e-06,
+      "top100_max_abs_score": 3.9637088775634766e-06,
+      "top100_max_abs_box_px": 9.1552734375e-05
+    },
+    "seconds": 26.0
+  },
+  "1_prune_yolo26s-prune5": {
+    "ok": false,
+    "error": "MemoryError: ",
+    "trace": "Traceback (most recent call last):\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 58, in run\n    r = fn(*a, **k)\n        ^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 206, in prune_and_check\n    pruned_pt, info = prune_ckpt(source, ratio, tag, extra_ignored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 187, in prune_ckpt\n    studyprune.main()\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 133, in main\n    pruned = prune(base, a.ratio, a.imgsz)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 107, in prune\n    tp.pruner.MagnitudePruner(\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\.venv\\Lib\\site-packages\\torch_pruning\\pruner\\algorithms\\base_pruner.py\", line 253, in __init__\n    for group in self.DG.get_all_groups(ignored_layers=self.ignored_layers, root_module_types=self.root_module_types):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\.venv\\Lib\\site-packages\\torch_pruning\\dependency\\graph.py\", line 314, in get_all_groups\n    group = self.get_pruning_group(\n            ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\.venv\\Lib\\site-packages\\torch_pruning\\dependency\\graph.py\", line 251, in get_pruning_group\n    _fix_dependency_graph_non_recursive(*group[0])\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\.venv\\Lib\\site-packages\\torch_pruning\\dependency\\graph.py\", line 236, in _fix_dependency_graph_non_recursive\n    new_indices = mapping(new_indices)\n                  ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\.venv\\Lib\\site-packages\\torch_pruning\\dependency\\index_mapping.py\", line 41, in __call__\n    new_idxs.extend(\nMemoryError\n",
+    "seconds": 5218.0
+  }
+}

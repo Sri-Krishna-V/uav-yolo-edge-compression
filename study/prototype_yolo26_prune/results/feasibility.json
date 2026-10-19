@@ -1,0 +1,965 @@
+{
+  "env": {
+    "ultralytics": "8.4.149",
+    "torch": "2.14.0+cu130",
+    "torch-pruning": "1.6.1",
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0",
+    "ncnn": "1.0.20260526",
+    "pnnx": "20260526"
+  },
+  "system_before": {
+    "available_gb": 4.21,
+    "pagefile_mb": {
+      "AllocatedBaseSize": 42732,
+      "CurrentUsage": 2929,
+      "PeakUsage": 20322
+    }
+  },
+  "0_unpruned_export": {
+    "ok": true,
+    "onnx": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.00360107421875,
+      "max_abs_score": 1.9669532775878906e-06,
+      "top100_max_abs_score": 1.9669532775878906e-06,
+      "top100_max_abs_box_px": 6.103515625e-05
+    },
+    "ncnn": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.0059356689453125,
+      "max_abs_score": 4.9620866775512695e-06,
+      "top100_max_abs_score": 3.9637088775634766e-06,
+      "top100_max_abs_box_px": 9.1552734375e-05
+    },
+    "seconds": 15.1,
+    "limits": {
+      "cap_gb": 3.5,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.16,
+      "min_available_gb": 2.83,
+      "seconds": 21.1
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\0_unpruned_export.log"
+  },
+  "1_prune_yolo11s-prune5": {
+    "ok": true,
+    "extra_ignored": [],
+    "params": [
+      9458752,
+      8544008,
+      0.097
+    ],
+    "gflops": [
+      21.84,
+      18.76
+    ],
+    "layer_channels": {
+      "0": [
+        32,
+        24
+      ],
+      "1": [
+        64,
+        56
+      ],
+      "2": [
+        128,
+        120
+      ],
+      "3": [
+        128,
+        120
+      ],
+      "4": [
+        256,
+        240
+      ],
+      "5": [
+        256,
+        240
+      ],
+      "6": [
+        256,
+        240
+      ],
+      "7": [
+        512,
+        480
+      ],
+      "8": [
+        512,
+        480
+      ],
+      "9": [
+        512,
+        480
+      ],
+      "10": [
+        512,
+        512
+      ],
+      "11": [
+        512,
+        512
+      ],
+      "12": [
+        768,
+        752
+      ],
+      "13": [
+        256,
+        240
+      ],
+      "14": [
+        256,
+        240
+      ],
+      "15": [
+        512,
+        480
+      ],
+      "16": [
+        128,
+        128
+      ],
+      "17": [
+        128,
+        120
+      ],
+      "18": [
+        384,
+        360
+      ],
+      "19": [
+        256,
+        256
+      ],
+      "20": [
+        256,
+        240
+      ],
+      "21": [
+        768,
+        752
+      ],
+      "22": [
+        512,
+        512
+      ]
+    },
+    "attention": {
+      "attention_modules": 1,
+      "inconsistent": []
+    },
+    "heads": [
+      {
+        "level": "P3",
+        "cv2_in": 128,
+        "cv3_in": 128
+      },
+      {
+        "level": "P4",
+        "cv2_in": 256,
+        "cv3_in": 256
+      },
+      {
+        "level": "P5",
+        "cv2_in": 512,
+        "cv3_in": 512
+      }
+    ],
+    "forwards": {
+      "eval_one2many": [
+        1,
+        84,
+        8400
+      ],
+      "eval_one2one": [
+        1,
+        84,
+        8400
+      ],
+      "train_keys": [
+        "boxes",
+        "feats",
+        "scores"
+      ]
+    },
+    "pruned_pt": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\yolo11s-prune5.pt",
+    "seconds": 2.3,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.16,
+      "min_available_gb": 2.9,
+      "seconds": 6.2
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo11s-prune5.log"
+  },
+  "1_prune_yolo11s-prune30": {
+    "ok": true,
+    "extra_ignored": [],
+    "params": [
+      9458752,
+      5665776,
+      0.401
+    ],
+    "gflops": [
+      21.84,
+      12.33
+    ],
+    "layer_channels": {
+      "0": [
+        32,
+        16
+      ],
+      "1": [
+        64,
+        40
+      ],
+      "2": [
+        128,
+        88
+      ],
+      "3": [
+        128,
+        88
+      ],
+      "4": [
+        256,
+        176
+      ],
+      "5": [
+        256,
+        176
+      ],
+      "6": [
+        256,
+        176
+      ],
+      "7": [
+        512,
+        352
+      ],
+      "8": [
+        512,
+        352
+      ],
+      "9": [
+        512,
+        352
+      ],
+      "10": [
+        512,
+        512
+      ],
+      "11": [
+        512,
+        512
+      ],
+      "12": [
+        768,
+        688
+      ],
+      "13": [
+        256,
+        176
+      ],
+      "14": [
+        256,
+        176
+      ],
+      "15": [
+        512,
+        352
+      ],
+      "16": [
+        128,
+        128
+      ],
+      "17": [
+        128,
+        88
+      ],
+      "18": [
+        384,
+        264
+      ],
+      "19": [
+        256,
+        256
+      ],
+      "20": [
+        256,
+        176
+      ],
+      "21": [
+        768,
+        688
+      ],
+      "22": [
+        512,
+        512
+      ]
+    },
+    "attention": {
+      "attention_modules": 1,
+      "inconsistent": []
+    },
+    "heads": [
+      {
+        "level": "P3",
+        "cv2_in": 128,
+        "cv3_in": 128
+      },
+      {
+        "level": "P4",
+        "cv2_in": 256,
+        "cv3_in": 256
+      },
+      {
+        "level": "P5",
+        "cv2_in": 512,
+        "cv3_in": 512
+      }
+    ],
+    "forwards": {
+      "eval_one2many": [
+        1,
+        84,
+        8400
+      ],
+      "eval_one2one": [
+        1,
+        84,
+        8400
+      ],
+      "train_keys": [
+        "boxes",
+        "feats",
+        "scores"
+      ]
+    },
+    "pruned_pt": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\yolo11s-prune30.pt",
+    "seconds": 2.1,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.16,
+      "min_available_gb": 2.9,
+      "seconds": 6.2
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo11s-prune30.log"
+  },
+  "1_prune_yolo26s-prune5-attnblock": {
+    "ok": true,
+    "extra_ignored": [
+      "AttnC3k2"
+    ],
+    "params": [
+      10009784,
+      9196752,
+      0.081
+    ],
+    "gflops": [
+      23.08,
+      19.94
+    ],
+    "layer_channels": {
+      "0": [
+        32,
+        24
+      ],
+      "1": [
+        64,
+        56
+      ],
+      "2": [
+        128,
+        120
+      ],
+      "3": [
+        128,
+        120
+      ],
+      "4": [
+        256,
+        240
+      ],
+      "5": [
+        256,
+        240
+      ],
+      "6": [
+        256,
+        240
+      ],
+      "7": [
+        512,
+        480
+      ],
+      "8": [
+        512,
+        480
+      ],
+      "9": [
+        512,
+        480
+      ],
+      "10": [
+        512,
+        512
+      ],
+      "11": [
+        512,
+        512
+      ],
+      "12": [
+        768,
+        752
+      ],
+      "13": [
+        256,
+        240
+      ],
+      "14": [
+        256,
+        240
+      ],
+      "15": [
+        512,
+        480
+      ],
+      "16": [
+        128,
+        128
+      ],
+      "17": [
+        128,
+        120
+      ],
+      "18": [
+        384,
+        360
+      ],
+      "19": [
+        256,
+        256
+      ],
+      "20": [
+        256,
+        240
+      ],
+      "21": [
+        768,
+        752
+      ],
+      "22": [
+        512,
+        512
+      ]
+    },
+    "attention": {
+      "attention_modules": 2,
+      "inconsistent": []
+    },
+    "heads": [
+      {
+        "level": "P3",
+        "cv2_in": 128,
+        "cv3_in": 128,
+        "o2o_cv2_in": 128,
+        "o2o_cv3_in": 128
+      },
+      {
+        "level": "P4",
+        "cv2_in": 256,
+        "cv3_in": 256,
+        "o2o_cv2_in": 256,
+        "o2o_cv3_in": 256
+      },
+      {
+        "level": "P5",
+        "cv2_in": 512,
+        "cv3_in": 512,
+        "o2o_cv2_in": 512,
+        "o2o_cv3_in": 512
+      }
+    ],
+    "forwards": {
+      "eval_one2many": [
+        1,
+        84,
+        8400
+      ],
+      "eval_one2one": [
+        1,
+        300,
+        6
+      ],
+      "train_keys": [
+        "one2many",
+        "one2one"
+      ]
+    },
+    "pruned_pt": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\yolo26s-prune5-attnblock.pt",
+    "seconds": 2.9,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.26,
+      "min_available_gb": 2.79,
+      "seconds": 7.2
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo26s-prune5-attnblock.log"
+  },
+  "1_prune_yolo26s-prune30-attnblock": {
+    "ok": true,
+    "extra_ignored": [
+      "AttnC3k2"
+    ],
+    "params": [
+      10009784,
+      6773416,
+      0.323
+    ],
+    "gflops": [
+      23.08,
+      13.8
+    ],
+    "layer_channels": {
+      "0": [
+        32,
+        16
+      ],
+      "1": [
+        64,
+        40
+      ],
+      "2": [
+        128,
+        88
+      ],
+      "3": [
+        128,
+        88
+      ],
+      "4": [
+        256,
+        176
+      ],
+      "5": [
+        256,
+        176
+      ],
+      "6": [
+        256,
+        176
+      ],
+      "7": [
+        512,
+        352
+      ],
+      "8": [
+        512,
+        352
+      ],
+      "9": [
+        512,
+        352
+      ],
+      "10": [
+        512,
+        512
+      ],
+      "11": [
+        512,
+        512
+      ],
+      "12": [
+        768,
+        688
+      ],
+      "13": [
+        256,
+        176
+      ],
+      "14": [
+        256,
+        176
+      ],
+      "15": [
+        512,
+        352
+      ],
+      "16": [
+        128,
+        128
+      ],
+      "17": [
+        128,
+        88
+      ],
+      "18": [
+        384,
+        264
+      ],
+      "19": [
+        256,
+        256
+      ],
+      "20": [
+        256,
+        176
+      ],
+      "21": [
+        768,
+        688
+      ],
+      "22": [
+        512,
+        512
+      ]
+    },
+    "attention": {
+      "attention_modules": 2,
+      "inconsistent": []
+    },
+    "heads": [
+      {
+        "level": "P3",
+        "cv2_in": 128,
+        "cv3_in": 128,
+        "o2o_cv2_in": 128,
+        "o2o_cv3_in": 128
+      },
+      {
+        "level": "P4",
+        "cv2_in": 256,
+        "cv3_in": 256,
+        "o2o_cv2_in": 256,
+        "o2o_cv3_in": 256
+      },
+      {
+        "level": "P5",
+        "cv2_in": 512,
+        "cv3_in": 512,
+        "o2o_cv2_in": 512,
+        "o2o_cv3_in": 512
+      }
+    ],
+    "forwards": {
+      "eval_one2many": [
+        1,
+        84,
+        8400
+      ],
+      "eval_one2one": [
+        1,
+        300,
+        6
+      ],
+      "train_keys": [
+        "one2many",
+        "one2one"
+      ]
+    },
+    "pruned_pt": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\yolo26s-prune30-attnblock.pt",
+    "seconds": 2.8,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.26,
+      "min_available_gb": 2.86,
+      "seconds": 6.7
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo26s-prune30-attnblock.log"
+  },
+  "1_prune_yolo26s-prune5-attnonly": {
+    "ok": false,
+    "error": "RuntimeError: unequal C2f halves 240/256: chunk(2) would mis-split",
+    "trace": "Traceback (most recent call last):\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 114, in child\n    r = {\"ok\": True, **(globals()[spec[\"fn\"]](*args) or {})}\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 271, in prune_and_check\n    pruned_pt, info = prune_ckpt(source, ratio, tag, extra_ignored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 252, in prune_ckpt\n    studyprune.main()\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 133, in main\n    pruned = prune(base, a.ratio, a.imgsz)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 118, in prune\n    after = rechunk_c2f(model)(example)[0]\n            ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 90, in rechunk_c2f\n    raise RuntimeError(f\"unequal C2f halves {a.conv.out_channels}/{b.conv.out_channels}: chunk(2) would mis-split\")\nRuntimeError: unequal C2f halves 240/256: chunk(2) would mis-split\n",
+    "seconds": 1.2,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.17,
+      "min_available_gb": 2.84,
+      "seconds": 5.2
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo26s-prune5-attnonly.log"
+  },
+  "1_prune_yolo26s-prune30-attnonly": {
+    "ok": false,
+    "error": "RuntimeError: unequal C2f halves 176/256: chunk(2) would mis-split",
+    "trace": "Traceback (most recent call last):\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 114, in child\n    r = {\"ok\": True, **(globals()[spec[\"fn\"]](*args) or {})}\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 271, in prune_and_check\n    pruned_pt, info = prune_ckpt(source, ratio, tag, extra_ignored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\prototype_yolo26_prune\\feasibility.py\", line 252, in prune_ckpt\n    studyprune.main()\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 133, in main\n    pruned = prune(base, a.ratio, a.imgsz)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 118, in prune\n    after = rechunk_c2f(model)(example)[0]\n            ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\scripts\\studyprune.py\", line 90, in rechunk_c2f\n    raise RuntimeError(f\"unequal C2f halves {a.conv.out_channels}/{b.conv.out_channels}: chunk(2) would mis-split\")\nRuntimeError: unequal C2f halves 176/256: chunk(2) would mis-split\n",
+    "seconds": 1.5,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.22,
+      "min_available_gb": 2.78,
+      "seconds": 5.7
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo26s-prune30-attnonly.log"
+  },
+  "1_prune_yolo26s-prune5": {
+    "ok": false,
+    "error": "MemoryError at the 3 GB cap",
+    "trace": "",
+    "seconds": 14.7,
+    "limits": {
+      "cap_gb": 3,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.98,
+      "min_available_gb": 2.01,
+      "seconds": 18.5
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\1_prune_yolo26s-prune5.log"
+  },
+  "1_prune_yolo26s-prune30": {
+    "ok": false,
+    "skipped": "same failure as 1_prune_yolo26s-prune5: MemoryError at the 3 GB cap"
+  },
+  "2_export_yolo26s-prune5-attnblock": {
+    "ok": true,
+    "onnx": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.000579833984375,
+      "max_abs_score": 1.7577667676960118e-07,
+      "top100_max_abs_score": 1.2334055554674705e-07,
+      "top100_max_abs_box_px": 0.000579833984375
+    },
+    "ncnn": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.0009765625,
+      "max_abs_score": 3.3178366720676422e-09,
+      "top100_max_abs_score": 3.3178366720676422e-09,
+      "top100_max_abs_box_px": 0.000640869140625
+    },
+    "onnx_one2one": {
+      "shape": [
+        1,
+        300,
+        6
+      ],
+      "max_abs_box_px": 636.5068969726562,
+      "max_abs_conf": 6.841582944616675e-08,
+      "class_mismatches_top100": 12
+    },
+    "seconds": 17.7,
+    "limits": {
+      "cap_gb": 3.5,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.23,
+      "min_available_gb": 2.58,
+      "seconds": 23.7
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\2_export_yolo26s-prune5-attnblock.log"
+  },
+  "2_export_yolo26s-prune30-attnblock": {
+    "ok": true,
+    "onnx": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.00048828125,
+      "max_abs_score": 1.3816585919812496e-07,
+      "top100_max_abs_score": 1.207463355967775e-07,
+      "top100_max_abs_box_px": 0.0003662109375
+    },
+    "ncnn": {
+      "shape": [
+        1,
+        84,
+        8400
+      ],
+      "max_abs_box_px": 0.000946044921875,
+      "max_abs_score": 1.5425030142068863e-09,
+      "top100_max_abs_score": 1.5425030142068863e-09,
+      "top100_max_abs_box_px": 0.00054931640625
+    },
+    "onnx_one2one": {
+      "shape": [
+        1,
+        300,
+        6
+      ],
+      "max_abs_box_px": 641.0681762695312,
+      "max_abs_conf": 7.810376700945199e-08,
+      "class_mismatches_top100": 2
+    },
+    "seconds": 14.4,
+    "limits": {
+      "cap_gb": 3.5,
+      "timeout_min": 10
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.05,
+      "min_available_gb": 2.63,
+      "seconds": 20.6
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\2_export_yolo26s-prune30-attnblock.log"
+  },
+  "3_laptop_latency": {
+    "ok": true,
+    "median_ms_640": {
+      "yolo26s-unpruned": {
+        "ort_ms": 65.1,
+        "ncnn_ms": 85.4
+      },
+      "yolo11s-unpruned": {
+        "ort_ms": 69.8,
+        "ncnn_ms": 82.5
+      },
+      "yolo26s-prune30-attnblock": {
+        "ort_ms": 36.7,
+        "ncnn_ms": 58.1
+      },
+      "yolo11s-prune30": {
+        "ort_ms": 40.4,
+        "ncnn_ms": 54.7
+      }
+    },
+    "note": "laptop CPU, plugged in, single image, median of 40 after 8 warm-up",
+    "seconds": 61.9,
+    "limits": {
+      "cap_gb": 3.5,
+      "timeout_min": 15
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 2.64,
+      "min_available_gb": 2.08,
+      "seconds": 68.0
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\3_laptop_latency.log"
+  },
+  "4_recovery_training_smoke": {
+    "ok": true,
+    "extra_ignored": [
+      "AttnC3k2"
+    ],
+    "pruned_params": 6719236,
+    "reloaded_params": 6719236,
+    "still_pruned": true,
+    "optimizer": "SGD",
+    "results_csv": [
+      "epoch,time,train/box_loss,train/cls_loss,train/l1_loss,metrics/precision(B),metrics/recall(B),metrics/mAP50(B),metrics/mAP50-95(B),val/box_loss,val/cls_loss,val/l1_loss,lr/pg0,lr/pg1,lr/pg2",
+      "1,32.9956,4.80347,5.48289,0.01975,0,0,0,0,4.63495,6.35184,0.01994,0.01,0.01,0.01"
+    ],
+    "reloaded_forwards": {
+      "eval_one2many": [
+        1,
+        14,
+        8400
+      ],
+      "eval_one2one": [
+        1,
+        500,
+        6
+      ],
+      "train_keys": [
+        "one2many",
+        "one2one"
+      ]
+    },
+    "onnx_parity": {
+      "shape": [
+        1,
+        14,
+        8400
+      ],
+      "max_abs_box_px": 0.00128173828125,
+      "max_abs_score": 2.5890767574310303e-07,
+      "top100_max_abs_score": 2.5890767574310303e-07,
+      "top100_max_abs_box_px": 0.00115966796875
+    },
+    "seconds": 61.3,
+    "limits": {
+      "cap_gb": 6,
+      "timeout_min": 30
+    },
+    "child": {
+      "exit": 0,
+      "killed": null,
+      "peak_private_gb": 4.7,
+      "min_available_gb": 1.65,
+      "seconds": 66.8
+    },
+    "log": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\runs\\prototype-yolo26-prune\\logs\\4_recovery_training_smoke.log"
+  },
+  "P1_reference": {
+    "tool": "torch-pruning 1.6.1",
+    "ratio": 0.3,
+    "round_to": 8,
+    "importance": "L2 magnitude",
+    "ignored": "C2PSA, Detect"
+  },
+  "system_after": {
+    "available_gb": 4.65,
+    "pagefile_mb": {
+      "AllocatedBaseSize": 42732,
+      "CurrentUsage": 3570,
+      "PeakUsage": 20322
+    }
+  }
+}

@@ -1,0 +1,322 @@
+{
+ "model": "yolo11s.pt",
+ "ignore_base": [
+  "Detect"
+ ],
+ "ignore_extra": [],
+ "e2e": "model",
+ "head_end2end": false,
+ "has_one2one": false,
+ "torch_pruning": "1.6.0",
+ "build_s": 0.4,
+ "after_build_gb": 1.936,
+ "flatten_mappings": [
+  {
+   "from": "_Reshape_4()",
+   "to": "model.23.cv3.0.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_5()",
+   "to": "model.23.cv3.1.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_6()",
+   "to": "model.23.cv3.2.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "model.23.cv3.2.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_6()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_27(AddBackward0)",
+   "to": "_Reshape_28()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_28()",
+   "to": "_Reshape_87()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_28()",
+   "to": "_ElementWiseOp_27(AddBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "model.10.m.0.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "to": "_Reshape_29()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_29()",
+   "to": "model.10.m.0.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_SplitOp_31(None)",
+   "to": "_Reshape_32()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_32()",
+   "to": "_SplitOp_31(None)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_87()",
+   "to": "_Reshape_28()",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_88(BmmBackward0)",
+   "to": "_Reshape_89()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_88(BmmBackward0)",
+   "to": "_Reshape_90()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_89()",
+   "to": "_ElementWiseOp_88(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_90()",
+   "to": "_ElementWiseOp_88(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_93(SoftmaxBackward0)",
+   "to": "_Reshape_94()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_94()",
+   "to": "_ElementWiseOp_93(SoftmaxBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_95(BmmBackward0)",
+   "to": "_Reshape_96()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_95(BmmBackward0)",
+   "to": "_Reshape_97()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_96()",
+   "to": "_ElementWiseOp_95(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_97()",
+   "to": "_ElementWiseOp_95(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "model.23.cv3.1.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_5()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "model.23.cv3.0.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_4()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_152(TransposeBackward0)",
+   "to": "_Reshape_153()",
+   "stride": 12,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_153()",
+   "to": "_ElementWiseOp_152(TransposeBackward0)",
+   "stride": 12,
+   "reverse": true
+  },
+  {
+   "from": "_ConcatOp_154(None)",
+   "to": "_Reshape_155()",
+   "stride": 4,
+   "reverse": false
+  },
+  {
+   "from": "_ConcatOp_154(None)",
+   "to": "_Reshape_156()",
+   "stride": 4,
+   "reverse": false
+  },
+  {
+   "from": "_ConcatOp_154(None)",
+   "to": "_Reshape_157()",
+   "stride": 4,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_155()",
+   "to": "_ConcatOp_154(None)",
+   "stride": 4,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_156()",
+   "to": "_ConcatOp_154(None)",
+   "stride": 4,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_157()",
+   "to": "_ConcatOp_154(None)",
+   "stride": 4,
+   "reverse": true
+  }
+ ],
+ "verdict": "MemoryError at the 3.0 GB cap, in the group rooted at model.10.m.0.attn.pe.conv",
+ "groups_built": 7,
+ "slowest": [
+  {
+   "root": "model.22.cv2.conv",
+   "deps": 8,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.m.0.cv3.conv",
+   "deps": 5,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.m.0.cv2.conv",
+   "deps": 5,
+   "max_idxs": 128,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.cv1.conv",
+   "deps": 7,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.cv2.conv",
+   "deps": 10,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  }
+ ],
+ "last_groups": [
+  {
+   "root": "model.10.cv2.conv",
+   "deps": 10,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.m.0.ffn.1.conv",
+   "deps": 13,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.m.0.ffn.0.conv",
+   "deps": 4,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  }
+ ],
+ "peak_gb": 1.938,
+ "total_s": 17.3,
+ "groups": [
+  {
+   "root": "model.22.cv2.conv",
+   "deps": 8,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.m.0.cv3.conv",
+   "deps": 5,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.m.0.cv2.conv",
+   "deps": 5,
+   "max_idxs": 128,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.22.cv1.conv",
+   "deps": 7,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.cv2.conv",
+   "deps": 10,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.m.0.ffn.1.conv",
+   "deps": 13,
+   "max_idxs": 256,
+   "s": 0.0,
+   "gb": 1.936
+  },
+  {
+   "root": "model.10.m.0.ffn.0.conv",
+   "deps": 4,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 1.936
+  }
+ ]
+}

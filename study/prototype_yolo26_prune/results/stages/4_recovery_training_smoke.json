@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "extra_ignored": [
+    "AttnC3k2"
+  ],
+  "pruned_params": 6719236,
+  "reloaded_params": 6719236,
+  "still_pruned": true,
+  "optimizer": "SGD",
+  "results_csv": [
+    "epoch,time,train/box_loss,train/cls_loss,train/l1_loss,metrics/precision(B),metrics/recall(B),metrics/mAP50(B),metrics/mAP50-95(B),val/box_loss,val/cls_loss,val/l1_loss,lr/pg0,lr/pg1,lr/pg2",
+    "1,32.9956,4.80347,5.48289,0.01975,0,0,0,0,4.63495,6.35184,0.01994,0.01,0.01,0.01"
+  ],
+  "reloaded_forwards": {
+    "eval_one2many": [
+      1,
+      14,
+      8400
+    ],
+    "eval_one2one": [
+      1,
+      500,
+      6
+    ],
+    "train_keys": [
+      "one2many",
+      "one2one"
+    ]
+  },
+  "onnx_parity": {
+    "shape": [
+      1,
+      14,
+      8400
+    ],
+    "max_abs_box_px": 0.00128173828125,
+    "max_abs_score": 2.5890767574310303e-07,
+    "top100_max_abs_score": 2.5890767574310303e-07,
+    "top100_max_abs_box_px": 0.00115966796875
+  },
+  "seconds": 61.3
+}

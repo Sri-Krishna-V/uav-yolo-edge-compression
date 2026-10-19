@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "error": "MemoryError at the 3 GB cap",
+  "trace": "",
+  "seconds": 14.7
+}

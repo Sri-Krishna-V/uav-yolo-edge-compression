@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "onnx": {
+    "shape": [
+      1,
+      84,
+      8400
+    ],
+    "max_abs_box_px": 0.00360107421875,
+    "max_abs_score": 1.9669532775878906e-06,
+    "top100_max_abs_score": 1.9669532775878906e-06,
+    "top100_max_abs_box_px": 6.103515625e-05
+  },
+  "ncnn": {
+    "shape": [
+      1,
+      84,
+      8400
+    ],
+    "max_abs_box_px": 0.0059356689453125,
+    "max_abs_score": 4.9620866775512695e-06,
+    "top100_max_abs_score": 3.9637088775634766e-06,
+    "top100_max_abs_box_px": 9.1552734375e-05
+  },
+  "seconds": 15.1
+}

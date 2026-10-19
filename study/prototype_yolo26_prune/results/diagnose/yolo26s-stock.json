@@ -1,0 +1,373 @@
+{
+ "model": "yolo26s.pt",
+ "ignore_extra": [],
+ "e2e": "model",
+ "head_end2end": false,
+ "has_one2one": true,
+ "torch_pruning": "1.6.0",
+ "build_s": 0.5,
+ "after_build_gb": 2.031,
+ "flatten_mappings": [
+  {
+   "from": "_Reshape_4()",
+   "to": "model.23.cv3.0.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_5()",
+   "to": "model.23.cv3.1.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_6()",
+   "to": "model.23.cv3.2.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 1,
+   "reverse": true
+  },
+  {
+   "from": "model.23.cv3.2.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_6()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_19(AddBackward0)",
+   "to": "_Reshape_20()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_20()",
+   "to": "_Reshape_159()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_20()",
+   "to": "_ElementWiseOp_19(AddBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "model.22.m.0.1.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "to": "_Reshape_21()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_21()",
+   "to": "model.22.m.0.1.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_SplitOp_23(None)",
+   "to": "_Reshape_24()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_24()",
+   "to": "_SplitOp_23(None)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_35(AddBackward0)",
+   "to": "_Reshape_36()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_36()",
+   "to": "_Reshape_95()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_36()",
+   "to": "_ElementWiseOp_35(AddBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "model.10.m.0.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "to": "_Reshape_37()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_37()",
+   "to": "model.10.m.0.attn.pe.conv (Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False))",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_SplitOp_39(None)",
+   "to": "_Reshape_40()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_40()",
+   "to": "_SplitOp_39(None)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_95()",
+   "to": "_Reshape_36()",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_96(BmmBackward0)",
+   "to": "_Reshape_97()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_96(BmmBackward0)",
+   "to": "_Reshape_98()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_97()",
+   "to": "_ElementWiseOp_96(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_98()",
+   "to": "_ElementWiseOp_96(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_101(SoftmaxBackward0)",
+   "to": "_Reshape_102()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_102()",
+   "to": "_ElementWiseOp_101(SoftmaxBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_103(BmmBackward0)",
+   "to": "_Reshape_104()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_103(BmmBackward0)",
+   "to": "_Reshape_105()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_104()",
+   "to": "_ElementWiseOp_103(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_105()",
+   "to": "_ElementWiseOp_103(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_159()",
+   "to": "_Reshape_20()",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_160(BmmBackward0)",
+   "to": "_Reshape_161()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_160(BmmBackward0)",
+   "to": "_Reshape_162()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_161()",
+   "to": "_ElementWiseOp_160(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_162()",
+   "to": "_ElementWiseOp_160(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_165(SoftmaxBackward0)",
+   "to": "_Reshape_166()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_166()",
+   "to": "_ElementWiseOp_165(SoftmaxBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_ElementWiseOp_167(BmmBackward0)",
+   "to": "_Reshape_168()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_ElementWiseOp_167(BmmBackward0)",
+   "to": "_Reshape_169()",
+   "stride": 2,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_168()",
+   "to": "_ElementWiseOp_167(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_169()",
+   "to": "_ElementWiseOp_167(BmmBackward0)",
+   "stride": 2,
+   "reverse": true
+  },
+  {
+   "from": "model.23.cv3.1.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_5()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "model.23.cv3.0.2 (Conv2d(128, 80, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_4()",
+   "stride": 1,
+   "reverse": false
+  },
+  {
+   "from": "_Reshape_190()",
+   "to": "model.23.cv2.0.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 3,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_191()",
+   "to": "model.23.cv2.1.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 3,
+   "reverse": true
+  },
+  {
+   "from": "_Reshape_192()",
+   "to": "model.23.cv2.2.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "stride": 3,
+   "reverse": true
+  },
+  {
+   "from": "model.23.cv2.2.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_192()",
+   "stride": 3,
+   "reverse": false
+  },
+  {
+   "from": "model.23.cv2.1.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_191()",
+   "stride": 3,
+   "reverse": false
+  },
+  {
+   "from": "model.23.cv2.0.2 (Conv2d(32, 4, kernel_size=(1, 1), stride=(1, 1)))",
+   "to": "_Reshape_190()",
+   "stride": 3,
+   "reverse": false
+  }
+ ],
+ "verdict": "MemoryError at the 3.0 GB cap, in the group rooted at model.22.m.0.1.attn.pe.conv",
+ "groups_built": 3,
+ "slowest": [
+  {
+   "root": "model.22.cv2.conv",
+   "deps": 13,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.1.conv",
+   "deps": 18,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.0.conv",
+   "deps": 4,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  }
+ ],
+ "last_groups": [
+  {
+   "root": "model.22.cv2.conv",
+   "deps": 13,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.1.conv",
+   "deps": 18,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.0.conv",
+   "deps": 4,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  }
+ ],
+ "peak_gb": 2.034,
+ "total_s": 14.9,
+ "groups": [
+  {
+   "root": "model.22.cv2.conv",
+   "deps": 13,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.1.conv",
+   "deps": 18,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  },
+  {
+   "root": "model.22.m.0.1.ffn.0.conv",
+   "deps": 4,
+   "max_idxs": 512,
+   "s": 0.0,
+   "gb": 2.031
+  }
+ ]
+}

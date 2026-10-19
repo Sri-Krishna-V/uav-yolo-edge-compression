@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "median_ms_640": {
+    "yolo26s-unpruned": {
+      "ort_ms": 65.1,
+      "ncnn_ms": 85.4
+    },
+    "yolo11s-unpruned": {
+      "ort_ms": 69.8,
+      "ncnn_ms": 82.5
+    },
+    "yolo26s-prune30-attnblock": {
+      "ort_ms": 36.7,
+      "ncnn_ms": 58.1
+    },
+    "yolo11s-prune30": {
+      "ort_ms": 40.4,
+      "ncnn_ms": 54.7
+    }
+  },
+  "note": "laptop CPU, plugged in, single image, median of 40 after 8 warm-up",
+  "seconds": 61.9
+}
