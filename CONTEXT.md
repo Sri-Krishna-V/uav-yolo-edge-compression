@@ -20,7 +20,7 @@ A **configuration** is one point in the compression pipeline applied to a study 
 
 ## Platform vs runtime
 
-A **platform** is a physical device: Raspberry Pi 5, Jetson, Galaxy M35, laptop CPU. A **runtime** is the inference engine and model format used on it: TensorRT, NCNN, TFLite/LiteRT, ONNX Runtime, PyTorch. One platform may support several runtimes, and the runtime is part of the experimental condition, never an implementation detail - runtime choice alone moves Pi 5 throughput by ~2.8x.
+A **platform** is a physical device: Raspberry Pi 5, Jetson, Galaxy M34, laptop CPU. A **runtime** is the inference engine and model format used on it: TensorRT, NCNN, TFLite/LiteRT, ONNX Runtime, PyTorch. One platform may support several runtimes, and the runtime is part of the experimental condition, never an implementation detail - runtime choice alone moves Pi 5 throughput by ~2.8x.
 
 Do not write "device" when you mean platform, or "format" when you mean runtime.
 

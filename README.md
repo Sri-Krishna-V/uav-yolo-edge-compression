@@ -2,7 +2,7 @@
 
 A controlled study of what model compression costs **small objects** in UAV imagery, and what it buys on real edge
 hardware. Two detectors (YOLO11s, YOLO26s), one dataset (VisDrone2019-DET), four platforms (Raspberry Pi 5, Jetson
-Nano, a Galaxy M35 phone, laptop CPU), and every accuracy claim reported with COCO-style area splits
+Nano, a Galaxy M34 phone, laptop CPU), and every accuracy claim reported with COCO-style area splits
 (AP-small / AP-medium / AP-large) rather than aggregate mAP alone.
 
 **Status: training starts now.** The experimental invariants and the baseline training recipe are frozen; compression,
