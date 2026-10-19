@@ -7,8 +7,12 @@ the pruned channel counts defeat the hardware kernels and buy no latency). Needs
 the same source checkpoint always gives the same pruned model: kaggle/session.py re-prunes A1 inside the session
 instead of shipping the pruned file. The checkpoint records sha256 of the source and of the pruned weights.
 
-Never pruned: C2PSA (its attention reshapes by head count) and the Detect head, whose output channels are fixed
-by reg_max and the class count.
+Never pruned: every block that holds an Attention (C2PSA, and YOLO26's layer-22 C3k2 built with attn=True), and the
+Detect head, whose output channels are fixed by reg_max and the class count. An Attention must not be pruned
+from inside: DepGraph maps its head reshapes as stride-2 flattens, so a group rooted in it doubles its index list
+every lap of the attention's loop and never terminates (YOLO26s grew to 25.8 GB). Ignoring only the Attention is
+not enough either: it pins the C3k2 half that feeds the attention while the other half is pruned, and unequal
+halves cannot be re-chunked. Evidence: branch prototype/yolo26-pruning-feasibility, study/prototype_yolo26_prune/.
 
 The output keeps the Ultralytics checkpoint layout with the pruned module pickled in it, so YOLO() and
 studyeval load it as is. TRAIN it only through `studytrain.py --pruned`: a stock train() rebuilds the model
@@ -29,7 +33,7 @@ import studyenv  # noqa: F401  must precede ultralytics
 import torch  # noqa: E402
 import torch_pruning as tp  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
-from ultralytics.nn.modules import C2PSA, C2f, Detect  # noqa: E402
+from ultralytics.nn.modules import C2PSA, Attention, C2f, Detect  # noqa: E402
 from ultralytics.utils.torch_utils import get_flops  # noqa: E402
 
 ROUND_TO = 8
@@ -99,6 +103,11 @@ def rechunk_c2f(model):
     return model.eval()
 
 
+def never_pruned(m):
+    """The Detect head, and every block holding an Attention: C2PSA, or a C3k2 built with attn=True (see the docstring)."""
+    return isinstance(m, (C2PSA, Detect)) or (isinstance(m, C2f) and any(isinstance(s, Attention) for s in m.modules()))
+
+
 def prune(model, ratio, imgsz):
     model = unchunk_c2f(deepcopy(model).float())
     for p in model.parameters():
@@ -111,7 +120,7 @@ def prune(model, ratio, imgsz):
         pruning_ratio=ratio,
         global_pruning=False,  # uniform: the same ratio in every prunable layer
         round_to=ROUND_TO,
-        ignored_layers=[m for m in model.modules() if isinstance(m, (C2PSA, Detect))],
+        ignored_layers=[m for m in model.modules() if never_pruned(m)],
     ).step()
     with torch.no_grad():
         before = model(example)[0]
@@ -137,7 +146,7 @@ def main():
         "method": "DepGraph MagnitudePruner, L2 importance, uniform (global_pruning=False)",
         "ratio": a.ratio,
         "round_to": ROUND_TO,
-        "ignored": ["C2PSA", "Detect"],
+        "ignored": ["C2PSA", "C3k2 with attn=True", "Detect"],
         "source": str(a.source),
         "source_sha256": sha256(a.source),
         "pruned_weights_sha256": weights_sha256(pruned),
