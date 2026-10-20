@@ -21,8 +21,11 @@ runs: # in each owner's order of work (RUNS.md, "Order of work")
   B1: {owner: srikr, model: yolo11s.pt, imgsz: 960, seed: 0}
   B3: {owner: srikr, model: yolo11s.pt, imgsz: 1280, seed: 0}
   P1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0, prune_from: A1, prune: 30, epochs: 30}
+  P2: {owner: srikr, model: yolo11s.pt, imgsz: 960, seed: 0, prune_from: B1, prune: 30, epochs: 30}
   A2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0}
   A5: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 1}
   A6: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 2}
   B2: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0}
   B4: {owner: teammate, model: yolo26s.pt, imgsz: 1280, seed: 0}
+  P3: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30}
+  P4: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0, prune_from: B2, prune: 30, epochs: 30}

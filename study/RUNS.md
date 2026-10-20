@@ -24,6 +24,9 @@ labelled noise runs. Order within each owner is top to bottom.
 | B3 | srikr | YOLO11s | 1280 | 0 | `yolo11s-1280-s0` | Resolution study. **Cut first if the schedule slips** |
 | B4 | teammate | YOLO26s | 1280 | 0 | `yolo26s-1280-s0` | Resolution study. **Cut first if the schedule slips** |
 | P1 | srikr | YOLO11s, A1 pruned 30% | 640 | 0 | `yolo11s-640-s0-prune30` | Pruning arm of *Confirm the small-object effect*: A1 re-pruned in the session by `scripts/studyprune.py` (uniform 30%, `round_to=8`), then a **30-epoch** recovery with this recipe (`studytrain.py --pruned`). ~1 T4-h (A1 took 3.6 h for 100 epochs) |
+| P2 | srikr | YOLO11s, B1 pruned 30% | 960 | 0 | `yolo11s-960-s0-prune30` | The pruned configuration at 960, for the paper's equal-latency comparisons. Same prune and 30-epoch recovery as P1. ~2 T4-h |
+| P3 | teammate | YOLO26s, A2 pruned 30% | 640 | 0 | `yolo26s-640-s0-prune30` | The pruned configuration of YOLO26s at the matrix resolution. YOLO26s prunes once the block holding its layer-22 attention is skipped (0f6077d). ~1 T4-h |
+| P4 | teammate | YOLO26s, B2 pruned 30% | 960 | 0 | `yolo26s-960-s0-prune30` | The pruned configuration of YOLO26s at 960, for the equal-latency comparisons. ~2 T4-h |
 
 Teacher runs (YOLO11m, YOLO26m) inherit this same recipe but are not scheduled: *Distillation method* decides
 whether they happen at all.

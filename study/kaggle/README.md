@@ -7,15 +7,16 @@ Read it once, top to bottom. After that, the wizard does the remembering for you
 
 | Person | Trains | Run list, in order |
 |---|---|---|
-| srikr | YOLO11s | A1, A3, A4, B1, B3, P1 |
-| teammate | YOLO26s | A2, A5, A6, B2, B4 |
+| srikr | YOLO11s | A1, A3, A4, B1, B3, P1, P2 |
+| teammate | YOLO26s | A2, A5, A6, B2, B4, P3, P4 |
 
 What each run is, and why, is in [`../RUNS.md`](../RUNS.md). You don't need it to follow this guide.
 
-**P1 is different.** It is a pruning run, not a baseline. The session cuts 30% of the channels from A1's
-finished checkpoint, then trains the smaller model for 30 epochs (about 1 hour). It needs nothing extra from
-you: A1 arrives through the same attached input as every other run. If the session stops with "best.pt is
-not in the attached inputs", that input is missing.
+**P runs are different.** They are pruning runs, not baselines. The session cuts 30% of the channels from a
+finished run's checkpoint (P1: A1, P2: B1, P3: A2, P4: B2), then trains the smaller model for 30 epochs
+(about 1 hour at 640, 2 hours at 960). They need nothing extra from you: the finished run arrives through
+the same attached input as every other run. If the session stops with "best.pt is not in the attached
+inputs", that input is missing.
 
 ---
 

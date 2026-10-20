@@ -572,8 +572,8 @@ saved KAGGLE_WHO "$KAGGLE_WHO"
 
 heading "Which model do you train?"
 gap
-printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3 P1 %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
-printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4    %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3 P1 P2 %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4 P3 P4 %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
 gap
 while :; do
   ask OWNER_CHOICE "Type 1 or 2:"
@@ -878,11 +878,13 @@ N=$(( ${SESSIONS_STARTED:-1} + 1 ))
 copy_cell "$TASK"
 COME_BACK_MIN=660
 if [[ " $TASK " =~ \ P[0-9]+\  ]]; then
-  why "P1 is a pruning run. The session cuts 30% of A1's channels, then trains the result for 30 epochs."
-  why "It reads A1 from the input you just checked. If it stops with \"best.pt is not in the attached inputs\","
-  why "that input is missing: add it under Input and run the session again."
-  # A P run alone is ~1 h of training plus setup and evaluation; paired with an A/B run, the A/B run sets the time.
-  [[ " $TASK " =~ \ [AB][0-9]+\  ]] || COME_BACK_MIN=120
+  why "P runs are pruning runs. The session cuts 30% of a finished run's channels (P1: A1, P2: B1, P3: A2,"
+  why "P4: B2), then trains the result for 30 epochs. It reads that run from the input you just checked."
+  why "If it stops with \"best.pt is not in the attached inputs\", that input is missing: add it under Input"
+  why "and run the session again."
+  # P runs take ~1 h of training at 640 and ~2 h at 960, plus setup and evaluation; paired with an A/B run,
+  # the A/B run sets the time.
+  [[ " $TASK " =~ \ [AB][0-9]+\  ]] || COME_BACK_MIN=180
 fi
 open_url "$NEXT_URL"
 save_and_run "session $N" 1
