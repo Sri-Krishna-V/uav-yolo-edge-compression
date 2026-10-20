@@ -18,9 +18,12 @@ A **configuration** is one point in the compression pipeline applied to a study 
 
 "Compressed" is the cover term for the four non-baseline configurations.
 
+The **pruning ratio** of a pruned configuration is the fraction of channels removed from each prunable layer. It is not the fraction of parameters removed: the two differ, and by a different amount for each study model.
+_Avoid_: "30% smaller" for a 30% pruning ratio.
+
 ## Platform vs runtime
 
-A **platform** is a physical device: Raspberry Pi 5, Jetson, Galaxy M34, laptop CPU. A **runtime** is the inference engine and model format used on it: TensorRT, NCNN, TFLite/LiteRT, ONNX Runtime, PyTorch. One platform may support several runtimes, and the runtime is part of the experimental condition, never an implementation detail - runtime choice alone moves Pi 5 throughput by ~2.8x.
+A **platform** is a physical device: Raspberry Pi 5, Raspberry Pi 4B, Jetson, Galaxy M34, laptop CPU. A **runtime** is the inference engine and model format used on it: TensorRT, NCNN, TFLite/LiteRT, ONNX Runtime, PyTorch. One platform may support several runtimes, and the runtime is part of the experimental condition, never an implementation detail - runtime choice alone moves Pi 5 throughput by ~2.8x.
 
 Do not write "device" when you mean platform, or "format" when you mean runtime.
 
@@ -32,15 +35,22 @@ A **cell** is one measured combination: model x configuration x platform (x runt
 
 The **input resolution** is the square image size a model is trained, evaluated, and exported at. Like the runtime, it is part of a cell's experimental condition.
 
-The **matrix resolution** is the one input resolution that every compressed configuration uses.
+The **matrix resolution** is the one input resolution at which every configuration is run. Cells at any other input resolution exist only for equal-latency comparisons.
 
-The **resolution study** is a set of baselines trained at several input resolutions, to show what accuracy and latency each resolution buys. Its extra baselines are not cells of the compression matrix.
+The **resolution study** is the set of baselines trained at input resolutions above the matrix resolution. These baselines, and the compressed configurations built from them, are cells: the equal-latency comparisons are made from them.
 
-The **reference baseline** is the baseline at the matrix resolution. Every compressed configuration is measured against it. Where resolution matters, "the baseline" means the reference baseline.
+The **reference baseline** is the baseline at the matrix resolution. Every compressed configuration at the matrix resolution is measured against it. Where resolution matters, "the baseline" means the reference baseline.
+
+## Compression budget and equal-latency comparison
+
+The **compression budget** is the latency that a compressed configuration saves against the baseline at the same input resolution, on one platform. It is always measured latency, never FLOPs or parameters.
+
+An **equal-latency comparison** puts two cells on one platform side by side at the same measured latency: typically a compressed configuration at a larger input resolution against a baseline at a smaller one. It asks whether a compression budget is better spent on input resolution.
+_Avoid_: iso-latency, matched-latency.
 
 ## Small-object degradation
 
-The hypothesised effect at the centre of the paper: compression that costs only a few points of aggregate mAP costs disproportionately more **AP-small**, because VisDrone is dominated by tiny aerial objects that COCO-calibrated compression recipes do not protect. Always stated in terms of COCO-style area splits (AP-small / AP-medium / AP-large), never as aggregate mAP alone.
+The hypothesised effect that compression that costs only a few points of aggregate mAP costs disproportionately more **AP-small**, because VisDrone is dominated by tiny aerial objects that COCO-calibrated compression recipes do not protect. Always stated in terms of COCO-style area splits (AP-small / AP-medium / AP-large), never as aggregate mAP alone.
 
 ## Study models vs literature anchor
 
@@ -52,4 +62,4 @@ VisDrone2019-DET: `train` (6,471), `val` (548), `test-dev` (1,610). The split th
 
 ## Destination vs execution
 
-The **map** decides *how* the study runs; **execution** is running it: training runs, exports, and benchmarks. Baseline training executes alongside the map (since 2026-10-09, once the recipe was frozen); exports and benchmarks each wait for the decision ticket that governs them.
+The **map** decides _how_ the study runs; **execution** is running it: training runs, exports, and benchmarks. Baseline training executes alongside the map (since 2026-10-09, once the recipe was frozen); exports and benchmarks each wait for the decision ticket that governs them.
