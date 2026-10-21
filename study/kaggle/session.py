@@ -146,10 +146,16 @@ def source_blockers(cfg, r, has_best, has_record):
 
 
 def make_pruned(cfg, r):
-    """Prune the source run's best.pt for a recovery run; the same source always gives the same model."""
-    source = RUNS_DIR / run_name(cfg["runs"][r["prune_from"]]) / "weights" / "best.pt"
+    """Prune the source run's best.pt for a recovery run; the same source always gives the same model. Only a finished
+    source will do: a paused run has a best.pt too."""
+    pid = r["prune_from"]
+    sname = run_name(cfg["runs"][pid])
+    source = RUNS_DIR / sname / "weights" / "best.pt"
     if not source.exists():
-        raise Blocked(f"{r['prune_from']}'s best.pt is missing. {MISSING_HINT}")
+        raise Blocked(f"{pid}'s best.pt is missing. {MISSING_HINT}")
+    state, detail = state_of(sname)
+    if state != "done":
+        raise Blocked(f"the run it prunes, {pid}, has not finished ({detail}): {pid} must finish first")
     out = PRUNED_DIR / f"{run_name(r)}.pt"
     if not out.exists():
         if run([sys.executable, SCRIPTS / "studyprune.py", "--source", source, "--ratio", r["prune"] / 100, "--imgsz", r["imgsz"], "--out", out]).returncode:

@@ -26,6 +26,7 @@ s.SEED_DIR = T / "seed-unpacked"
 s.WORKING.mkdir(parents=True)
 shutil.copytree(REPO / "study" / "verification" / "runs", s.RECORD_DIR)  # the GitHub clone's records
 cfg = s.load_runs()
+MAKE_PRUNED, RUN = s.make_pruned, s.run
 
 
 def fake_run(root, name, best=True, rows=101):
@@ -183,6 +184,25 @@ fake_run(src, "yolo26s-960-s0")
 shutil.make_archive(str(s.INPUTS / "uav-vidhyarth-seed" / "uav"), "zip", src / "uav")
 rc, out = call(s.preflight, ["train", "T2", "P4", "--new", "T2", "P4", "--input-from", "S-new"])
 check("11 zipped seed dataset unblocks P4", rc == 0 and "BLOCKED" not in out and "unpacked the seed" in out, out)
+
+# 12. train, not preflight, is the gate: a run must not be pruned from a source that has no record, even when the
+# source's best.pt is there (a paused run has one). B2 paused after epoch 6 and no record: P4 BLOCKED, T2 trains.
+reset()
+fake_run(nb_b, "yolo26s-960-s0")
+stamp(nb_b, "S-new")
+b2_record = s.RECORD_DIR / "yolo26s-960-s0.json"
+b2_saved = b2_record.read_bytes()
+b2_record.unlink()
+s.make_pruned = MAKE_PRUNED
+s.run = lambda cmd, **kw: Path(cmd[cmd.index("--out") + 1]).parent.mkdir(parents=True, exist_ok=True) or Done()  # studyprune
+s.checkpoint_epoch = lambda p: 5 if "960-s0" in str(p) else -1
+launched.clear()
+rc, out = call(s.train, ["T2", "P4"], ["T2", "P4"])
+res = (s.BRING_HOME / "SESSION_RESULT.txt").read_text()
+check("12 train: P4 blocked while B2 (paused) has no record", rc == 0 and launched == ["yolo26m-640-s0"]
+      and "P4 yolo26s-960-s0-prune30: BLOCKED" in res and "has not finished" in res, out + res)
+b2_record.write_bytes(b2_saved)
+s.make_pruned, s.run, s.checkpoint_epoch = (lambda cfg, r: "x.pt"), RUN, (lambda p: -1)
 
 print(f"\n{sum(ok for _, ok in results)}/{len(results)} passed")
 shutil.rmtree(T, ignore_errors=True)
