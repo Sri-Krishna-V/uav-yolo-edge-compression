@@ -496,11 +496,8 @@ fetch_output() {
     rm -rf "$dir"; warn "Kaggle has no output for this version."
     printf -v "$1" '%s' ""; return 0
   fi
-  if [[ ! -d "$dir/bring-home" && -n "$(find "$dir" -type f -print -quit)" ]]; then
-    # Files but no folder: if Kaggle ever names output files without their folder, take the whole output instead.
-    say "Downloading the whole output instead (can be a few hundred MB)..."
-    kaggle_cli kernels output "$ref" -p "$dir" -o -q >/dev/null || { rm -rf "$dir"; bad "The download failed."; stuck; exit 1; }
-  fi
+  # Kaggle keeps the folder in output file names. The CLI also writes the version's log (<notebook>.log) next to the
+  # download, so a version without a bring-home still leaves a file here: never take that for a sign to fetch more.
   if [[ ! -d "$dir/bring-home" ]]; then
     rm -rf "$dir"; warn "This version saved no results (no bring-home folder)."
     printf -v "$1" '%s' ""; return 0

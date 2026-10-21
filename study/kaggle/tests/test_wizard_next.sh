@@ -4,6 +4,7 @@ REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$REPO" || exit 1
 T=$(mktemp -d)
 head -n -1 study/kaggle/wizard.sh > "$T/w.sh"   # everything but the final run_wizard call
+DOWNLOADS_BEFORE=$(ls study/kaggle/.downloads 2>/dev/null || true)  # fetch_output downloads into the repo's own folder
 pass=0; fail=0
 
 scenario() {  # scenario NAME LAST_NOTEBOOK ENV_EXTRA : runs next_flow in a subshell, output in $T/NAME.log
@@ -21,8 +22,13 @@ scenario() {  # scenario NAME LAST_NOTEBOOK ENV_EXTRA : runs next_flow in a subs
       v="STATUS_${slug//-/_}"
       case "$1 $2" in
         "kernels status") printf '%s has status "%s"\n' "$3" "${!v:-KernelWorkerStatus.COMPLETE}" ;;
-        # A version still running has no output yet.
-        "kernels output") [[ "${!v:-}" == *RUNNING* ]] || { [[ -d "$T/out/$slug" ]] && cp -r "$T/out/$slug/." "$5/"; }; return 0 ;;
+        # A version still running has no output yet. Like the real CLI (kaggle 2.2.4 kernels_output), every download
+        # also writes the version's log as <slug>.log, whatever --file-pattern says.
+        "kernels output")
+          if [[ "$6" == --file-pattern ]]; then printf '%s %s\n' "$slug" "$7"; else printf '%s WHOLE-OUTPUT\n' "$slug"; fi >> "$T/calls"
+          [[ "${!v:-}" == *RUNNING* ]] && return 0
+          [[ -d "$T/out/$slug" ]] && cp -r "$T/out/$slug/." "$5/"
+          printf 'log\n' > "$5/$slug.log"; return 0 ;;
       esac
     }
     for k in SID_A SID_B; do v=$(_existing "$k" || true); printf -v "$k" '%s' "$v"; done
@@ -56,6 +62,7 @@ hint_quotes_session() {  # the message the P/D/C hint tells the person to look f
   [[ -n "$q" ]] && grep -qF "$q" study/kaggle/session.py
 }
 check "S1 the best.pt hint quotes what session.py prints" hint_quotes_session
+check "S1 never downloads the whole output of a version without bring-home" bash -c "! grep -q WHOLE-OUTPUT '$T/calls'"
 
 # S2: a normal session in B with a stamp -> SID_B saved, next in A, TASK carries --input-from.
 mkdir -p "$T/out/uav-vid-b/bring-home"
@@ -115,3 +122,7 @@ check "S7 no session started" bash -c "! grep -q 'Start the next session' '$T/s7
 
 echo; echo "$pass passed, $fail failed"; [[ $fail -eq 0 ]] || { echo "logs in $T"; for f in "$T"/s*.log; do echo "== $f"; tail -25 "$f"; done; }
 rm -f study/kaggle/.cell-to-paste.txt
+for d in study/kaggle/.downloads/*-uav-vid-[ab]; do  # the scenarios' downloads, never the person's own
+  [[ -d "$d" ]] && ! grep -qxF "${d##*/}" <<< "$DOWNLOADS_BEFORE" && rm -rf "$d"
+done
+[[ $fail -eq 0 ]]
