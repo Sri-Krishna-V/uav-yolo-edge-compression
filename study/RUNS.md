@@ -25,7 +25,6 @@ labelled noise runs. Order within each owner is top to bottom.
 | B4 | teammate | YOLO26s | 1280 | 0 | `yolo26s-1280-s0` | Resolution study. **Cut first if the schedule slips** |
 | P1 | srikr | YOLO11s, A1 pruned 30% | 640 | 0 | `yolo11s-640-s0-prune30` | Pruning arm of *Confirm the small-object effect*: A1 re-pruned in the session by `scripts/studyprune.py` (uniform 30%, `round_to=8`), then a **30-epoch** recovery with this recipe (`studytrain.py --pruned`). ~1 T4-h (A1 took 3.6 h for 100 epochs) |
 | P2 | srikr | YOLO11s, B1 pruned 30% | 960 | 0 | `yolo11s-960-s0-prune30` | The pruned configuration at 960, for the paper's equal-latency comparisons. Same prune and 30-epoch recovery as P1. ~2 T4-h |
-| P3 | teammate | YOLO26s, A2 pruned 30% | 640 | 0 | `yolo26s-640-s0-prune30` | The pruned configuration of YOLO26s at the matrix resolution. YOLO26s prunes once the block holding its layer-22 attention is skipped (0f6077d). ~1 T4-h |
 | P4 | teammate | YOLO26s, B2 pruned 30% | 960 | 0 | `yolo26s-960-s0-prune30` | The pruned configuration of YOLO26s at 960, for the equal-latency comparisons. ~2 T4-h |
 | T1 | srikr | YOLO11m | 640 | 0 | `yolo11m-640-s0` | Teacher for D1 and C1. Not a cell: never deployed or benchmarked. This recipe at 100 epochs, but its own per-GPU batch, **12** (fallback 8). ~9-11 T4-h |
 | D1 | srikr | YOLO11s, taught by T1 | 640 | 0 | `yolo11s-640-s0-distill` | The distilled configuration: A1's recipe and COCO start, plus Ultralytics' distillation from T1's best.pt (`studytrain.py --distill`, default `dis`). Batch 24 (fallback 16). ~5-6 T4-h |
@@ -33,6 +32,7 @@ labelled noise runs. Order within each owner is top to bottom.
 | T2 | teammate | YOLO26m | 640 | 0 | `yolo26m-640-s0` | Teacher for D2 and C2, as T1. Batch 12 (fallback 8). ~9-11 T4-h |
 | D2 | teammate | YOLO26s, taught by T2 | 640 | 0 | `yolo26s-640-s0-distill` | The distilled configuration of YOLO26s, as D1. Batch 24 (fallback 16). ~5-6 T4-h |
 | C2 | teammate | YOLO26s, A2 pruned 30%, taught by T2 | 640 | 0 | `yolo26s-640-s0-prune30-distill` | The combined configuration of YOLO26s, as C1 (the same pruned start as P3). Batch 24 (fallback 16). ~1-1.5 T4-h |
+| P3 | teammate | YOLO26s, A2 pruned 30% | 640 | 0 | `yolo26s-640-s0-prune30` | The pruned configuration of YOLO26s at the matrix resolution. YOLO26s prunes once the block holding its layer-22 attention is skipped (0f6077d). ~1 T4-h |
 
 **T, D and C runs.** A teacher is a bigger model a study model learns from during training; it is never a cell.
 A D or C run starts only once its teacher (and, for C, the run it prunes) has a record, and `kaggle/session.py`
@@ -49,9 +49,10 @@ batch, its record carries `batch_fallback_from`, and later sessions resume it at
    tickets need before their results can be called real.
 3. **B1, B2** for the resolution table.
 4. **B3, B4 last**, because 1280 costs roughly 4x a 640 run for one table row.
-5. **Then the compression runs, P, T, D, C**, in that order per owner. P runs need only a finished baseline. A
-   teacher must finish before its D and C runs can start, so its first session pairs it with the owner's last P
-   run (P2, P4), and D and C then share a session.
+5. **Then the compression runs**: srikr P1, P2, T1, D1, C1; teammate T2, P4, D2, C2, P3. P runs need only a
+   finished baseline. A teacher must finish before its D and C runs can start, so its first session pairs it with
+   a P run (T1 with P2, T2 with P4), and D and C then share a session. The teammate's teacher goes first because
+   T2 is that line's longest run and D2 and C2 wait for it; P3 runs last.
 
 ## Cost, and the cut order
 
