@@ -26,7 +26,7 @@ s.SEED_DIR = T / "seed-unpacked"
 s.WORKING.mkdir(parents=True)
 shutil.copytree(REPO / "study" / "verification" / "runs", s.RECORD_DIR)  # the GitHub clone's records
 cfg = s.load_runs()
-MAKE_PRUNED, RUN = s.make_pruned, s.run
+MAKE_PRUNED, RUN, LAUNCH = s.make_pruned, s.run, s.launch
 
 
 def fake_run(root, name, best=True, rows=101):
@@ -203,6 +203,90 @@ check("12 train: P4 blocked while B2 (paused) has no record", rc == 0 and launch
       and "P4 yolo26s-960-s0-prune30: BLOCKED" in res and "has not finished" in res, out + res)
 b2_record.write_bytes(b2_saved)
 s.make_pruned, s.run, s.checkpoint_epoch = (lambda cfg, r: "x.pt"), RUN, (lambda p: -1)
+
+# 13-16. train's launches through the real launch(), with only subprocess.Popen faked: each run's studytrain exits
+# with the next code in its script. A launch records its command line, its environment, and the stamp it found.
+launches = []
+
+
+class FakePopen:
+    script = {}
+
+    def __init__(self, cmd, stdout=None, stderr=None, env=None):
+        args = dict(zip(cmd, cmd[1:]))
+        codes = FakePopen.script[args["--name"]]
+        self.name, self.code = args["--name"], codes.pop(0) if codes else 0  # an unplanned launch fails its check
+        stamp_file = s.ROOT / s.STAMP_NAME
+        launches.append({"name": self.name, "device": args["--device"], "batch": args["--batch-per-gpu"],
+                         "fallback_from": args.get("--fallback-from"), "resume": "--resume" in cmd,
+                         "alloc": (env or {}).get("PYTORCH_CUDA_ALLOC_CONF"), "stamp": stamp_file.read_text() if stamp_file.exists() else ""})
+        self.returncode = None
+
+    def poll(self):
+        self.returncode = self.code
+        return self.code
+
+    def wait(self):
+        return self.poll()
+
+    def kill(self):
+        pass
+
+
+def train_with(ids, new, script):
+    launches.clear()
+    FakePopen.script = script
+    rc, out = call(s.train, ids, new)
+    res = (s.BRING_HOME / "SESSION_RESULT.txt").read_text() if (s.BRING_HOME / "SESSION_RESULT.txt").exists() else ""
+    return rc, out + res, res
+
+
+s.launch, s.subprocess.Popen = LAUNCH, FakePopen
+T2, P4 = "yolo26m-640-s0", "yolo26s-960-s0-prune30"
+
+# 13. T2 (fresh) runs out of memory in its first epoch: restarted once, from zero, at batch 8 on its own GPU 0, the
+# record told (--fallback-from 12). P4 on GPU 1 is launched once and untouched. The provisional stamp is written
+# once both runs are launched.
+reset()
+stamp(nb_b, "S-new")
+rc, out, res = train_with(["T2", "P4"], ["T2", "P4"], {T2: [s.EXIT_BATCH_CHANGED, 0], P4: [s.EXIT_PAUSED]})
+t2 = [x for x in launches if x["name"] == T2]
+p4 = [x for x in launches if x["name"] == P4]
+check("13a train: T2 restarted at its fallback batch, from zero, on GPU 0",
+      [(x["device"], x["batch"], x["fallback_from"], x["resume"]) for x in t2] == [("0", "12", None, False), ("0", "8", "12", False)], out + str(launches))
+check("13b train: expandable segments for T2 only; P4 launched once on GPU 1 at the 960 batch",
+      all(x["alloc"] == "expandable_segments:True" for x in t2) and [(x["device"], x["batch"], x["alloc"]) for x in p4] == [("1", "8", None)], str(launches))
+check("13c train: result says T2 finished at its fallback batch, P4 paused",
+      f"T2 {T2}: FINISHED: record written (it ran out of GPU memory at batch 12 and restarted from zero at its fallback batch 8" in res
+      and f"P4 {P4}: PAUSED" in res, out)
+check("13d train: the relaunch saw the provisional 'training in progress' stamp", "training in progress" in t2[1]["stamp"], str(launches))
+
+# 14. The fallback batch runs out of memory too: no third launch, INVALID.
+reset()
+stamp(nb_b, "S-new")
+rc, out, res = train_with(["T2"], ["T2"], {T2: [s.EXIT_BATCH_CHANGED, s.EXIT_BATCH_CHANGED]})
+check("14 train: out of memory at the fallback too -> INVALID, two launches only",
+      len(launches) == 2 and f"T2 {T2}: INVALID: GPU ran out of memory at batch 12, and again at its fallback batch 8" in res, out)
+
+# 15. A run that trained in an earlier session is never restarted from zero: resumed at 12, exit 76 -> INVALID, once.
+reset()
+fake_run(nb_b, T2)
+(nb_b / "uav" / "study" / "runs" / "baseline" / T2 / "args.yaml").write_text("batch: 12\n")
+stamp(nb_b, "S-new")
+s.checkpoint_epoch = lambda p: 40 if T2 in str(p) else -1
+rc, out, res = train_with(["T2"], [], {T2: [s.EXIT_BATCH_CHANGED]})
+check("15 train: a resumed run that runs out of memory is not restarted",
+      [(x["batch"], x["resume"]) for x in launches] == [("12", True)] and "had trained in earlier sessions" in res, out)
+
+# 16. A run that fell back in an earlier session resumes at the batch it started with (8), its record still told.
+reset()
+fake_run(nb_b, T2)
+(nb_b / "uav" / "study" / "runs" / "baseline" / T2 / "args.yaml").write_text("batch: 8\n")
+stamp(nb_b, "S-new")
+rc, out, res = train_with(["T2"], [], {T2: [s.EXIT_PAUSED]})
+check("16 train: resumes at its started batch 8 with --fallback-from 12",
+      [(x["batch"], x["fallback_from"], x["resume"]) for x in launches] == [("8", "12", True)] and f"T2 {T2}: PAUSED" in res, out)
+s.checkpoint_epoch = lambda p: -1
 
 print(f"\n{sum(ok for _, ok in results)}/{len(results)} passed")
 shutil.rmtree(T, ignore_errors=True)
