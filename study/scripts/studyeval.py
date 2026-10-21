@@ -14,7 +14,7 @@ evaluate() fixes all three: every coco/* stat comes from one integrator at maxDe
 the official VisDrone AP@[.50:.95 | maxDets=500] and AR{1,10,100,500} family.
 
 ground_truth() builds, with the validator's own code, the COCO ground truth that evaluate() scores a static export
-against. studyscore.py caches it and scores device detections (studybench.py) against it without loading torch:
+against. studyscore.py caches it and scores studybench.py detections against it without loading torch:
 
   python studyeval.py ground-truth --split test --imgsz 640 --out gt.json
 """

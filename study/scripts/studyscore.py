@@ -1,8 +1,8 @@
-"""Score studybench.py device runs on the laptop, with exactly studyeval's COCO settings. Writes score.json per run.
+"""Score studybench.py runs on the laptop, with exactly studyeval's COCO settings. Writes score.json per run.
 
   python studyscore.py bench/pi5/yolo11s-640-s0/640/onnxruntime-int8 [more run directories...]
 
-The device saved its detections in DetectionValidator.pred_to_json form; this scores them the way evaluate() scores
+The platform saved its detections in DetectionValidator.pred_to_json form; this scores them the way evaluate() scores
 the same static export, in two halves, because importing torch alone costs 1.35 GB on the laptop and a 710k-detection
 evaluation at maxDets 500 needs about as much again:
   ground truth  built once per (split, imgsz) by studyeval.ground_truth(), i.e. by DetectionValidator's own code at
@@ -72,7 +72,7 @@ def coco_evaluate(anno_json, pred_json):
 def score(predictions, split, imgsz, images=None):
     """Score one predictions.json against the ground truth evaluate() would use for a static export at imgsz.
 
-    `images` (file names) restricts the ground truth to the images the device ran (a --limit check).
+    `images` (file names) restricts the ground truth to the images the platform ran (a --limit check).
     """
     gt_rec = ground_truth(split, imgsz)
     index = {f: i for i, f in enumerate(gt_rec["files"])}
@@ -101,7 +101,7 @@ def score(predictions, split, imgsz, images=None):
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("runs", nargs="+", help="studybench.py --out directories")
-    p.add_argument("--split", default="test", help="the split the device ran (test = test-dev)")
+    p.add_argument("--split", default="test", help="the split the platform ran (test = test-dev)")
     a = p.parse_args()
     for run in map(Path, a.runs):
         meta = json.loads((run / "meta.json").read_text(encoding="utf-8"))
@@ -109,12 +109,12 @@ def main():
             raise SystemExit(f"{run}: the run is not complete (resume it with studybench.py --resume)")
         drift = {k: (meta["postprocess"].get(k), studyenv.EVAL_ARGS[k]) for k in ("conf", "iou", "max_det") if meta["postprocess"].get(k) != studyenv.EVAL_ARGS[k]}
         if drift:
-            raise SystemExit(f"{run}: post-processing differs from the invariants (device, invariant): {drift}")
+            raise SystemExit(f"{run}: post-processing differs from the invariants (platform, invariant): {drift}")
         with open(run / "timings.csv", newline="", encoding="utf-8") as f:
             ran = {r["file"] for r in csv.DictReader(f)}
         split_files = set(ground_truth(a.split, meta["imgsz"])["files"])
         if meta.get("complete_testdev") and ran != split_files:
-            raise SystemExit(f"{run}: the device ran {len(ran)} images, the {a.split} split has {len(split_files)}")
+            raise SystemExit(f"{run}: the platform ran {len(ran)} images, the {a.split} split has {len(split_files)}")
         result = score(run / "predictions.json", a.split, meta["imgsz"], images=None if ran == split_files else sorted(ran))
         result.update(run=str(run), platform_tag=meta.get("platform_tag"), head=meta.get("head"), manifest=meta.get("manifest"))
         (run / "score.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

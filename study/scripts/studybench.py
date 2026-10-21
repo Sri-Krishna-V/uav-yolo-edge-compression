@@ -1,9 +1,9 @@
-"""On-device benchmark of one cell: every test-dev image through one exported artifact, accuracy and latency in one pass.
+"""On-platform benchmark of one cell: every test-dev image through one exported artifact, accuracy and latency in one pass.
 
   python3 studybench.py --artifact exports/yolo11s-640-s0/640/onnxruntime-fp32 --runtime onnxruntime --imgsz 640 \
       --images VisDrone/images/test --out bench/pi5/yolo11s-640-s0/640/onnxruntime-fp32 --platform-tag pi5
 
-Runs ON the device. Needs only the standard library, numpy, cv2 and the one runtime module (imported lazily); runs on
+Runs ON the platform. Needs only the standard library, numpy, cv2 and the one runtime module (imported lazily); runs on
 Python 3.11 (Raspberry Pi OS Bookworm), 3.14 (Termux) and the laptop. Never import torch, ultralytics or studyenv here.
 
 Warm-up first (the first --warmup images, untimed), then every image is timed, batch 1, single stream, in three stages.
@@ -47,7 +47,7 @@ import cv2
 import numpy as np
 
 # cfg/invariants.yaml `shared:` plus the non_max_suppression defaults the validator leaves alone. Copied, not read:
-# yaml and studyenv are not on the device. studyeval.py score refuses a run whose meta disagrees with the invariants.
+# yaml and studyenv are not on the platform. studyscore.py refuses a run whose meta disagrees with the invariants.
 CONF, IOU, MAX_DET = 0.001, 0.7, 500
 MAX_NMS, MAX_WH = 30000, 7680
 PAD_VALUE = 114
@@ -250,7 +250,7 @@ class NCNN:
 RUNTIMES = {"onnxruntime": OnnxRuntime, "openvino": OpenVINO, "ncnn": NCNN}
 
 
-# ---------------------------------------------------------------- device state (fails soft: Android hides most of it)
+# -------------------------------------------------------------- platform state (fails soft: Android hides most of it)
 
 
 def _try(fn, default=None):
