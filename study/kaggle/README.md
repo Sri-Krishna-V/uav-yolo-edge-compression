@@ -8,7 +8,7 @@ Read it once, top to bottom. After that, the wizard does the remembering for you
 | Person | Trains | Run list, in order |
 |---|---|---|
 | srikr | YOLO11s | A1, A3, A4, B1, B3, P1, P2, T1, D1, C1 |
-| teammate | YOLO26s | A2, A5, A6, B2, B4, P3, P4, T2, D2, C2 |
+| teammate | YOLO26s | A2, A5, A6, B2, B4, T2, P4, D2, C2, P3 |
 
 What each run is, and why, is in [`../RUNS.md`](../RUNS.md). You don't need it to follow this guide.
 

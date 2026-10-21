@@ -39,8 +39,8 @@ runs: # in each owner's order of work (RUNS.md, "Order of work")
   A6: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 2}
   B2: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0}
   B4: {owner: teammate, model: yolo26s.pt, imgsz: 1280, seed: 0}
-  P3: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30}
-  P4: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0, prune_from: B2, prune: 30, epochs: 30}
   T2: {owner: teammate, model: yolo26m.pt, imgsz: 640, seed: 0, batch: 12, batch_fallback: 8}
+  P4: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0, prune_from: B2, prune: 30, epochs: 30}
   D2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, distill_from: T2, batch_fallback: 16}
   C2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30, distill_from: T2, batch_fallback: 16}
+  P3: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30}
