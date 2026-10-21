@@ -835,6 +835,14 @@ banner "UAV YOLO study · Between two sessions"
 # A session already running in the other notebook means one was started after the wizard last noted it (it was
 # closed early, or the session was started by hand). Never start a second one: wait for that one.
 ensure_cli
+# The last session itself still running (the person came back early) is said first: a running version has no output
+# yet, so the stamp check below would take the other notebook's older session for the last one.
+if notebook_running "$LAST_URL"; then
+  gap
+  say "The session in notebook $(key "$LAST_NOTEBOOK") is still running. Come back later and run the same command:"
+  say "    $(key 'bash study/kaggle/wizard.sh next')"
+  exit 0
+fi
 if notebook_running "$NEXT_URL"; then
   gap
   say "A session is already running in notebook $(key "$NEXT"). The wizard now counts it as your last session."

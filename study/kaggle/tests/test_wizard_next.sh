@@ -18,9 +18,11 @@ scenario() {  # scenario NAME LAST_NOTEBOOK ENV_EXTRA : runs next_flow in a subs
     install_cli() { :; }; clipboard() { cat >/dev/null; }; _clear() { :; }; wrap_up() { :; }; git() { return 0; }
     kaggle_cli() {
       local slug="${3##*/}" v
+      v="STATUS_${slug//-/_}"
       case "$1 $2" in
-        "kernels status") v="STATUS_${slug//-/_}"; printf '%s has status "%s"\n' "$3" "${!v:-KernelWorkerStatus.COMPLETE}" ;;
-        "kernels output") [[ -d "$T/out/$slug" ]] && cp -r "$T/out/$slug/." "$5/" ; return 0 ;;
+        "kernels status") printf '%s has status "%s"\n' "$3" "${!v:-KernelWorkerStatus.COMPLETE}" ;;
+        # A version still running has no output yet.
+        "kernels output") [[ "${!v:-}" == *RUNNING* ]] || { [[ -d "$T/out/$slug" ]] && cp -r "$T/out/$slug/." "$5/"; }; return 0 ;;
       esac
     }
     for k in SID_A SID_B; do v=$(_existing "$k" || true); printf -v "$k" '%s' "$v"; done
@@ -93,6 +95,17 @@ scenario s6 A ""
 check "S6 unnoted later session in B detected" grep -q "Notebook B ran a session after notebook A" "$T/s6.log"
 check "S6 brings B home" grep -q "Asking Kaggle about vid/uav-vid-b" "$T/s6.log"
 check "S6 next in A, reading B's new version" [ "$(cell)" == 'TASK = "train T2 P4 --new T2 P4 --input-from 20261022-050000-2222"' ]
+
+# S7: the person comes back too early: the last session (B) is still running, A holds the session before it.
+# The wizard must say so and wait, not take A for the last session and start one in the running notebook.
+STATUS_uav_vid_b=KernelWorkerStatus.RUNNING; export STATUS_uav_vid_b
+scenario s7 B ""
+unset STATUS_uav_vid_b
+check "S7 says the session is still running" grep -q "still running" "$T/s7.log"
+check "S7 exits cleanly" [ "$(cat "$T/s7.rc")" == "0" ]
+check "S7 LAST_NOTEBOOK stays B" [ "$(envval s7 LAST_NOTEBOOK)" == "B" ]
+check "S7 no unnoted-session warning" bash -c "! grep -q 'ran a session after' '$T/s7.log'"
+check "S7 no session started" bash -c "! grep -q 'Start the next session' '$T/s7.log'"
 
 echo; echo "$pass passed, $fail failed"; [[ $fail -eq 0 ]] || { echo "logs in $T"; for f in "$T"/s*.log; do echo "== $f"; tail -25 "$f"; done; }
 rm -f study/kaggle/.cell-to-paste.txt
