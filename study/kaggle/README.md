@@ -25,7 +25,8 @@ What each run is, and why, is in [`../RUNS.md`](../RUNS.md). You don't need it t
 
 They need nothing extra from you. A run starts only once the run it builds on has finished, and the wizard
 picks them in the right order. The finished run and the teacher arrive through the same attached input as
-every other run. If the session stops with "best.pt is not in the attached inputs", that input is missing.
+every other run. If the result says a run is BLOCKED because its "best.pt is missing", that input is old or
+missing; the other run still trains.
 
 T, D and C runs use nearly all of the GPU's memory. If one runs out of memory at its very start, the session
 restarts it once, from zero, at a smaller batch that was planned for this, and the result line says so.

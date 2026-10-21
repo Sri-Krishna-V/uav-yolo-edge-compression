@@ -50,6 +50,12 @@ check "S1 next session in notebook A again" grep -q "Get notebook A ready" "$T/s
 check "S1 input to check is uav-vid-b" grep -q "uav-vid-b must be listed" "$T/s1.log"
 check "S1 TASK is the plain next task" [ "$(cell)" == 'TASK = "train T2 P4 --new T2 P4"' ]
 check "S1 LAST_NOTEBOOK stays A" [ "$(envval s1 LAST_NOTEBOOK)" == "A" ]
+hint_quotes_session() {  # the message the P/D/C hint tells the person to look for is one session.py prints
+  local q
+  q=$(grep -o '"[^"]*best\.pt[^"]*"' "$T/s1.log" | head -n1 | tr -d '"')
+  [[ -n "$q" ]] && grep -qF "$q" study/kaggle/session.py
+}
+check "S1 the best.pt hint quotes what session.py prints" hint_quotes_session
 
 # S2: a normal session in B with a stamp -> SID_B saved, next in A, TASK carries --input-from.
 mkdir -p "$T/out/uav-vid-b/bring-home"

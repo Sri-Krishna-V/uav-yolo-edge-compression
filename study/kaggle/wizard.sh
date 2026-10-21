@@ -1001,8 +1001,8 @@ if [[ " $TASK " =~ \ C[0-9]+\  ]]; then
   why "then trains the result for 30 epochs with the teacher's help (C1: T1, C2: T2). About 1 hour."
 fi
 if [[ " $TASK " =~ \ [PDC][0-9]+\  ]]; then
-  why "The session reads the finished run (and the teacher) from the input you just checked. If it stops with"
-  why "\"best.pt is not in the attached inputs\", that input is missing: add it under Input and run the session again."
+  why "The session reads the finished run (and the teacher) from the input you just checked. If the result says"
+  why "a run is BLOCKED because its \"best.pt is missing\", that input is old or missing; the other run still trains."
 fi
 if [[ " $TASK " =~ \ [TDC][0-9]+\  ]]; then
   why "If a T, D or C run runs out of GPU memory at its very start, the session restarts it once, at a smaller"
