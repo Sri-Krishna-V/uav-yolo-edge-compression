@@ -8,13 +8,22 @@
   python session.py apply-probe PROBE.json   # on your own computer, once: write the probe's numbers into runs.yaml
   python session.py import-bring-home PATH --mirror DIR   # on your computer, after each session (the wizard runs these)
   python session.py next-task --owner srikr --mirror DIR  # on your computer: the TASK line for the next session
+  python session.py preflight TASK / wrap-up TASK         # the notebook's first and last commands (see below)
+  python session.py seed-folder --owner X --mirror DIR --out DIR   # on your computer: `wizard.sh repair` uploads it
 
 `train` first copies every checkpoint and record found in the attached inputs into this session (a Kaggle
 notebook cannot attach its own output, so each person alternates two notebooks attached to each other).
 Then, per run: a run with a record is skipped; a paused run resumes; a trained but unevaluated run is
-evaluated. A run with nothing found starts from zero ONLY if listed in --new; otherwise the session stops,
-because the likeliest cause is a forgotten input, and restarting would burn hours of quota. Training pauses after the last epoch that ends before
-TRAIN_STOP_H hours into the session, so the session always finishes cleanly and its output is saved.
+evaluated. A run with nothing found starts from zero ONLY if listed in --new; otherwise it is BLOCKED (the
+likeliest cause is a forgotten or outdated input, and restarting would burn hours of quota), and the other run
+trains anyway. Training pauses after the last epoch that ends before TRAIN_STOP_H hours into the session, so the
+session always finishes cleanly and its output is saved.
+
+Every session's output also holds a stamp (session_stamp.json): its id and whether it trained. `preflight`, before
+setup, checks that the inputs hold the session the wizard just brought home (TASK --input-from) and that each run
+can start, so a wrong or outdated input costs a minute, not a session. `wrap-up` runs whatever happened: a session
+that ended without its SESSION_RESULT still writes one (STOPPED before training, or CRASHED), relays its inputs'
+runs into its output, and stamps it, so no notebook version is ever an empty link in the chain.
 
 A run built on another run (runs.yaml prune_from: its pruned start; distill_from: its teacher) needs that run
 finished: its record, and its best.pt in the inputs. A run with a batch_fallback that runs out of GPU memory in
@@ -50,6 +59,10 @@ BRING_HOME = WORKING / "bring-home"
 LOGS = WORKING / "logs"
 SESSION_START_FILE = Path("/tmp/study_session_start")
 PRUNED_DIR = Path("/tmp/study-pruned")  # re-made every session from the source run (deterministic), never saved
+STOP_FILE = Path("/tmp/study_stop.txt")  # why this session stopped early, for wrap-up's SESSION_RESULT
+SESSION_ID_FILE = Path("/tmp/study_session_id")
+STAMP_NAME = "session_stamp.json"  # in uav/study/ of every session's output and in its bring-home
+SEED_DIR = Path("/tmp/study-seed")  # an attached seed dataset (wizard.sh repair) unpacked, if Kaggle left it zipped
 
 SESSION_LIMIT_H = 12.0  # Kaggle's cap on one GPU session
 TRAIN_STOP_H = 11.0  # no epoch may end later than this; leaves time for evaluation and saving the output
@@ -64,7 +77,14 @@ def banner(text):
 
 def fail(text):
     banner(f"STOP: {text}")
+    if WORKING.is_dir():  # on Kaggle: wrap-up puts the reason in this session's SESSION_RESULT
+        with open(STOP_FILE, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
     sys.exit(1)
+
+
+class Blocked(Exception):
+    """One run cannot start this session (something it needs is missing); the other run still can."""
 
 
 def run(cmd, **kw):
@@ -108,16 +128,32 @@ def sources(r):
     return [r[k] for k in ("prune_from", "distill_from") if r.get(k)]
 
 
+MISSING_HINT = ("It is in neither input. Likely fix: under Input, update the other notebook to its newest version. "
+                "If that does not help, run on your computer: bash study/kaggle/wizard.sh repair")
+
+
+def source_blockers(cfg, r, has_best, has_record):
+    """Why the runs r is built on (its pruned start, its teacher) are not usable here; [] if they are."""
+    out = []
+    for key, role in (("prune_from", "the run it prunes"), ("distill_from", "its teacher")):
+        if r.get(key):
+            sid, sname = r[key], run_name(cfg["runs"][r[key]])
+            if not has_record(sname):
+                out.append(f"{sid} ({role}) has not finished: it must finish first")
+            elif not has_best(sname):
+                out.append(f"{sid}'s best.pt ({role}) is missing. {MISSING_HINT}")
+    return out
+
+
 def make_pruned(cfg, r):
     """Prune the source run's best.pt for a recovery run; the same source always gives the same model."""
     source = RUNS_DIR / run_name(cfg["runs"][r["prune_from"]]) / "weights" / "best.pt"
     if not source.exists():
-        fail(f"{run_name(r)} prunes {r['prune_from']}, but {r['prune_from']}'s best.pt is not in the attached inputs. "
-             "Attach the notebook output that holds it (Input panel -> Add Input).")
+        raise Blocked(f"{r['prune_from']}'s best.pt is missing. {MISSING_HINT}")
     out = PRUNED_DIR / f"{run_name(r)}.pt"
     if not out.exists():
         if run([sys.executable, SCRIPTS / "studyprune.py", "--source", source, "--ratio", r["prune"] / 100, "--imgsz", r["imgsz"], "--out", out]).returncode:
-            fail(f"Pruning {r['prune_from']} for {run_name(r)} failed (see above). Send this log to Krishna.")
+            raise Blocked(f"pruning {r['prune_from']} failed (see the log above). Send this log to Krishna")
     return out
 
 
@@ -127,12 +163,10 @@ def teacher(cfg, r):
     name = run_name(cfg["runs"][tid])
     best = RUNS_DIR / name / "weights" / "best.pt"
     if not best.exists():
-        fail(f"{run_name(r)} learns from the teacher {tid}, but {tid}'s best.pt is not in the attached inputs. "
-             "Attach the notebook output that holds it (Input panel -> Add Input).")
+        raise Blocked(f"its teacher {tid}'s best.pt is missing. {MISSING_HINT}")
     state, detail = state_of(name)
     if state != "done":
-        fail(f"{run_name(r)} learns from the teacher {tid}, but {tid} has not finished ({detail}). "
-             f"{tid} must finish first: use the TASK line the wizard gives you.")
+        raise Blocked(f"its teacher {tid} has not finished ({detail}): {tid} must finish first")
     return best
 
 
@@ -265,8 +299,24 @@ def checkpoint_epoch(path):
 
 
 def find_in_inputs(pattern):
-    """Files under an attached input's uav/study/ tree: only the output of our own notebook cell is ever read."""
-    return sorted(INPUTS.glob(f"**/uav/study/{pattern}")) if INPUTS.is_dir() else []
+    """Files under an attached input's uav/study/ tree: only the output of our own notebook cell, or the seed dataset
+    `wizard.sh repair` uploads from the person's own checkpoints, is ever read."""
+    unpack_seeds()
+    return sorted(f for root in (INPUTS, SEED_DIR) if root.is_dir() for f in root.glob(f"**/uav/study/{pattern}"))
+
+
+def unpack_seeds():
+    """A seed dataset arrives as uav.zip (or uav.tar) if Kaggle does not unpack it: unpack it once, outside /kaggle/input."""
+    if SEED_DIR.exists() or not INPUTS.is_dir():
+        return
+    SEED_DIR.mkdir(parents=True)
+    for n, archive in enumerate(sorted([*INPUTS.glob("**/uav.zip"), *INPUTS.glob("**/uav.tar")])):
+        import tarfile
+        import zipfile
+
+        dest = SEED_DIR / str(n)
+        (zipfile.ZipFile(archive) if archive.suffix == ".zip" else tarfile.open(archive)).extractall(dest)
+        print(f"unpacked the seed {archive} -> {dest}", flush=True)
 
 
 def carry_forward():
@@ -287,6 +337,11 @@ def carry_forward():
         if best != local:
             shutil.copytree(best.parents[1], RUNS_DIR / name, dirs_exist_ok=True)
             print(f"carried forward {name} (epoch {'final' if checkpoint_epoch(best) == -1 else checkpoint_epoch(best) + 1}) from {best.parents[1]}", flush=True)
+    carry_records()
+
+
+def carry_records():
+    """The evaluations and records found in the attached inputs (stdlib: wrap-up's relay uses it too)."""
     for d in find_in_inputs("runs/baseline/*-eval-*"):
         if d.is_dir() and not (RUNS_DIR / d.name).exists():
             shutil.copytree(d, RUNS_DIR / d.name)
@@ -336,8 +391,8 @@ def plan(cfg, rid, state, gpu):
     # A started run goes on at the batch it started with (its fallback, if it fell back), never runs.yaml's.
     batch = planned if state == "fresh" else (started_batch(name) or planned)
     if batch not in (planned, r.get("batch_fallback")):
-        fail(f"{rid} {name} started at batch {batch}, but runs.yaml plans {planned}. Resuming at another batch would "
-             "break the same-batch rule. Send this log to Krishna.")
+        raise Blocked(f"it started at batch {batch}, but runs.yaml plans {planned}; resuming at another batch would "
+                      "break the same-batch rule. Send this log to Krishna")
     return {"name": name, "args": args, "state": state, "gpu": gpu, "planned": planned, "batch": batch,
             "fallback": r.get("batch_fallback"), "fallback_from": planned if batch != planned else None}
 
@@ -376,27 +431,40 @@ def train(ids, new):
     states = {i: state_of(run_name(cfg["runs"][i])) for i in ids}
     for i, (state, detail) in states.items():
         print(f"{i} {run_name(cfg['runs'][i])}: {detail}", flush=True)
-    lost = [i for i in ids if states[i][0] == "fresh" and i not in new]
-    if lost:
-        fail(f"No checkpoint found for {lost} in the attached inputs, so they would restart from zero. Most likely the "
-             "other notebook's output is not attached (Input panel -> Add Input). If they truly have never started, "
-             f"put --new {' '.join(lost)} in TASK.")
-    started_already = [i for i in new if states[i][0] != "fresh"]
-    if started_already:
-        fail(f"--new {started_already}, but they already exist ({[states[i][1] for i in started_already]}). Remove them from --new.")
+    # A run that cannot start is BLOCKED and reported; the other run still trains, so a session is never wasted on
+    # one missing input. Each run is planned (pruned start, teacher, batch) before the first one starts.
+    blocked, runs = {}, {}
+    for gpu, rid in enumerate(ids):
+        state = states[rid][0]
+        if state == "done":
+            continue
+        if state == "fresh" and rid not in new:
+            blocked[rid] = ("no checkpoint of it is in the inputs, so it would restart from zero and throw its earlier "
+                            f"epochs away. {MISSING_HINT}")
+            continue
+        if rid in new and state != "fresh":
+            print(f"{rid}: listed in --new, but it has already started ({states[rid][1]}); continuing it instead.", flush=True)
+        try:
+            runs[rid] = plan(cfg, rid, state, gpu)
+        except Blocked as e:
+            blocked[rid] = str(e)
+    for rid, why in blocked.items():
+        print(f"{rid} BLOCKED: {why}", flush=True)
+    if blocked and not runs:
+        fail("Nothing could start: " + "; ".join(f"{rid}: {why}" for rid, why in blocked.items()))
 
     stop_by = session_start() + TRAIN_STOP_H * 3600
     kill_at = session_start() + HARD_KILL_H * 3600
     LOGS.mkdir(parents=True, exist_ok=True)
-    # Everything every run needs (pruned start, teacher, batch) is checked before the first one starts, so a STOP
-    # never leaves a run behind.
-    runs = {rid: plan(cfg, rid, states[rid][0], gpu) for gpu, rid in enumerate(ids) if states[rid][0] != "done"}
     for n, (rid, p) in enumerate(runs.items()):
         if n:
             time.sleep(90)  # let the first run download weights and build the label cache alone
         p["log"] = open(LOGS / f"{rid}-{p['name']}.log", "a", encoding="utf-8")
         print(f"{rid}: GPU {p['gpu']}, batch {p['batch']}, log in /kaggle/working/logs/{rid}-{p['name']}.log", flush=True)
         launch(p, stop_by)
+    # If Kaggle stops this session from outside (the weekly quota runs out), wrap-up never runs. A stamp and a
+    # bring-home kept fresh every 15 minutes make whatever Kaggle saves of the output usable as the next input.
+    write_stamp("ok", ["training in progress"])
 
     last_report = 0
     while True:
@@ -420,6 +488,7 @@ def train(ids, new):
             last_report = time.time()
             status = "; ".join(f"{rid} {progress(p['name'])}" + ("" if p["proc"].poll() is None else " (exited)") for rid, p in runs.items())
             print(f"[{hours_into_session():.1f} h into session] {status}", flush=True)
+            bring_home([])  # records and logs only: copying a last.pt while its run writes it could tear the copy
         time.sleep(60)
 
     outcomes = {}
@@ -443,16 +512,198 @@ def train(ids, new):
         if code not in (0, EXIT_PAUSED):
             tail = (LOGS / f"{rid}-{p['name']}.log").read_text(encoding="utf-8", errors="replace").splitlines()[-40:]
             print(f"\n--- last lines of {rid}'s log ---\n" + "\n".join(tail), flush=True)
+    outcomes.update({rid: f"BLOCKED: {why}" for rid, why in blocked.items()})
     bring_home([run_name(cfg["runs"][i]) for i in ids])
     lines = [f"{rid} {run_name(cfg['runs'][rid])}: {outcomes.get(rid, 'already finished earlier: nothing to do')}" for rid in ids]
     (BRING_HOME / "SESSION_RESULT.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    write_stamp("ok", lines)
     banner("SESSION RESULT")
     print("\n".join(f"  {line}" for line in lines))
     print("\n  Next: on your computer, run the wizard. It downloads these results by itself:\n"
           "  bash study/kaggle/wizard.sh next", flush=True)
 
 
+# ── preflight / wrap-up: the notebook's first and last commands ──────────────
+
+
+def session_id():
+    """This session's id: UTC start time plus a random suffix. Its stamp carries it to the next session."""
+    if not SESSION_ID_FILE.exists():
+        SESSION_ID_FILE.write_text(time.strftime("%Y%m%d-%H%M%S", time.gmtime()) + "-" + os.urandom(2).hex())
+    return SESSION_ID_FILE.read_text().strip()
+
+
+def write_stamp(result, lines):
+    """Leave this session's id and outcome in its output (the next session checks its input against it) and bring-home.
+
+    result: "ok" when the output holds this session's work, "stopped" when it stopped before any training, so the
+    wizard re-runs the same notebook instead of building on a version that added nothing.
+    """
+    stamp = json.dumps({"session_id": session_id(), "result": result, "written": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                        "lines": lines}, indent=1)
+    for d in (ROOT, BRING_HOME):
+        d.mkdir(parents=True, exist_ok=True)
+        (d / STAMP_NAME).write_text(stamp, encoding="utf-8")
+
+
+def input_stamps():
+    """{session id: stamp} of every session whose output is attached."""
+    out = {}
+    for f in find_in_inputs(STAMP_NAME):
+        try:
+            s = json.loads(f.read_text(encoding="utf-8"))
+            out[s["session_id"]] = s
+        except (OSError, ValueError, KeyError):
+            pass
+    return out
+
+
+def task_parser():
+    p = argparse.ArgumentParser(prog="train")
+    p.add_argument("ids", nargs="+")
+    p.add_argument("--new", nargs="+", default=[], metavar="ID", help="runs starting from zero this session (guards against a missing input)")
+    p.add_argument("--input-from", default=None, metavar="SESSION", help="the session id the inputs must hold (the wizard sets it)")
+    return p
+
+
+def preflight(task):
+    """The notebook's first command, before ~10 minutes of setup: stop at once if the inputs cannot serve the TASK.
+
+    It checks, with file lookups only, that the attached input is the session the wizard just brought home (its stamp)
+    and that every run can start: its checkpoint when it continues, the best.pt of the runs it is built on. One
+    blocked run does not stop the session: train reports it and trains the other.
+    """
+    if WORKING.is_dir():
+        session_id()
+    if not task or task[0] != "train":
+        return
+    a = task_parser().parse_args(task[1:])
+    cfg = load_runs()
+    if any(i not in cfg["runs"] for i in a.ids):
+        return  # train names the unknown id
+    stamps = input_stamps()
+    if a.input_from and a.input_from not in stamps:
+        held = ", ".join(sorted(stamps)) or "no session's output (nothing attached, or a version older than the stamps)"
+        fail(f"The input is not the session the wizard just brought home. It expects session {a.input_from}; the inputs "
+             f"hold {held}. In the right panel under Input, update the other notebook to its newest version (or add "
+             "it), then Save Version again.")
+    has_best = lambda name: bool(find_in_inputs(f"runs/baseline/{name}/weights/best.pt"))  # noqa: E731
+    has_last = lambda name: bool(find_in_inputs(f"runs/baseline/{name}/weights/last.pt"))  # noqa: E731
+    has_record = lambda name: (RECORD_DIR / f"{name}.json").exists() or bool(find_in_inputs(f"verification/runs/{name}.json"))  # noqa: E731
+    blocked, ready = {}, []
+    for rid in a.ids:
+        r = cfg["runs"][rid]
+        if has_record(run_name(r)):
+            continue
+        why = source_blockers(cfg, r, has_best, has_record)
+        if rid not in a.new and not has_last(run_name(r)):
+            why.append(f"no checkpoint of it is in the inputs, so it would restart from zero. {MISSING_HINT}")
+        if why:
+            blocked[rid] = "; ".join(why)
+        else:
+            ready.append(rid)
+    for rid, why in blocked.items():
+        print(f"{rid} BLOCKED: {why}", flush=True)
+    if blocked and not ready:
+        fail("Nothing can start: " + "; ".join(f"{rid}: {why}" for rid, why in blocked.items()))
+    print(f"Preflight OK: {', '.join(ready) or 'nothing left to train'} can start" + (f" ({', '.join(blocked)} blocked)" if blocked else "") + ".", flush=True)
+
+
+def relay():
+    """carry_forward without torch, for a session that stops before setup has installed it: the version it leaves
+    must still hold everything its inputs held, never a hole in the chain of notebook versions."""
+    def epochs(d):
+        f = d / "results.csv"
+        return len(f.read_text(encoding="utf-8", errors="replace").splitlines()) if f.exists() else 0
+
+    best = {}
+    for last in find_in_inputs("runs/baseline/*/weights/last.pt"):
+        d = last.parents[1]
+        if d.name not in best or epochs(d) > epochs(best[d.name]):
+            best[d.name] = d
+    for name, d in best.items():
+        if not (RUNS_DIR / name).exists():
+            shutil.copytree(d, RUNS_DIR / name)
+    carry_records()
+
+
+def wrap_up(task):
+    """The notebook's last command, run whatever happened before it. A session that ended without its SESSION_RESULT
+    (a STOP, a failed setup, a crash) still leaves a complete output: its inputs' runs, a bring-home, and why."""
+    if not task or task[0] != "train" or (BRING_HOME / "SESSION_RESULT.txt").exists():
+        return
+    try:
+        cfg = load_runs()
+        ids = [i for i in task_parser().parse_args(task[1:]).ids if i in cfg["runs"]]
+    except SystemExit:
+        cfg, ids = {"runs": {}}, []
+    why = STOP_FILE.read_text(encoding="utf-8").strip() if STOP_FILE.exists() else \
+        "it ended without a STOP message (setup failed, or a crash): see the end of the notebook's log"
+    trained = LOGS.is_dir() and any(LOGS.glob("*.log"))  # a run was launched: this output holds its progress
+    relay()
+    bring_home([run_name(cfg["runs"][i]) for i in ids])
+    if trained:
+        lines = [f"CRASHED during the session: {why}"] + [f"{i} {run_name(cfg['runs'][i])}: resume it next session" for i in ids]
+    else:
+        lines = [f"STOPPED before training: {why}"] + [f"{i} {run_name(cfg['runs'][i])}: not started this session" for i in ids]
+    (BRING_HOME / "SESSION_RESULT.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    write_stamp("ok" if trained else "stopped", lines)
+    banner("SESSION RESULT")
+    print("\n".join(f"  {line}" for line in lines))
+    print("\n  Next: on your computer, run the wizard. It reads this result and tells you what to do:\n"
+          "  bash study/kaggle/wizard.sh next", flush=True)
+
+
 # ── laptop side: used by kaggle/wizard.sh ────────────────────────────────────
+
+
+def read_stamp(path):
+    """'<session id> <result>' of the session stamp in a downloaded output, or 'none none' (older sessions had none)."""
+    found = sorted(Path(path).expanduser().rglob(STAMP_NAME)) if Path(path).expanduser().is_dir() else []
+    try:
+        s = json.loads(found[0].read_text(encoding="utf-8"))
+        print(f"{s['session_id']} {s['result']}")
+    except (IndexError, OSError, ValueError, KeyError):
+        print("none none")
+
+
+def seed_folder(owner, mirror, out):
+    """Rebuild, from this computer's checkpoint mirror, what this person's next runs need (their sources and their own
+    started runs), laid out like a session's output, for `wizard.sh repair` to upload as a Kaggle dataset."""
+    cfg = load_runs()
+    mirror, out = Path(mirror).expanduser(), Path(out)
+    done = lambda rid: (RECORD_DIR / f"{run_name(cfg['runs'][rid])}.json").exists()  # noqa: E731
+    pending = [rid for rid, r in cfg["runs"].items() if r["owner"] == owner and not done(rid)]
+    need = sorted({s for rid in pending for s in sources(cfg["runs"][rid])} | set(pending))
+    shutil.rmtree(out, ignore_errors=True)
+    total, missing = 0, []
+    for rid in need:
+        name = run_name(cfg["runs"][rid])
+        src = mirror / name
+        # A finished run's best.pt is final too, so it can stand in for a missing last.pt.
+        last = next((f for f in (src / "last.pt", src / "best.pt" if done(rid) else None) if f and f.exists()), None)
+        if last is None:
+            if rid not in pending:  # a pending run that never started has nothing to seed
+                missing.append(f"{rid} {name}")
+            continue
+        dest = out / "uav" / "study" / "runs" / "baseline" / name
+        (dest / "weights").mkdir(parents=True)
+        shutil.copy(last, dest / "weights" / "last.pt")
+        if (src / "best.pt").exists():
+            shutil.copy(src / "best.pt", dest / "weights" / "best.pt")
+        for f in ("results.csv", "args.yaml", "sessions.jsonl"):
+            if (src / f).exists():
+                shutil.copy(src / f, dest / f)
+        size = sum(f.stat().st_size for f in dest.rglob("*") if f.is_file())
+        total += size
+        print(f"seed       {rid} {name} ({size / 2**20:.0f} MB)")
+    if missing:
+        fail(f"Not in your checkpoint folder {mirror}: {', '.join(missing)}. Their runs cannot be rebuilt from this "
+             "computer: send Krishna this message.")
+    if not total:
+        fail("Nothing to seed: no run on your list needs a checkpoint from this computer.")
+    print(f"seed folder: {out} ({total / 2**20:.0f} MB)")
+
 
 
 def import_bring_home(path, mirror):
@@ -557,9 +808,14 @@ def main():
     s = sub.add_parser("smoke")
     s.add_argument("--who", required=True)
     s.add_argument("--probe", action="store_true", help="also run the Kaggle probe (one account only)")
-    t = sub.add_parser("train")
-    t.add_argument("ids", nargs="+")
-    t.add_argument("--new", nargs="+", default=[], metavar="ID", help="runs starting from zero this session (guards against a missing input)")
+    t = sub.add_parser("train", parents=[task_parser()], add_help=False, conflict_handler="resolve")
+    for name in ("preflight", "wrap-up"):  # the notebook's first and last commands; they take the TASK as it is
+        sub.add_parser(name).add_argument("task", nargs=argparse.REMAINDER)
+    sub.add_parser("read-stamp").add_argument("path")
+    sf = sub.add_parser("seed-folder")
+    sf.add_argument("--owner", required=True)
+    sf.add_argument("--mirror", required=True)
+    sf.add_argument("--out", required=True)
     sub.add_parser("status")
     ap = sub.add_parser("apply-probe")
     ap.add_argument("path")
@@ -580,6 +836,14 @@ def main():
         smoke(a.who, a.probe)
     elif a.cmd == "train":
         train(a.ids, a.new)
+    elif a.cmd == "preflight":
+        preflight(a.task)
+    elif a.cmd == "wrap-up":
+        wrap_up(a.task)
+    elif a.cmd == "read-stamp":
+        read_stamp(a.path)
+    elif a.cmd == "seed-folder":
+        seed_folder(a.owner, a.mirror, a.out)
     elif a.cmd == "status":
         status()
     elif a.cmd == "import-bring-home":

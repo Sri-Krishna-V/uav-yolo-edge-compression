@@ -5,4 +5,5 @@ TASK = "status"
 
 !rm -rf /kaggle/working/uav && git clone -q --depth 1 https://github.com/Sri-Krishna-V/uav-yolo-edge-compression.git /kaggle/working/uav
 !cd /kaggle/working/uav && git log -1 --format="code version: %h %s"
-!python /kaggle/working/uav/study/kaggle/session.py setup && python /kaggle/working/uav/study/kaggle/session.py {TASK}
+!python /kaggle/working/uav/study/kaggle/session.py preflight {TASK} && python /kaggle/working/uav/study/kaggle/session.py setup && python /kaggle/working/uav/study/kaggle/session.py {TASK}
+!python /kaggle/working/uav/study/kaggle/session.py wrap-up {TASK}

@@ -117,6 +117,17 @@ Session 0 in A ──> Session 1 in B ──> Session 2 in A ──> Session 3 i
 Each session copies every checkpoint and result it finds into its own output, so the newest version of
 either notebook always holds everything done so far. The wizard tracks which notebook is next.
 
+Two things can break that chain, and both are now caught:
+
+- **An outdated input.** Kaggle keeps the version of the other notebook that was newest when you added it as
+  an input; it does not follow newer versions by itself. Each session leaves a stamp in its output, and the
+  wizard writes the stamp it expects into the next `TASK` (`--input-from ...`). If the input is older, the
+  session stops in its first minute and says so. Update the input (Kaggle offers the newer version) and run
+  again.
+- **A session that stops before training** (a wrong input, a failed setup). It still saves a result that says
+  why, and the wizard then runs the next session **in the same notebook** again, because that notebook's
+  input is still the right one. (Before this fix, such a session saved nothing and the wizard got stuck on it.)
+
 ---
 
 ## 3. After every session: run the wizard again
@@ -153,12 +164,17 @@ TASK = "train A1 A3 --new A1 A3"
 
 !rm -rf /kaggle/working/uav && git clone -q --depth 1 https://github.com/Sri-Krishna-V/uav-yolo-edge-compression.git /kaggle/working/uav
 !cd /kaggle/working/uav && git log -1 --format="code version: %h %s"
-!python /kaggle/working/uav/study/kaggle/session.py setup && python /kaggle/working/uav/study/kaggle/session.py {TASK}
+!python /kaggle/working/uav/study/kaggle/session.py preflight {TASK} && python /kaggle/working/uav/study/kaggle/session.py setup && python /kaggle/working/uav/study/kaggle/session.py {TASK}
+!python /kaggle/working/uav/study/kaggle/session.py wrap-up {TASK}
 ```
 
 Inside the session, in order:
 
 1. **Get the code.** It downloads the latest version of this repo.
+1. **`preflight`** (seconds): checks that the input is the session the wizard just brought home, and that
+   each run finds what it needs (its checkpoint if it continues; the finished run it prunes or learns from).
+   A run that can't start is **BLOCKED**, and the other run still trains. If neither can start, the session
+   stops here instead of after 15 minutes of setup.
 2. **`setup`** (~15–20 min, every session, because each session starts on a blank machine):
    - checks you have 2× T4 and Internet;
    - installs the pinned PyTorch (2.14.0, CUDA 13) and Ultralytics (8.4.149);
@@ -176,6 +192,9 @@ Inside the session, in order:
    - evaluates every run that finished, with the study's own evaluator;
    - writes a `bring-home` folder;
    - ends with a **SESSION RESULT** box.
+4. **`wrap-up`** runs whatever happened before it. If the session stopped or crashed before writing its
+   result, wrap-up writes one (STOPPED or CRASHED, with the reason), copies the input's checkpoints into the
+   output, and fills the `bring-home` folder. So every version of a notebook is a complete copy.
 
 ### Reading the SESSION RESULT
 
@@ -189,6 +208,9 @@ Inside the session, in order:
 | `... (it ran out of GPU memory at batch 24 and restarted from zero at its fallback batch 16, as planned)` | A T, D or C run did not fit at its planned batch, so the session restarted it at the smaller batch planned for that | Nothing. Its record says which batch it used |
 | `INVALID: GPU ran out of memory at batch 24, and again at its fallback batch 16` | Even the smaller batch did not fit | Stop and tell Krishna |
 | `INVALID: GPU ran out of memory, and the run had trained in earlier sessions` | It was not restarted from zero, because that would throw those hours away | Stop and tell Krishna |
+| `BLOCKED: ...` | That run could not start: something it needs is not in the input. The other run trained anyway | Run `wizard.sh next`; it makes you check the input. If the same run is blocked again, run `bash study/kaggle/wizard.sh repair` |
+| `STOPPED before training: ...` | The session stopped before training (the line says why). It cost minutes, not hours | Run `wizard.sh next`: it runs the next session in the same notebook. Fix what the line says first |
+| `CRASHED during the session: ...` | The session ended in the middle of training. Its saved epochs are in the output | Run `wizard.sh next` normally |
 
 ### STOP messages
 
@@ -199,7 +221,9 @@ The session stops early, with a box that says what to do. The common ones:
 | `No GPU` / `This session has [...]` | Session options → Accelerator → **GPU T4 x2**, then Save & Run All again |
 | `No internet` | Session options → **Internet ON**. If the switch is missing, verify your phone (Kaggle Settings) |
 | `runs.yaml has no probe results yet` | srikr hasn't pushed the probe numbers. Wait, then start a new session |
-| `No checkpoint found for [...]` | The other notebook's output isn't attached, or isn't the latest version. Fix the Input panel and run again. Add `--new` **only** if that run truly has never started |
+| `The input is not the session the wizard just brought home` | The other notebook's input is an older version (or missing). Update it in the Input panel, then Save Version again |
+| `Nothing can start: ... no checkpoint of it is in the inputs` | The other notebook's output isn't attached, or isn't the newest version. Fix the Input panel and run again. If it persists, `wizard.sh repair` |
+| `Nothing can start: ... best.pt ... is missing` | The run it prunes or learns from is not in the input. Update the input; if it persists, `wizard.sh repair` |
 | `The VisDrone download did not verify` | Don't train. Send Krishna the log |
 | `smoke test FAILED` | Don't train. Send Krishna `bring-home/smoke_results-kaggle-<you>.json` |
 
@@ -269,7 +293,14 @@ anything still running at 11.6 h is killed so the output is still saved. If it h
 
 **I started a session in the wrong notebook.** Stop it on its notebook page (cancel the running version)
 and start it in the right one. If it already finished, nothing is lost: the furthest checkpoint wins when
-the notebooks are next chained.
+the notebooks are next chained. If a session is still running in the notebook the wizard wants to use, the
+wizard notices, counts that session as your last one, and asks you to come back when it has finished.
+
+**A run stays BLOCKED because a checkpoint is missing, even with the newest input.** The chain of notebook
+versions has lost it (an old version was attached at some point). Your checkpoint folder still has it. Run
+`bash study/kaggle/wizard.sh repair`: it uploads what your next runs need as a private dataset,
+`uav-<you>-seed`, and shows you how to attach it to both notebooks once. Sessions then find the checkpoints
+there.
 
 **I'm the teammate and can't push to GitHub.** That's fine. Send the new files in `study/verification/`
 to Krishna after each session; your checkpoints stay in your checkpoint folder.

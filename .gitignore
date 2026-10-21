@@ -59,3 +59,4 @@ wandb/
 study/kaggle/.cell-to-paste.txt
 study/kaggle/.kaggle-cli/
 study/kaggle/.downloads/
+study/kaggle/.seed/

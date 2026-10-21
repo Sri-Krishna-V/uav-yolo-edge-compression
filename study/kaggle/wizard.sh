@@ -432,16 +432,42 @@ ask_url() {
   done
 }
 
-# fetch_output KEY URL "re-run command": check that the notebook's newest version has finished, then download its
-# bring-home folder into a new folder under study/kaggle/.downloads and put that folder's path in KEY.
-fetch_output() {
-  local ref status dir
-  ref=$(notebook_ref "$2")
+# ensure_cli: the Kaggle CLI, installed and signed in.
+ensure_cli() {
   if [[ -z "${KAGGLE_TOKEN:-}" ]]; then
     heading "First, connect the wizard to Kaggle (once)."
     ask_token
   fi
   install_cli
+}
+
+# notebook_running URL: true while the notebook's newest version is queued or running.
+notebook_running() {
+  local s
+  s=$(kaggle_cli kernels status "$(notebook_ref "$1")" 2>&1) || return 1
+  [[ "$s" == *QUEUED* || "$s" == *RUNNING* || "$s" == *NEW_SCRIPT* ]]
+}
+
+# peek_stamp URL: the session id in the stamp of the notebook's newest version, or "none" (no stamp: older code).
+peek_stamp() {
+  local d id=none
+  d=$(mktemp -d)
+  kaggle_cli kernels output "$(notebook_ref "$1")" -p "$d" --file-pattern '^bring-home/session_stamp\.json$' -o -q >/dev/null 2>&1 || true
+  if [[ -f "$d/bring-home/session_stamp.json" ]]; then
+    id=$(helper read-stamp "$d"); id="${id//$'\r'/}"; id="${id%% *}"
+  fi
+  rm -rf "$d"
+  printf '%s' "$id"
+}
+
+# fetch_output KEY URL "re-run command": check that the notebook's newest version has finished, then download its
+# bring-home folder into a new folder under study/kaggle/.downloads and put that folder's path in KEY. A version
+# that saved no bring-home (it stopped early, under older session code) leaves KEY empty instead of stopping the
+# wizard: the wizard then runs the next session in the same notebook.
+fetch_output() {
+  local ref status dir
+  ref=$(notebook_ref "$2")
+  ensure_cli
   gap
   say "Asking Kaggle about $(key "$ref")..."
   if ! status=$(kaggle_cli kernels status "$ref" 2>&1); then
@@ -459,22 +485,25 @@ fetch_output() {
     *COMPLETE*)
       ok "The session has finished." ;;
     *)
-      bad "The session did not finish normally. Kaggle says:"
+      warn "The session did not finish normally. Kaggle says:"
       printf '%s\n' "$status" | sed 's/^/      /'
-      why "Open $2 , click Logs, and send Krishna a screenshot of the end."
-      stuck; exit 1 ;;
+      why "The wizard still looks for what it saved." ;;
   esac
   dir="study/kaggle/.downloads/$(date +%Y%m%d-%H%M%S)-${ref#*/}"
   mkdir -p "$dir"
   say "Downloading its results..."
   if ! kaggle_cli kernels output "$ref" -p "$dir" --file-pattern '^bring-home/' -o -q >/dev/null; then
-    rm -rf "$dir"; bad "The download failed."
-    stuck; exit 1
+    rm -rf "$dir"; warn "Kaggle has no output for this version."
+    printf -v "$1" '%s' ""; return 0
   fi
-  if [[ ! -d "$dir/bring-home" ]]; then
-    # Should not happen; if Kaggle ever names output files without their folder, take the whole output instead.
+  if [[ ! -d "$dir/bring-home" && -n "$(find "$dir" -type f -print -quit)" ]]; then
+    # Files but no folder: if Kaggle ever names output files without their folder, take the whole output instead.
     say "Downloading the whole output instead (can be a few hundred MB)..."
     kaggle_cli kernels output "$ref" -p "$dir" -o -q >/dev/null || { rm -rf "$dir"; bad "The download failed."; stuck; exit 1; }
+  fi
+  if [[ ! -d "$dir/bring-home" ]]; then
+    rm -rf "$dir"; warn "This version saved no results (no bring-home folder)."
+    printf -v "$1" '%s' ""; return 0
   fi
   ok "Downloaded to $dir"
   printf -v "$1" '%s' "$dir"
@@ -642,6 +671,12 @@ section "Session 0 result" "The wizard checks that Session 0 has finished, downl
 # Update before the import, as in "Bring the results home": the session's download holds what GitHub had then.
 sync_repo || bad "Could not update the repo (git pull). Carrying on with your copy."
 fetch_output BRING_HOME_PATH "$NOTEBOOK_A" "bash study/kaggle/wizard.sh"
+if [[ -z "$BRING_HOME_PATH" ]]; then
+  bad "Session 0 saved no results. Open $NOTEBOOK_A , click Logs, and send Krishna a screenshot of the end."
+  why "Then start Session 0 again: bash study/kaggle/wizard.sh (it continues from this stage)."
+  remember SETUP_AT 4
+  stuck; exit 1
+fi
 gap
 helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
 SMOKE="study/verification/smoke_results-kaggle-$KAGGLE_WHO.json"
@@ -797,19 +832,74 @@ else
 fi
 banner "UAV YOLO study · Between two sessions"
 
+# A session already running in the other notebook means one was started after the wizard last noted it (it was
+# closed early, or the session was started by hand). Never start a second one: wait for that one.
+ensure_cli
+if notebook_running "$NEXT_URL"; then
+  gap
+  say "A session is already running in notebook $(key "$NEXT"). The wizard now counts it as your last session."
+  remember LAST_NOTEBOOK "$NEXT"
+  say "Come back when it has finished, and run the same command: $(key 'bash study/kaggle/wizard.sh next')"
+  exit 0
+fi
+# The same, for such a session that has already finished: if the other notebook's newest version is stamped later
+# than this one's, it is the real last session. Session ids start with their UTC start time, so they sort.
+NEXT_PEEK=$(peek_stamp "$NEXT_URL"); LAST_PEEK=$(peek_stamp "$LAST_URL")
+if [[ "$NEXT_PEEK" != "none" && ( "$LAST_PEEK" == "none" || "$NEXT_PEEK" > "$LAST_PEEK" ) ]]; then
+  gap
+  warn "Notebook $NEXT ran a session after notebook $LAST_NOTEBOOK did, one the wizard had not noted. That is your last session."
+  remember LAST_NOTEBOOK "$NEXT"
+  if [[ "$LAST_NOTEBOOK" == "A" ]]; then
+    LAST_URL="$NOTEBOOK_A"; NEXT="B"; NEXT_URL="$NOTEBOOK_B"
+  else
+    LAST_URL="$NOTEBOOK_B"; NEXT="A"; NEXT_URL="$NOTEBOOK_A"
+  fi
+fi
+
 section "Bring the results home" "The wizard downloads what the last session made (in notebook $LAST_NOTEBOOK) and files it for you."
 # Update first: the session cloned GitHub, so its bring-home also holds the teammate's records. Once they are in this
 # copy, the share stage lists only what this session made.
 sync_repo || bad "Could not update the repo (git pull). Carrying on with your copy."
 fetch_output BRING_HOME_PATH "$LAST_URL" "bash study/kaggle/wizard.sh next"
 gap
-helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
+STOPPED=""
+if [[ -z "$BRING_HOME_PATH" ]]; then
+  STOPPED="saved nothing"
+else
+  helper import-bring-home "$BRING_HOME_PATH" --mirror "$KAGGLE_MIRROR" | sed "s/^/  /"
+  STAMP_LINE=$(helper read-stamp "$BRING_HOME_PATH")
+  STAMP_LINE="${STAMP_LINE//$'\r'/}"  # Windows Python ends lines with \r\n
+  SESSION_ID="${STAMP_LINE%% *}"; SESSION_OUTCOME="${STAMP_LINE##* }"
+  if [[ "$SESSION_OUTCOME" == "stopped" ]]; then
+    STOPPED="stopped before training"
+  elif [[ "$SESSION_ID" != "none" ]]; then
+    # The next session in the other notebook must read exactly this version: its preflight checks the id.
+    remember "SID_$LAST_NOTEBOOK" "$SESSION_ID"; printf -v "SID_$LAST_NOTEBOOK" '%s' "$SESSION_ID"
+  fi
+fi
 gap
 heading "What the result means"
 why "FINISHED   the run is done and evaluated."
 why "PAUSED     normal: the run continues in the next session."
+why "BLOCKED    that run could not start (something it needs was missing); the other run still trained."
 why "CRASHED    start the next session normally. If the same run crashes twice, tell Krishna."
+why "STOPPED    the session stopped before training; the line says why. The next session runs in the same notebook."
 why "INVALID    stop here and tell Krishna."
+if [[ -n "$STOPPED" ]]; then
+  # That version added nothing, and its notebook's Input is still the right one: run again in that notebook. The
+  # other notebook would read this empty version and lose what the one before it held.
+  gap
+  warn "The last session ($LAST_NOTEBOOK) $STOPPED. The next session runs in notebook $LAST_NOTEBOOK again."
+  [[ "$STOPPED" == "saved nothing" ]] && why "(It saved no results at all: older session code saved nothing when it stopped early.)"
+  NEXT="$LAST_NOTEBOOK"; NEXT_URL="$LAST_URL"
+fi
+if [[ -n "$BRING_HOME_PATH" ]] && grep -rqs "wizard.sh repair" "$BRING_HOME_PATH"; then
+  gap
+  warn "A run could not find a checkpoint it needs. The next steps make you check the Input; that is the usual fix."
+  why "If the same run is blocked again after that, run: bash study/kaggle/wizard.sh repair"
+fi
+if [[ "$NEXT" == "A" ]]; then OTHER="B"; else OTHER="A"; fi
+OTHER_SLUG="uav-$KAGGLE_WHO-$(printf '%s' "$OTHER" | tr 'AB' 'ab')"
 gap
 pause "Press Enter to continue."
 
@@ -846,7 +936,7 @@ fi
 gap
 pause "Press Enter to continue."
 
-section "Get notebook $NEXT ready" "The next session runs in the other notebook, so it can read the results the last one made."
+section "Get notebook $NEXT ready" "The next session runs in notebook $NEXT. It reads notebook $OTHER's newest results through its Input."
 open_url "$NEXT_URL"
 num 1 "Click $(key Edit) to open the notebook."
 if [[ "$NEXT" == "A" && "${A_READS_B:-}" != "yes" ]]; then
@@ -856,15 +946,25 @@ if [[ "$NEXT" == "A" && "${A_READS_B:-}" != "yes" ]]; then
   remember A_READS_B "yes"
   n=4
 else
-  num 2 "Look under $(key Input) in the right panel: $(key "$LAST_SLUG") must be listed."
-  more "If Kaggle offers to update it to a newer version, accept."
-  must "Is $LAST_SLUG listed under Input?"
+  num 2 "Look under $(key Input) in the right panel: $(key "$OTHER_SLUG") must be listed."
+  more "Kaggle keeps the version that was newest when the input was added. If it offers a newer version"
+  more "(an update arrow, or 'new version available'), accept it: the session needs the newest one."
+  must "Is $OTHER_SLUG listed under Input, at its newest version?"
   n=3
 fi
+why "The session checks its Input in its first minute. If the Input is old or missing, it stops by itself and"
+why "says so: a mistake costs a minute, not a session."
 notebook_settings "$n"
 
 section "Start the next session" "The wizard picks the runs: unfinished ones first, then the next ones on your list."
-TASK=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR")
+if ! TASK=$(helper next-task --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR"); then
+  printf '%s\n' "$TASK" | sed 's/^/  /'
+  stuck; exit 1
+fi
+SID_VAR="SID_$OTHER"
+if [[ "$TASK" != "ALL-DONE" && -n "${!SID_VAR:-}" ]]; then
+  TASK="$TASK --input-from ${!SID_VAR}"  # the session stops in its first minute unless its Input is this version
+fi
 if [[ "$TASK" == "ALL-DONE" ]]; then
   gap
   ok "Every run on your list is finished and evaluated. There is nothing to start."
@@ -916,6 +1016,49 @@ pause "Press Enter to finish."
 wrap_up
 }
 
+# ── Repair: when the chain of notebook versions has lost a checkpoint ────────
+
+repair_flow() {
+if [[ -z "${NOTEBOOK_A:-}" || -z "${KAGGLE_MIRROR:-}" || -z "${KAGGLE_OWNER:-}" ]]; then
+  warn "Finish the setup first: bash study/kaggle/wizard.sh"
+  exit 1
+fi
+banner "UAV YOLO study · Repair the inputs"
+gap
+why "Use this when a session says a run is BLOCKED because a checkpoint is missing, and updating the Input did not"
+why "help. Your computer keeps a copy of every checkpoint. The wizard uploads the ones your next runs need as a"
+why "private Kaggle dataset; you attach it once, and every session finds them there."
+ensure_cli
+local user id dir="study/kaggle/.seed"
+user=$(notebook_ref "$NOTEBOOK_A"); user="${user%%/*}"
+id="$user/uav-$KAGGLE_WHO-seed"
+gap
+if ! helper seed-folder --owner "$KAGGLE_OWNER" --mirror "$KAGGLE_MIRROR" --out "$dir" | sed 's/^/  /'; then
+  stuck; exit 1
+fi
+printf '{"title": "uav-%s-seed", "id": "%s", "licenses": [{"name": "CC0-1.0"}]}\n' "$KAGGLE_WHO" "$id" > "$dir/dataset-metadata.json"
+gap
+say "Uploading it to Kaggle as $(key "$id") (private). This can take a few minutes..."
+if kaggle_cli datasets files "$id" >/dev/null 2>&1; then
+  kaggle_cli datasets version -p "$dir" -m "repair $(date +%Y-%m-%d)" --dir-mode zip -t -q >/dev/null || { bad "The upload failed."; stuck; exit 1; }
+else
+  kaggle_cli datasets create -p "$dir" --dir-mode zip -t -q >/dev/null || { bad "The upload failed."; stuck; exit 1; }
+fi
+rm -rf "$dir"
+ok "Uploaded. Kaggle needs a few minutes to process it before it can be attached."
+gap
+heading "Attach it to both notebooks (once)"
+num 1 "Open $(key "uav-$KAGGLE_WHO-a"), click $(key Edit), and in the right panel under $(key Input) click $(key '+ Add Input')."
+num 2 "Choose $(key 'Your Work') -> $(key Datasets), find $(key "uav-$KAGGLE_WHO-seed"), and click its $(key '+')."
+more "Already attached from an earlier repair? Update it to its newest version instead."
+num 3 "Do the same in $(key "uav-$KAGGLE_WHO-b")."
+more "Keep the notebook's other input too. The session takes the most advanced copy of each run from all inputs."
+must "Is uav-$KAGGLE_WHO-seed listed under Input in both notebooks?"
+gap
+say "Now start the next session as usual: $(key 'bash study/kaggle/wizard.sh next')"
+gap
+}
+
 run_wizard() {
 cd "$(git rev-parse --show-toplevel 2>/dev/null || dirname "$0")" || exit 1
 if [[ ! -f study/kaggle/session.py ]]; then
@@ -933,7 +1076,7 @@ if [[ -n "${WSL_DISTRO_NAME:-}" || "$(uname -r)" == *[Mm]icrosoft* ]] && [[ "$PW
 fi
 ENV_FILE="study/kaggle/.env.kaggle"
 # Load what earlier runs saved, so the wizard knows your notebooks and where you stopped.
-for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT KAGGLE_TOKEN; do
+for k in KAGGLE_WHO KAGGLE_OWNER KAGGLE_MIRROR OWNER_CHOICE NOTEBOOK_A NOTEBOOK_B LAST_NOTEBOOK SESSIONS_STARTED A_READS_B SETUP_AT KAGGLE_TOKEN SID_A SID_B; do
   v=$(_existing "$k" || true)
   printf -v "$k" '%s' "$v"
 done
@@ -948,11 +1091,12 @@ fi
 case "${1:-setup}" in
   setup) setup_flow ;;
   next)  next_flow ;;
+  repair) repair_flow ;;
   token)
     [[ -n "$NOTEBOOK_A" ]] || { printf 'Finish the setup first: bash study/kaggle/wizard.sh
 '; exit 1; }
     KAGGLE_TOKEN=""; _clear; heading "Replace your Kaggle API token"; ask_token; gap ;;
-  *)     printf 'Usage:\n  bash study/kaggle/wizard.sh        first-time setup\n  bash study/kaggle/wizard.sh next   after every Kaggle session\n  bash study/kaggle/wizard.sh token  replace the Kaggle API token\n'; exit 1 ;;
+  *)     printf 'Usage:\n  bash study/kaggle/wizard.sh         first-time setup\n  bash study/kaggle/wizard.sh next    after every Kaggle session\n  bash study/kaggle/wizard.sh repair  a session says a checkpoint is missing even after updating the Input\n  bash study/kaggle/wizard.sh token   replace the Kaggle API token\n'; exit 1 ;;
 esac
 }
 
