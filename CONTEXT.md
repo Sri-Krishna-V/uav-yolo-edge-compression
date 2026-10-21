@@ -14,7 +14,7 @@ A **configuration** is one point in the compression pipeline applied to a study 
 - `quantized` - PTQ (or QAT) to FP16 or INT8
 - `pruned` - structured channel pruning plus recovery fine-tuning
 - `distilled` - trained with a teacher
-- `combined` - pruned and quantized, then distilled
+- `combined` - pruned, recovered with a teacher (distillation does the recovery), then quantized to INT8
 
 "Compressed" is the cover term for the four non-baseline configurations.
 
