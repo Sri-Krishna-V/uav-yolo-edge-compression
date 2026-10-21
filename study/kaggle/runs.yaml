@@ -1,4 +1,4 @@
-# The baseline runs, machine-readable. kaggle/session.py reads this file; ../RUNS.md explains it.
+# The training runs, machine-readable. kaggle/session.py reads this file; ../RUNS.md explains it.
 # Edit the run table in RUNS.md and here together.
 
 # Per-GPU batch for each input resolution: ONE value per resolution, the same for every run, both families
@@ -14,6 +14,15 @@ pairing: pair
 
 # P runs are pruning-recovery runs: prune_from's best.pt, `prune`% of channels removed per layer by
 # scripts/studyprune.py inside the session, then `epochs` of the same recipe. Named <source run>-prune<prune>.
+# T runs train the teachers (YOLO11m, YOLO26m) with the same recipe. Teachers are not study cells, so they set
+# their own per-GPU `batch` instead of batch_per_gpu.
+# D runs are distilled: the study model from its COCO start, the same recipe, with distill_from's best.pt as
+# the teacher. Named <run>-distill.
+# C runs are combined: prune_from pruned exactly like its P run (the same pruned start), then `epochs` of
+# recovery with distill_from's best.pt as the teacher. Named <source run>-prune<prune>-distill.
+# A run depends on its prune_from and distill_from runs: it starts only once they have a record.
+# batch_fallback: if the run runs out of GPU memory in its first epoch at its planned batch, the session
+# restarts it from zero at this per-GPU batch, and its record says so (batch_fallback_from).
 runs: # in each owner's order of work (RUNS.md, "Order of work")
   A1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0}
   A3: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 1}
@@ -22,6 +31,9 @@ runs: # in each owner's order of work (RUNS.md, "Order of work")
   B3: {owner: srikr, model: yolo11s.pt, imgsz: 1280, seed: 0}
   P1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0, prune_from: A1, prune: 30, epochs: 30}
   P2: {owner: srikr, model: yolo11s.pt, imgsz: 960, seed: 0, prune_from: B1, prune: 30, epochs: 30}
+  T1: {owner: srikr, model: yolo11m.pt, imgsz: 640, seed: 0, batch: 12, batch_fallback: 8}
+  D1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0, distill_from: T1, batch_fallback: 16}
+  C1: {owner: srikr, model: yolo11s.pt, imgsz: 640, seed: 0, prune_from: A1, prune: 30, epochs: 30, distill_from: T1, batch_fallback: 16}
   A2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0}
   A5: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 1}
   A6: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 2}
@@ -29,3 +41,6 @@ runs: # in each owner's order of work (RUNS.md, "Order of work")
   B4: {owner: teammate, model: yolo26s.pt, imgsz: 1280, seed: 0}
   P3: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30}
   P4: {owner: teammate, model: yolo26s.pt, imgsz: 960, seed: 0, prune_from: B2, prune: 30, epochs: 30}
+  T2: {owner: teammate, model: yolo26m.pt, imgsz: 640, seed: 0, batch: 12, batch_fallback: 8}
+  D2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, distill_from: T2, batch_fallback: 16}
+  C2: {owner: teammate, model: yolo26s.pt, imgsz: 640, seed: 0, prune_from: A2, prune: 30, epochs: 30, distill_from: T2, batch_fallback: 16}

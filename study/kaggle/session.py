@@ -16,6 +16,12 @@ evaluated. A run with nothing found starts from zero ONLY if listed in --new; ot
 because the likeliest cause is a forgotten input, and restarting would burn hours of quota. Training pauses after the last epoch that ends before
 TRAIN_STOP_H hours into the session, so the session always finishes cleanly and its output is saved.
 
+A run built on another run (runs.yaml prune_from: its pruned start; distill_from: its teacher) needs that run
+finished: its record, and its best.pt in the inputs. A run with a batch_fallback that runs out of GPU memory in
+its first epoch restarts at once, from zero, at that smaller batch, but only if it started from zero in this
+session: one that trained in an earlier session is stopped and reported, never thrown away. Once started, a run
+always resumes at the batch it started with, read from its own args.yaml.
+
 Stdlib only at import time: `setup` runs before anything is installed, and `apply-probe` runs on a laptop.
 """
 
@@ -83,16 +89,23 @@ def load_runs():
     cfg = {"batch_per_gpu": {}, "pairing": value(re.search(r"^pairing: (\S+)", text, re.M).group(1)), "runs": {}}
     for imgsz, b in re.findall(r"^  (\d+): (\S+)", text, re.M):
         cfg["batch_per_gpu"][int(imgsz)] = value(b)
-    for rid, body in re.findall(r"^  ([ABP]\d+): \{(.*)\}", text, re.M):
+    for rid, body in re.findall(r"^  ([A-Z]\d+): \{(.*)\}", text, re.M):
         cfg["runs"][rid] = {k.strip(): value(v.strip()) for k, v in (kv.split(":") for kv in body.split(","))}
     for r in cfg["runs"].values():
         if r.get("prune_from"):  # a pruning-recovery run is named after the run it prunes
             r["name"] = f"{run_name(cfg['runs'][r['prune_from']])}-prune{r['prune']}"
+        if r.get("distill_from"):  # a run trained with a teacher: <run>-distill
+            r["name"] = f"{run_name(r)}-distill"
     return cfg
 
 
 def run_name(r):
     return r.get("name") or f"{Path(r['model']).stem}-{r['imgsz']}-s{r['seed']}"
+
+
+def sources(r):
+    """The runs this run is built on: the one it prunes and its teacher. It starts only once they have finished."""
+    return [r[k] for k in ("prune_from", "distill_from") if r.get(k)]
 
 
 def make_pruned(cfg, r):
@@ -106,6 +119,28 @@ def make_pruned(cfg, r):
         if run([sys.executable, SCRIPTS / "studyprune.py", "--source", source, "--ratio", r["prune"] / 100, "--imgsz", r["imgsz"], "--out", out]).returncode:
             fail(f"Pruning {r['prune_from']} for {run_name(r)} failed (see above). Send this log to Krishna.")
     return out
+
+
+def teacher(cfg, r):
+    """The distill_from run's best.pt, the teacher of a distilled or combined run. Only a finished teacher will do."""
+    tid = r["distill_from"]
+    name = run_name(cfg["runs"][tid])
+    best = RUNS_DIR / name / "weights" / "best.pt"
+    if not best.exists():
+        fail(f"{run_name(r)} learns from the teacher {tid}, but {tid}'s best.pt is not in the attached inputs. "
+             "Attach the notebook output that holds it (Input panel -> Add Input).")
+    state, detail = state_of(name)
+    if state != "done":
+        fail(f"{run_name(r)} learns from the teacher {tid}, but {tid} has not finished ({detail}). "
+             f"{tid} must finish first: use the TASK line the wizard gives you.")
+    return best
+
+
+def started_batch(name):
+    """The per-GPU batch a started run trains at, from its own args.yaml (one GPU per run, so batch is per GPU)."""
+    f = RUNS_DIR / name / "args.yaml"
+    m = re.search(r"^batch: (\d+)", f.read_text(encoding="utf-8"), re.M) if f.exists() else None
+    return int(m.group(1)) if m else None
 
 
 # ── setup ────────────────────────────────────────────────────────────────────
@@ -285,6 +320,39 @@ def progress(name):
     return f"epoch {row.get('epoch', len(rows)).strip()}, val mAP50-95 {float(row.get('metrics/mAP50-95(B)', 'nan')):.4f}"
 
 
+def plan(cfg, rid, state, gpu):
+    """One run's launch this session: its studytrain arguments and its batch. Stops if anything it needs is missing."""
+    r = cfg["runs"][rid]
+    name = run_name(r)
+    args = ["--model", make_pruned(cfg, r) if r.get("prune_from") else r["model"], "--imgsz", r["imgsz"], "--seed", r["seed"], "--name", name]
+    if r.get("prune_from"):
+        args += ["--pruned"]
+    if r.get("epochs"):
+        args += ["--epochs", r["epochs"]]
+    if r.get("distill_from") and state != "eval-only":  # resume rebuilds the teacher from this path too
+        args += ["--distill", teacher(cfg, r)]
+    args += {"resume": ["--resume"], "eval-only": ["--eval-only"], "fresh": []}[state]
+    planned = r.get("batch") or cfg["batch_per_gpu"][r["imgsz"]]
+    # A started run goes on at the batch it started with (its fallback, if it fell back), never runs.yaml's.
+    batch = planned if state == "fresh" else (started_batch(name) or planned)
+    if batch not in (planned, r.get("batch_fallback")):
+        fail(f"{rid} {name} started at batch {batch}, but runs.yaml plans {planned}. Resuming at another batch would "
+             "break the same-batch rule. Send this log to Krishna.")
+    return {"name": name, "args": args, "state": state, "gpu": gpu, "planned": planned, "batch": batch,
+            "fallback": r.get("batch_fallback"), "fallback_from": planned if batch != planned else None}
+
+
+def launch(p, stop_by):
+    """Start (or restart) one run's studytrain on its GPU at p['batch']; output goes to its log."""
+    cmd = [sys.executable, SCRIPTS / "studytrain.py", *p["args"], "--device", p["gpu"], "--batch-per-gpu", p["batch"], "--stop-by", stop_by]
+    if p["fallback_from"]:
+        cmd += ["--fallback-from", p["fallback_from"]]  # the record says the run trained at its fallback batch
+    # A run planned close to the memory limit: expandable segments cut fragmentation, and so the risk of running out
+    # of memory after the first epoch, which Ultralytics does not recover from. The allocator does not change results.
+    env = {**os.environ, "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"} if p["fallback"] else None
+    p["proc"] = subprocess.Popen([str(c) for c in cmd], stdout=p["log"], stderr=subprocess.STDOUT, env=env)
+
+
 def train(ids, new):
     cfg = load_runs()
     unknown = [i for i in ids if i not in cfg["runs"]]
@@ -297,7 +365,7 @@ def train(ids, new):
     if len(ids) == 2 and cfg["pairing"] == "single":
         fail("The probe found two runs per session are no faster than one (4 CPU cores). Run ONE id per session.")
     for i in ids:
-        if cfg["batch_per_gpu"].get(cfg["runs"][i]["imgsz"]) is None:
+        if not cfg["runs"][i].get("batch") and cfg["batch_per_gpu"].get(cfg["runs"][i]["imgsz"]) is None:
             fail(f"No batch size for imgsz {cfg['runs'][i]['imgsz']} in runs.yaml (the probe found none that fits). Ask Krishna.")
     if hours_into_session() > TRAIN_STOP_H - 1:
         fail("Less than an hour of this session is left. Start a new session.")
@@ -320,49 +388,60 @@ def train(ids, new):
     stop_by = session_start() + TRAIN_STOP_H * 3600
     kill_at = session_start() + HARD_KILL_H * 3600
     LOGS.mkdir(parents=True, exist_ok=True)
-    procs = {}
-    for gpu, rid in enumerate(ids):
-        r = cfg["runs"][rid]
-        name = run_name(r)
-        state = states[rid][0]
-        if state == "done":
-            continue
-        if procs:
+    # Everything every run needs (pruned start, teacher, batch) is checked before the first one starts, so a STOP
+    # never leaves a run behind.
+    runs = {rid: plan(cfg, rid, states[rid][0], gpu) for gpu, rid in enumerate(ids) if states[rid][0] != "done"}
+    for n, (rid, p) in enumerate(runs.items()):
+        if n:
             time.sleep(90)  # let the first run download weights and build the label cache alone
-        cmd = [sys.executable, SCRIPTS / "studytrain.py", "--model", r["model"], "--imgsz", r["imgsz"], "--seed", r["seed"],
-               "--device", gpu, "--batch-per-gpu", cfg["batch_per_gpu"][r["imgsz"]], "--stop-by", stop_by]
-        if r.get("prune_from"):
-            cmd[3] = make_pruned(cfg, r)
-            cmd += ["--pruned", "--epochs", r["epochs"], "--name", name]
-        cmd += {"resume": ["--resume"], "eval-only": ["--eval-only"], "fresh": []}[state]
-        log = open(LOGS / f"{rid}-{name}.log", "a", encoding="utf-8")
-        print(f"{rid}: GPU {gpu}, log in /kaggle/working/logs/{rid}-{name}.log", flush=True)
-        procs[rid] = (name, subprocess.Popen([str(c) for c in cmd], stdout=log, stderr=subprocess.STDOUT), log)
+        p["log"] = open(LOGS / f"{rid}-{p['name']}.log", "a", encoding="utf-8")
+        print(f"{rid}: GPU {p['gpu']}, batch {p['batch']}, log in /kaggle/working/logs/{rid}-{p['name']}.log", flush=True)
+        launch(p, stop_by)
 
     last_report = 0
-    while any(p.poll() is None for _, p, _ in procs.values()):
+    while True:
+        for rid, p in runs.items():
+            # Out of memory in the first epoch of a run that started from zero here: restart it at its fallback batch,
+            # once. Its directory is free (renamed *-INVALID-batch-*) and the other GPU's run carries on.
+            if p["proc"].poll() == EXIT_BATCH_CHANGED and p["fallback"] and p["state"] == "fresh" and p["batch"] == p["planned"]:
+                p["batch"], p["fallback_from"] = p["fallback"], p["planned"]
+                print(f"{rid}: ran out of GPU memory at batch {p['planned']}; restarting it from zero at its fallback "
+                      f"batch {p['batch']} on GPU {p['gpu']}, as planned.", flush=True)
+                launch(p, stop_by)
+        if all(p["proc"].poll() is not None for p in runs.values()):
+            break
         if time.time() > kill_at:
-            for rid, (name, p, _) in procs.items():
-                if p.poll() is None:
+            for rid, p in runs.items():
+                if p["proc"].poll() is None:
                     print(f"{rid}: still running at the hard limit; killing it so the output is saved.", flush=True)
-                    p.kill()
+                    p["proc"].kill()
             break
         if time.time() - last_report > 900:
             last_report = time.time()
-            status = "; ".join(f"{rid} {progress(name)}" + ("" if p.poll() is None else " (exited)") for rid, (name, p, _) in procs.items())
+            status = "; ".join(f"{rid} {progress(p['name'])}" + ("" if p["proc"].poll() is None else " (exited)") for rid, p in runs.items())
             print(f"[{hours_into_session():.1f} h into session] {status}", flush=True)
         time.sleep(60)
 
     outcomes = {}
-    for rid, (name, p, log) in procs.items():
-        p.wait()
-        log.close()
-        code = p.returncode
-        outcomes[rid] = {0: "FINISHED: record written", EXIT_PAUSED: "PAUSED: resume it next session",
-                         EXIT_BATCH_CHANGED: "INVALID: GPU ran out of memory and the batch changed. Tell Krishna"}.get(
-            code, f"CRASHED (exit {code}): resume it next session; if it crashes again, send its log to Krishna")
+    for rid, p in runs.items():
+        p["proc"].wait()
+        p["log"].close()
+        code = p["proc"].returncode
+        fell_back = p["state"] == "fresh" and p["fallback_from"] is not None
+        if code == EXIT_BATCH_CHANGED and fell_back:
+            outcomes[rid] = f"INVALID: GPU ran out of memory at batch {p['planned']}, and again at its fallback batch {p['batch']}. Tell Krishna"
+        elif code == EXIT_BATCH_CHANGED and p["fallback"] and p["state"] != "fresh":
+            outcomes[rid] = ("INVALID: GPU ran out of memory, and the run had trained in earlier sessions, so it was not "
+                             "restarted from zero (that would throw those hours away). Tell Krishna")
+        else:
+            outcomes[rid] = {0: "FINISHED: record written", EXIT_PAUSED: "PAUSED: resume it next session",
+                             EXIT_BATCH_CHANGED: "INVALID: GPU ran out of memory and the batch changed. Tell Krishna"}.get(
+                code, f"CRASHED (exit {code}): resume it next session; if it crashes again, send its log to Krishna")
+            if fell_back:
+                outcomes[rid] += (f" (it ran out of GPU memory at batch {p['planned']} and restarted from zero at its "
+                                  f"fallback batch {p['batch']}, as planned)")
         if code not in (0, EXIT_PAUSED):
-            tail = (LOGS / f"{rid}-{name}.log").read_text(encoding="utf-8", errors="replace").splitlines()[-40:]
+            tail = (LOGS / f"{rid}-{p['name']}.log").read_text(encoding="utf-8", errors="replace").splitlines()[-40:]
             print(f"\n--- last lines of {rid}'s log ---\n" + "\n".join(tail), flush=True)
     bring_home([run_name(cfg["runs"][i]) for i in ids])
     lines = [f"{rid} {run_name(cfg['runs'][rid])}: {outcomes.get(rid, 'already finished earlier: nothing to do')}" for rid in ids]
@@ -423,12 +502,17 @@ def next_task(owner, mirror):
     if not queue:
         fail(f"No runs for owner {owner!r} in runs.yaml.")
     mirror = Path(mirror).expanduser()
-    pending = [rid for rid in queue if not (RECORD_DIR / f"{run_name(cfg['runs'][rid])}.json").exists()]
-    started = [rid for rid in pending if (mirror / run_name(cfg["runs"][rid]) / "last.pt").exists()]
-    pick = (started + [rid for rid in pending if rid not in started])[:cap]
-    if not pick:
+    done = lambda rid: (RECORD_DIR / f"{run_name(cfg['runs'][rid])}.json").exists()  # noqa: E731
+    pending = [rid for rid in queue if not done(rid)]
+    if not pending:
         print("ALL-DONE")
         return
+    # A run built on another run (its pruned start, its teacher) waits until that run is finished and evaluated.
+    ready = [rid for rid in pending if all(done(s) for s in sources(cfg["runs"][rid]))]
+    started = [rid for rid in ready if (mirror / run_name(cfg["runs"][rid]) / "last.pt").exists()]
+    pick = (started + [rid for rid in ready if rid not in started])[:cap]
+    if not pick:
+        fail(f"Nothing can start yet: {pending} wait for {sorted({s for rid in pending for s in sources(cfg['runs'][rid]) if not done(s)})} to finish.")
     new = [rid for rid in pick if rid not in started]
     print("train " + " ".join(pick) + (" --new " + " ".join(new) if new else ""))
 
@@ -463,7 +547,7 @@ def status():
     print(f"batch_per_gpu {cfg['batch_per_gpu']}, pairing {cfg['pairing']}")
     for rid, r in cfg["runs"].items():
         state, detail = state_of(run_name(r))
-        print(f"  {rid:3} {run_name(r):18} {r['owner']:9} {state:10} {detail}")
+        print(f"  {rid:3} {run_name(r):30} {r['owner']:9} {state:10} {detail}")
 
 
 def main():

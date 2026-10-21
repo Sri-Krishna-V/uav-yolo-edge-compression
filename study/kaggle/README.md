@@ -7,16 +7,28 @@ Read it once, top to bottom. After that, the wizard does the remembering for you
 
 | Person | Trains | Run list, in order |
 |---|---|---|
-| srikr | YOLO11s | A1, A3, A4, B1, B3, P1, P2 |
-| teammate | YOLO26s | A2, A5, A6, B2, B4, P3, P4 |
+| srikr | YOLO11s | A1, A3, A4, B1, B3, P1, P2, T1, D1, C1 |
+| teammate | YOLO26s | A2, A5, A6, B2, B4, P3, P4, T2, D2, C2 |
 
 What each run is, and why, is in [`../RUNS.md`](../RUNS.md). You don't need it to follow this guide.
 
-**P runs are different.** They are pruning runs, not baselines. The session cuts 30% of the channels from a
-finished run's checkpoint (P1: A1, P2: B1, P3: A2, P4: B2), then trains the smaller model for 30 epochs
-(about 1 hour at 640, 2 hours at 960). They need nothing extra from you: the finished run arrives through
-the same attached input as every other run. If the session stops with "best.pt is not in the attached
-inputs", that input is missing.
+**P, T, D and C runs are different.** They are not baselines, and each one builds on a run that came before it:
+
+- **P runs** are pruning runs. The session cuts 30% of the channels from a finished run's checkpoint (P1: A1,
+  P2: B1, P3: A2, P4: B2), then trains the smaller model for 30 epochs (about 1 hour at 640, 2 hours at 960).
+- **T runs** train a *teacher*: a bigger model (T1: YOLO11m, T2: YOLO26m) that the D and C runs learn from.
+  A teacher never appears in the paper's results itself. It takes a whole session, about 9 to 11 hours.
+- **D runs** are *distilled* runs: your model trains again from the same start, for the same 100 epochs,
+  while it learns to copy its teacher (D1: T1, D2: T2). About 5 to 6 hours.
+- **C runs** are *combined* runs: the session cuts 30% of A1's or A2's channels exactly as for P1 and P3,
+  then trains the result for 30 epochs with the teacher's help (C1: T1, C2: T2). About 1 hour.
+
+They need nothing extra from you. A run starts only once the run it builds on has finished, and the wizard
+picks them in the right order. The finished run and the teacher arrive through the same attached input as
+every other run. If the session stops with "best.pt is not in the attached inputs", that input is missing.
+
+T, D and C runs use nearly all of the GPU's memory. If one runs out of memory at its very start, the session
+restarts it once, from zero, at a smaller batch that was planned for this, and the result line says so.
 
 ---
 
@@ -174,6 +186,9 @@ Inside the session, in order:
 | `already finished earlier` | That run was already done | Nothing |
 | `CRASHED (exit N)` | Something failed mid-run. The last 40 log lines are printed above | Start the next session normally; it resumes from the last saved epoch. If the same run crashes twice, send Krishna the log |
 | `INVALID: GPU ran out of memory and the batch changed` | The run broke the same-batch rule and was set aside | Stop and tell Krishna. **Do not** change the batch size yourself |
+| `... (it ran out of GPU memory at batch 24 and restarted from zero at its fallback batch 16, as planned)` | A T, D or C run did not fit at its planned batch, so the session restarted it at the smaller batch planned for that | Nothing. Its record says which batch it used |
+| `INVALID: GPU ran out of memory at batch 24, and again at its fallback batch 16` | Even the smaller batch did not fit | Stop and tell Krishna |
+| `INVALID: GPU ran out of memory, and the run had trained in earlier sessions` | It was not restarted from zero, because that would throw those hours away | Stop and tell Krishna |
 
 ### STOP messages
 
@@ -201,7 +216,8 @@ fair. The code enforces most of them. Please don't work around the ones it can't
 3. **One session at a time per account.** No interactive GPU session while a training session runs:
    both burn the same weekly quota, and two sessions can't safely share one checkpoint chain.
 4. **Never lower the batch size yourself**, even after an out-of-memory crash. The batch is the same for
-   every run at a given resolution, or the runs aren't comparable. Report it instead.
+   every run at a given resolution, or the runs aren't comparable. Report it instead. (The smaller batch a
+   T, D or C run can restart at is planned in `runs.yaml` and switched to by the session itself.)
 5. **Keep the checkpoints off Kaggle.** `wizard.sh next` copies them into your checkpoint folder. Put
    that folder in Google Drive or OneDrive, so the only copy is never on one account or one laptop.
 6. **Attach only your own two notebooks as inputs.** A session loads every checkpoint it finds in its inputs,

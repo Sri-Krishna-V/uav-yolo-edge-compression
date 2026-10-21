@@ -572,8 +572,8 @@ saved KAGGLE_WHO "$KAGGLE_WHO"
 
 heading "Which model do you train?"
 gap
-printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3 P1 P2 %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
-printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4 P3 P4 %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s1%s   YOLO11s    runs A1 A3 A4 B1 B3 P1 P2 T1 D1 C1 %s(srikr)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
+printf '    %s2%s   YOLO26s    runs A2 A5 A6 B2 B4 P3 P4 T2 D2 C2 %s(teammate)%s\n' "$BOLD" "$RESET" "$DIM" "$RESET"
 gap
 while :; do
   ask OWNER_CHOICE "Type 1 or 2:"
@@ -876,16 +876,34 @@ if [[ "$TASK" == "ALL-DONE" ]]; then
 fi
 N=$(( ${SESSIONS_STARTED:-1} + 1 ))
 copy_cell "$TASK"
-COME_BACK_MIN=660
 if [[ " $TASK " =~ \ P[0-9]+\  ]]; then
   why "P runs are pruning runs. The session cuts 30% of a finished run's channels (P1: A1, P2: B1, P3: A2,"
-  why "P4: B2), then trains the result for 30 epochs. It reads that run from the input you just checked."
-  why "If it stops with \"best.pt is not in the attached inputs\", that input is missing: add it under Input"
-  why "and run the session again."
-  # P runs take ~1 h of training at 640 and ~2 h at 960, plus setup and evaluation; paired with an A/B run,
-  # the A/B run sets the time.
-  [[ " $TASK " =~ \ [AB][0-9]+\  ]] || COME_BACK_MIN=180
+  why "P4: B2), then trains the result for 30 epochs."
 fi
+if [[ " $TASK " =~ \ T[0-9]+\  ]]; then
+  why "T runs train a teacher: a bigger model (T1: YOLO11m, T2: YOLO26m) that the D and C runs learn from."
+  why "A teacher never appears in the paper's results itself. It takes a whole session, about 9 to 11 hours."
+fi
+if [[ " $TASK " =~ \ D[0-9]+\  ]]; then
+  why "D runs are distilled runs: your model trains again from the same start, for the same 100 epochs, while"
+  why "it learns to copy its teacher (D1: T1, D2: T2). About 5 to 6 hours."
+fi
+if [[ " $TASK " =~ \ C[0-9]+\  ]]; then
+  why "C runs are combined runs: the session cuts 30% of A1's or A2's channels, exactly as for P1 and P3,"
+  why "then trains the result for 30 epochs with the teacher's help (C1: T1, C2: T2). About 1 hour."
+fi
+if [[ " $TASK " =~ \ [PDC][0-9]+\  ]]; then
+  why "The session reads the finished run (and the teacher) from the input you just checked. If it stops with"
+  why "\"best.pt is not in the attached inputs\", that input is missing: add it under Input and run the session again."
+fi
+if [[ " $TASK " =~ \ [TDC][0-9]+\  ]]; then
+  why "If a T, D or C run runs out of GPU memory at its very start, the session restarts it once, at a smaller"
+  why "batch, by itself. That is planned: the result line says so, and you do nothing."
+fi
+# When to come back: A, B, T and D runs take a whole session (a teacher ~9-11 h, a D run ~5-6 h); P and C runs take
+# ~1 h of training at 640 and ~2 h at 960, plus setup and evaluation. The longest run in the session sets the time.
+COME_BACK_MIN=660
+[[ " $TASK " =~ \ [ABTD][0-9]+\  ]] || COME_BACK_MIN=180
 open_url "$NEXT_URL"
 save_and_run "session $N" 1
 remember LAST_NOTEBOOK "$NEXT"

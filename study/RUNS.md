@@ -27,9 +27,19 @@ labelled noise runs. Order within each owner is top to bottom.
 | P2 | srikr | YOLO11s, B1 pruned 30% | 960 | 0 | `yolo11s-960-s0-prune30` | The pruned configuration at 960, for the paper's equal-latency comparisons. Same prune and 30-epoch recovery as P1. ~2 T4-h |
 | P3 | teammate | YOLO26s, A2 pruned 30% | 640 | 0 | `yolo26s-640-s0-prune30` | The pruned configuration of YOLO26s at the matrix resolution. YOLO26s prunes once the block holding its layer-22 attention is skipped (0f6077d). ~1 T4-h |
 | P4 | teammate | YOLO26s, B2 pruned 30% | 960 | 0 | `yolo26s-960-s0-prune30` | The pruned configuration of YOLO26s at 960, for the equal-latency comparisons. ~2 T4-h |
+| T1 | srikr | YOLO11m | 640 | 0 | `yolo11m-640-s0` | Teacher for D1 and C1. Not a cell: never deployed or benchmarked. This recipe at 100 epochs, but its own per-GPU batch, **12** (fallback 8). ~9-11 T4-h |
+| D1 | srikr | YOLO11s, taught by T1 | 640 | 0 | `yolo11s-640-s0-distill` | The distilled configuration: A1's recipe and COCO start, plus Ultralytics' distillation from T1's best.pt (`studytrain.py --distill`, default `dis`). Batch 24 (fallback 16). ~5-6 T4-h |
+| C1 | srikr | YOLO11s, A1 pruned 30%, taught by T1 | 640 | 0 | `yolo11s-640-s0-prune30-distill` | The combined configuration before INT8: A1 pruned exactly as for P1 (the same pruned start), then the 30-epoch recovery with T1 as teacher (`--pruned --distill`). Batch 24 (fallback 16). INT8 export happens later, on the laptop. ~1-1.5 T4-h |
+| T2 | teammate | YOLO26m | 640 | 0 | `yolo26m-640-s0` | Teacher for D2 and C2, as T1. Batch 12 (fallback 8). ~9-11 T4-h |
+| D2 | teammate | YOLO26s, taught by T2 | 640 | 0 | `yolo26s-640-s0-distill` | The distilled configuration of YOLO26s, as D1. Batch 24 (fallback 16). ~5-6 T4-h |
+| C2 | teammate | YOLO26s, A2 pruned 30%, taught by T2 | 640 | 0 | `yolo26s-640-s0-prune30-distill` | The combined configuration of YOLO26s, as C1 (the same pruned start as P3). Batch 24 (fallback 16). ~1-1.5 T4-h |
 
-Teacher runs (YOLO11m, YOLO26m) inherit this same recipe but are not scheduled: *Distillation method* decides
-whether they happen at all.
+**T, D and C runs.** A teacher is a bigger model a study model learns from during training; it is never a cell.
+A D or C run starts only once its teacher (and, for C, the run it prunes) has a record, and `kaggle/session.py`
+hands the teacher's best.pt to `studytrain.py --distill`. Checkpoints leave the teacher out, so the final best.pt
+is the student alone and evaluates and exports like any other run. These runs fill the GPU, so each has a
+`batch_fallback` in `kaggle/runs.yaml`: a run that runs out of memory in its first epoch restarts from zero at that
+batch, its record carries `batch_fallback_from`, and later sessions resume it at the batch it started with.
 
 ## Order of work, and why
 
@@ -39,6 +49,9 @@ whether they happen at all.
    tickets need before their results can be called real.
 3. **B1, B2** for the resolution table.
 4. **B3, B4 last**, because 1280 costs roughly 4x a 640 run for one table row.
+5. **Then the compression runs, P, T, D, C**, in that order per owner. P runs need only a finished baseline. A
+   teacher must finish before its D and C runs can start, so its first session pairs it with the owner's last P
+   run (P2, P4), and D and C then share a session.
 
 ## Cost, and the cut order
 

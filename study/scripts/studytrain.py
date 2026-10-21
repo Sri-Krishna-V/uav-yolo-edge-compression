@@ -5,6 +5,8 @@
   python studytrain.py --model yolo11s.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu 16 --eval-only
   python studytrain.py --model yolo26s.pt --imgsz 1280 --seed 0 --device 0,1 --batch-per-gpu 4   # one run, two GPUs (DDP)
   python studytrain.py --model PRUNED.pt --pruned --epochs 30 --imgsz 640 --seed 0 --device 0 --batch-per-gpu 24 --name yolo11s-640-s0-prune30
+  python studytrain.py --model yolo11s.pt --distill TEACHER.pt --imgsz 640 --seed 0 --device 0 --batch-per-gpu 24 --name yolo11s-640-s0-distill
+  python studytrain.py --model PRUNED.pt --pruned --distill TEACHER.pt --epochs 30 ... --name yolo11s-640-s0-prune30-distill
 
 On Kaggle, do not call this directly: kaggle/session.py picks fresh / --resume / --eval-only per run and
 sets --stop-by. The study runs one run per GPU, never DDP (kaggle/README.md says why).
@@ -26,6 +28,14 @@ the paper. Every session also appends one line to runs/baseline/<name>/sessions.
 
 --pruned trains a studyprune.py checkpoint (a pruning-recovery run). A stock train() would rebuild the model
 from its yaml and keep only the weights whose shapes still match, i.e. silently train an unpruned model.
+
+--distill TEACHER.pt trains with Ultralytics' own distillation (distill_model, default `dis`): the trainer wraps the
+student in a DistillationModel with the frozen teacher. Checkpoints drop the teacher, so --resume needs --distill
+again to rebuild it; the final best.pt holds only the student, so it evaluates and exports like any other run.
+With --pruned, the student is the pruned module (a combined run).
+
+--fallback-from N: this run trains at a smaller batch than the N it was planned at, because it ran out of GPU
+memory at N in its first epoch (kaggle/session.py restarts it). The record says so (batch_fallback_from).
 """
 
 import argparse
@@ -86,6 +96,7 @@ def environment():
         "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
         "nvidia_driver": driver or None,
         "cpu_count": os.cpu_count(),
+        "pytorch_cuda_alloc_conf": os.environ.get("PYTORCH_CUDA_ALLOC_CONF"),
         "git_commit": studyenv.git_commit(),
         **{pkg: version(pkg) for pkg in ("ultralytics", "faster-coco-eval", "torchvision", "numpy")},
     }
@@ -117,6 +128,8 @@ def main():
     p.add_argument("--name", default=None, help="default: <model stem>-<imgsz>-s<seed>")
     p.add_argument("--pruned", action="store_true", help="--model is a studyprune.py checkpoint: train its pruned module as is")
     p.add_argument("--epochs", type=int, default=None, help="default: the recipe value (100). Recovery runs are shorter")
+    p.add_argument("--distill", default=None, metavar="TEACHER.pt", help="train with this teacher (Ultralytics distill_model); give it on --resume too")
+    p.add_argument("--fallback-from", type=int, default=None, metavar="N", help="the per-GPU batch this run was planned at, before it fell back to --batch-per-gpu")
     mode = p.add_mutually_exclusive_group()
     mode.add_argument("--resume", action="store_true", help="continue an unfinished run from its last.pt")
     mode.add_argument("--eval-only", action="store_true", help="training finished but no record: evaluate best.pt and write the record")
@@ -155,6 +168,15 @@ def main():
         sys.exit(f"--eval-only needs a finished run, but {last} is {'missing' if done_epochs is None else f'at epoch {done_epochs + 1}'}.")
     if not (a.resume or a.eval_only) and last.exists():
         sys.exit(f"{run_dir} already holds a run. Pass --resume to continue it, or --name for a new one.")
+    if a.distill and a.eval_only:
+        sys.exit("--eval-only reads the teacher from the run's args.yaml: drop --distill.")
+    if a.resume and (run_dir / "args.yaml").exists():  # resume takes batch and distill_model from this command line
+        started_with = yaml.safe_load((run_dir / "args.yaml").read_text(encoding="utf-8"))
+        if started_with.get("batch") != planned_batch:
+            sys.exit(f"{name} started at batch {started_with.get('batch')}; resuming it at {planned_batch} would change its batch mid-run.")
+        if bool(started_with.get("distill_model")) != bool(a.distill):
+            sys.exit(f"{name} started {'with' if a.distill is None else 'without'} a teacher: resume it the same way "
+                     f"({'add' if a.distill is None else 'drop'} --distill).")
 
     started = time.time()
     session = {"started": datetime.now(timezone.utc).isoformat(timespec="seconds"), "device": a.device, "host": platform.node(),
@@ -163,7 +185,6 @@ def main():
     if a.eval_only:
         model = YOLO(str(best))
         resolved = yaml.safe_load((run_dir / "args.yaml").read_text(encoding="utf-8"))
-        train_args = {k: resolved.get(k) for k in args}
         best_weights = best
     else:
         model = YOLO(str(last) if a.resume else a.model)
@@ -201,15 +222,18 @@ def main():
             name=name,
             exist_ok=True,
             resume=a.resume,
-            **({"trainer": PrunedTrainer} if a.pruned else {}),
+            **({"trainer": PrunedTrainer} if a.pruned else {}),  # with --distill too: the pruned module is the student
+            **({"distill_model": a.distill} if a.distill else {}),
             **({"save_dir": str(run_dir)} if a.resume else {}),  # resume into this checkout even if the old path differs
             **args,
         )
-        train_args = {k: getattr(model.trainer.args, k, None) for k in args}
+        resolved = vars(model.trainer.args)
         best_weights = model.trainer.best
         log_session(run_dir, {**session, "ended": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                               "hours": round((time.time() - started) / 3600, 3), "to_epoch": model.trainer.epochs, "outcome": "finished"})
 
+    teacher = resolved.get("distill_model")
+    train_args = {k: resolved.get(k) for k in [*args, *(("distill_model", "dis") if teacher else ())]}
     sessions = read_sessions(run_dir)
     record = {
         "run": name,
@@ -229,6 +253,8 @@ def main():
         "train_args": train_args,
         "best_weights": str(best_weights),
         **({"pruning": pruning} if pruning else {}),
+        **({"distillation": {"teacher": str(teacher), "teacher_run": Path(teacher).parent.parent.name or None, "dis": resolved.get("dis")}} if teacher else {}),
+        **({"batch_fallback_from": a.fallback_from} if a.fallback_from else {}),
     }
 
     if not a.no_eval:
