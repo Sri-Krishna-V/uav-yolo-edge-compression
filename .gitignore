@@ -4,6 +4,7 @@ study/datasets/
 study/runs/
 study/weights/
 study/.ultralytics/
+study/exports/
 __pycache__/
 *.pyc
 

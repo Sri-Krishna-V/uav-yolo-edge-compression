@@ -12,15 +12,25 @@ Verified against ultralytics 8.4.149 / faster-coco-eval 1.8.0 source, three trap
      hold more than 100 objects of one class (19.5% / 7.9% hold more than 100 in total).
 evaluate() fixes all three: every coco/* stat comes from one integrator at maxDets=500, matching
 the official VisDrone AP@[.50:.95 | maxDets=500] and AR{1,10,100,500} family.
+
+ground_truth() builds, with the validator's own code, the COCO ground truth that evaluate() scores a static export
+against. studyscore.py caches it and scores device detections (studybench.py) against it without loading torch:
+
+  python studyeval.py ground-truth --split test --imgsz 640 --out gt.json
 """
 
+import argparse
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import faster_coco_eval
 
 import studyenv  # noqa: F401  must precede ultralytics
 
+import torch  # noqa: E402
 from ultralytics import YOLO  # noqa: E402
+from ultralytics.data.utils import check_det_dataset  # noqa: E402
 from ultralytics.models.yolo.detect import DetectionValidator  # noqa: E402
 
 
@@ -73,3 +83,33 @@ def evaluate(weights, split, imgsz, **overrides):
         "end2end_head_scored": bool(validator.end2end),
         "save_dir": str(Path(validator.save_dir)),
     }
+
+
+def ground_truth(split, imgsz):
+    """The COCO ground truth evaluate() builds for a static export at imgsz (rect=False, batch 1), and the image files in order.
+
+    The validator builds it while it validates, from labels letterboxed and scaled back through each image's ratio_pad,
+    so it depends on imgsz and rect at float precision: an object near the 32^2 or 96^2 area bound can change bucket.
+    This runs the validator's own code with empty predictions instead of re-deriving it.
+    """
+    args = {**studyenv.EVAL_ARGS, "data": studyenv.DATA, "split": split, "imgsz": imgsz, "rect": False, "batch": 1,
+            "mode": "val", "plots": False, "workers": 0}
+    v = StudyValidator(args=args)
+    v.training, v.device, v.stride = False, torch.device("cpu"), 32
+    v.data = check_det_dataset(v.args.data, split=split)
+    v.dataloader = v.get_dataloader(v.data.get(split), 1)
+    v.init_metrics(SimpleNamespace(names=v.data["names"], end2end=False))
+    for batch in v.dataloader:
+        v.update_metrics([{"bboxes": torch.zeros(0, 4), "conf": torch.zeros(0), "cls": torch.zeros(0), "extra": torch.zeros(0, 0)}], batch)
+    return v.gdict, [Path(f).name for f in v.dataloader.dataset.im_files]
+
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Write the ground truth evaluate() uses for a static export (studyscore.py calls this).")
+    p.add_argument("command", choices=["ground-truth"])
+    p.add_argument("--split", default="test")
+    p.add_argument("--imgsz", type=int, required=True)
+    p.add_argument("--out", required=True)
+    a = p.parse_args()
+    gdict, files = ground_truth(a.split, a.imgsz)
+    Path(a.out).write_text(json.dumps({"split": a.split, "imgsz": a.imgsz, "rect": False, "files": files, "gdict": gdict}), encoding="utf-8")

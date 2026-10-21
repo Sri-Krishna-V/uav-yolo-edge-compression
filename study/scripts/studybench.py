@@ -1,0 +1,602 @@
+"""On-device benchmark of one cell: every test-dev image through one exported artifact, accuracy and latency in one pass.
+
+  python3 studybench.py --artifact exports/yolo11s-640-s0/640/onnxruntime-fp32 --runtime onnxruntime --imgsz 640 \
+      --images VisDrone/images/test --out bench/pi5/yolo11s-640-s0/640/onnxruntime-fp32 --platform-tag pi5
+
+Runs ON the device. Needs only the standard library, numpy, cv2 and the one runtime module (imported lazily); runs on
+Python 3.11 (Raspberry Pi OS Bookworm), 3.14 (Termux) and the laptop. Never import torch, ultralytics or studyenv here.
+
+Warm-up first (the first --warmup images, untimed), then every image is timed, batch 1, single stream, in three stages.
+Reading and decoding the file is not timed.
+  pre   what DetectionValidator feeds a static export (rect=False, batch 1): long side resized to imgsz with ceil()
+        rounding (data/base.py load_image, INTER_LINEAR), LetterBox pad of 114 (scaleup=False, so it only pads),
+        BGR->RGB, CHW, float32 / 255. Not the predictor's LetterBox, which rounds the short side and differs by a row
+        on 1,084 of the 1,610 test-dev images.
+  net   one runtime call.
+  post  box decode + NMS exactly as DetectionValidator calls utils/nms.py non_max_suppression (conf 0.001, iou 0.7,
+        max_det 500, multi_label, class-offset NMS, max_nms 30000), or the end2end branch for an NMS-free head, then
+        scale_boxes with the validator's ratio_pad. Converting to COCO json is not timed.
+The detections are written exactly as DetectionValidator.pred_to_json writes them (bbox rounded to 3 decimals, score
+to 5, category = class + 1). Score them on the laptop with `python studyscore.py <out>`.
+
+--threads is part of the cell, not only a speed knob: ONNX Runtime's INT8 output changes with intra_op_num_threads
+(measured on the laptop: 1, 2 and 4 threads agree, 8 and 16 each differ, by up to 49 px on a box; FP32 does not move).
+Ultralytics leaves ONNX Runtime at its default, one thread per physical core.
+
+Crash-visible: every image is appended to predictions.jsonl and timings.csv and flushed as it finishes (fsync every
+50 images), and meta.json says "running" until the run completes ("interrupted", with the error, if Python saw it
+die). A run that died resumes with --resume: it re-warms, skips the images already recorded, and logs each session.
+"""
+
+import argparse
+import csv
+import hashlib
+import json
+import math
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import time
+import zlib
+from datetime import datetime, timezone
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+# cfg/invariants.yaml `shared:` plus the non_max_suppression defaults the validator leaves alone. Copied, not read:
+# yaml and studyenv are not on the device. studyeval.py score refuses a run whose meta disagrees with the invariants.
+CONF, IOU, MAX_DET = 0.001, 0.7, 500
+MAX_NMS, MAX_WH = 30000, 7680
+PAD_VALUE = 114
+IMG_SUFFIXES = (".jpg", ".jpeg", ".png", ".bmp")
+FSYNC_EVERY = THROTTLE_EVERY = 50
+COLUMNS = ["index", "file", "t_pre_ms", "t_net_ms", "t_post_ms", "n_cand", "n_dets", "temp_c", "cpu_mhz", "throttled", "img_crc32", "session"]
+
+
+# ---------------------------------------------------------------- pre-processing
+
+
+def preprocess(im, imgsz):
+    """BGR uint8 HWC image -> (1, 3, imgsz, imgsz) float32 input and the validator's ratio_pad."""
+    h0, w0 = im.shape[:2]
+    r = imgsz / max(h0, w0)
+    if r != 1:  # load_image: ceil, not LetterBox's round
+        im = cv2.resize(im, (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz)), interpolation=cv2.INTER_LINEAR)
+    h, w = im.shape[:2]
+    # LetterBox(scaleup=False) on an image whose long side is already imgsz: ratio 1, pad only
+    dw, dh = (imgsz - w) / 2, (imgsz - h) / 2
+    top, bottom, left, right = round(dh - 0.1), round(dh + 0.1), round(dw - 0.1), round(dw + 0.1)
+    im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(PAD_VALUE,) * 3)
+    x = np.ascontiguousarray(im.transpose(2, 0, 1)[::-1]).astype(np.float32)[None]
+    x /= np.float32(255)  # a division, as the validator does; * (1/255) rounds differently
+    return x, ((h / h0, w / w0), (left, top))
+
+
+# ---------------------------------------------------------------- post-processing
+
+
+def nms_greedy(boxes, scores, cls, iou, max_det):
+    """torchvision.ops.nms on class-offset boxes, stopped once max_det boxes are kept (the validator keeps only those).
+
+    Boxes of different classes never overlap after the offset, so each kept box is compared only with its own class.
+    The next box kept is the highest-scoring survivor of any class, ties broken by input order (torchvision's sort is
+    stable). Arithmetic is float32 in torchvision's order, so near-threshold decisions match it.
+    """
+    order = np.argsort(-scores, kind="stable")
+    rank = np.empty_like(order)
+    rank[order] = np.arange(order.size)
+    x1, y1, x2, y2 = (np.ascontiguousarray(boxes[:, k]) for k in range(4))
+    areas = (x2 - x1) * (y2 - y1)
+    cls_sorted = cls[order]
+    queues = [order[cls_sorted == c] for c in np.unique(cls_sorted)]
+    zero, thr = np.float32(0), np.float32(iou)
+    keep = []
+    with np.errstate(divide="ignore", invalid="ignore"):  # zero-area pairs give nan, which never suppresses
+        while queues and len(keep) < max_det:
+            q = min(range(len(queues)), key=lambda k: rank[queues[k][0]])
+            i, rest = queues[q][0], queues[q][1:]
+            keep.append(i)
+            if rest.size:
+                w = np.maximum(zero, np.minimum(x2[i], x2[rest]) - np.maximum(x1[i], x1[rest]))
+                h = np.maximum(zero, np.minimum(y2[i], y2[rest]) - np.maximum(y1[i], y1[rest]))
+                inter = w * h
+                rest = rest[~(inter / (areas[i] + areas[rest] - inter) > thr)]
+            if rest.size:
+                queues[q] = rest
+            else:
+                del queues[q]
+    return np.array(keep, dtype=np.int64)
+
+
+def postprocess_raw(pred):
+    """Raw one-to-many head (4 + nc, anchors), xywh in input pixels -> boxes xyxy, scores, classes, candidate count."""
+    conf = np.float32(CONF)
+    pred = pred[:, pred[4:].max(0) > conf].T  # candidates: best class above conf
+    xy, wh = pred[:, :2], pred[:, 2:4] / 2
+    box = np.concatenate((xy - wh, xy + wh), 1)
+    i, j = np.nonzero(pred[:, 4:] > conf)  # multi_label: one row per (box, class) above conf, row-major like torch.where
+    box, score, cls = box[i], pred[i, 4 + j], j
+    n_cand = int(score.size)
+    if n_cand > MAX_NMS:  # torch's argsort here is unstable, so tied scores may order differently (640: max 6,514 on test-dev)
+        top = np.argsort(-score, kind="stable")[:MAX_NMS]
+        box, score, cls = box[top], score[top], cls[top]
+    if not score.size:
+        return box, score, cls, n_cand
+    keep = nms_greedy(box + (cls.astype(np.float32) * np.float32(MAX_WH))[:, None], score, cls, IOU, MAX_DET)
+    return box[keep], score[keep], cls[keep], n_cand
+
+
+def postprocess_e2e(pred):
+    """NMS-free one-to-one head (max_det, 6): x1 y1 x2 y2 score class, already top-k sorted -> the validator's end2end branch."""
+    pred = pred[pred[:, 4] > np.float32(CONF)]
+    n_cand = int(pred.shape[0])
+    pred = pred[:MAX_DET]
+    return pred[:, :4], pred[:, 4], pred[:, 5].astype(np.int64), n_cand
+
+
+def scale_boxes(boxes, ratio_pad, shape0):
+    """ops.scale_boxes with the validator's ratio_pad (separate x and y gains), then clip to the original image."""
+    (gain_y, gain_x), (pad_x, pad_y) = ratio_pad
+    b = boxes.copy()
+    b[:, [0, 2]] -= np.float32(pad_x)
+    b[:, [1, 3]] -= np.float32(pad_y)
+    b[:, [0, 2]] /= np.float32(gain_x)
+    b[:, [1, 3]] /= np.float32(gain_y)
+    h0, w0 = shape0
+    b[:, [0, 2]] = b[:, [0, 2]].clip(np.float32(0), np.float32(w0))
+    b[:, [1, 3]] = b[:, [1, 3]].clip(np.float32(0), np.float32(h0))
+    return b
+
+
+def to_coco(boxes, scores, cls):
+    """pred_to_json: xyxy -> top-left xywh in float32, rounded as the validator rounds it. Rows are [x, y, w, h, score, category]."""
+    w, h = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
+    x = (boxes[:, 0] + boxes[:, 2]) / np.float32(2) - w / np.float32(2)
+    y = (boxes[:, 1] + boxes[:, 3]) / np.float32(2) - h / np.float32(2)
+    return [[round(a, 3), round(b, 3), round(c, 3), round(d, 3), round(s, 5), k + 1]
+            for a, b, c, d, s, k in zip(x.tolist(), y.tolist(), w.tolist(), h.tolist(), scores.tolist(), cls.tolist())]
+
+
+# ---------------------------------------------------------------- runtimes
+
+
+def find_model(artifact, runtime):
+    p = Path(artifact)
+    pattern = {"onnxruntime": "*.onnx", "openvino": "*.xml", "ncnn": "*.param"}[runtime]
+    if p.is_file():
+        return p
+    found = sorted(p.rglob(pattern))
+    if len(found) != 1:
+        sys.exit(f"expected exactly one {pattern} under {p}, found {[str(f) for f in found]}")
+    return found[0]
+
+
+class OnnxRuntime:
+    def __init__(self, model, threads):
+        import onnxruntime as ort
+
+        so = ort.SessionOptions()
+        so.intra_op_num_threads, so.inter_op_num_threads = threads, 1
+        so.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        self.session = ort.InferenceSession(str(model), so, providers=["CPUExecutionProvider"])
+        inp = self.session.get_inputs()[0]
+        self.input_name, self.input_shape = inp.name, inp.shape
+        self.version = ort.__version__
+        self.info = {"providers": self.session.get_providers(), "intra_op_num_threads": threads, "inter_op_num_threads": 1,
+                     "input_type": inp.type, "outputs": [(o.name, o.shape) for o in self.session.get_outputs()]}
+
+    def __call__(self, x):
+        return self.session.run(None, {self.input_name: x})[0]
+
+
+class OpenVINO:
+    def __init__(self, model, threads):
+        import openvino as ov
+
+        core = ov.Core()
+        net = core.read_model(model=str(model), weights=str(model.with_suffix(".bin")))
+        # What Ultralytics' OpenVINOBackend compiles with, on CPU explicitly (it picks AUTO when a GPU is visible). On
+        # Linux ARM64 it forces f32 accuracy mode: the ARM CPU plugin otherwise runs an FP32 model in f16.
+        config = {"PERFORMANCE_HINT": "LATENCY", "INFERENCE_NUM_THREADS": threads}
+        if platform.system() == "Linux" and platform.machine() in ("aarch64", "arm64"):
+            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
+            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
+        compiled = core.compile_model(net, "CPU", config)
+        self.request = compiled.create_infer_request()
+        self.input_shape = [d.get_length() if d.is_static else None for d in net.input().get_partial_shape()]
+        self.version = ov.get_version()
+        props = ("PERFORMANCE_HINT", "INFERENCE_NUM_THREADS", "INFERENCE_PRECISION_HINT", "EXECUTION_MODE_HINT",
+                 "NUM_STREAMS", "ENABLE_HYPER_THREADING", "ENABLE_CPU_PINNING", "SCHEDULING_CORE_TYPE", "EXECUTION_DEVICES")
+        self.info = {"device": "CPU", "requested": {k: str(v) for k, v in config.items()}, "effective": {k: _try(lambda k=k: str(compiled.get_property(k))) for k in props}}
+
+    def __call__(self, x):
+        self.request.infer({0: x})
+        return self.request.get_output_tensor(0).data.copy()
+
+
+class NCNN:
+    def __init__(self, model, threads):
+        import ncnn
+
+        self.ncnn, self.net = ncnn, ncnn.Net()
+        self.net.opt.use_vulkan_compute = False
+        self.net.opt.num_threads = threads  # everything else stays at ncnn's defaults, fp16 storage/arithmetic included
+        self.net.load_param(str(model))
+        self.net.load_model(str(model.with_suffix(".bin")))
+        self.input_name, self.output_name = self.net.input_names()[0], sorted(self.net.output_names())[0]
+        self.input_shape = None
+        self.version = ncnn.__version__
+        opt = self.net.opt
+        probes = [f for f in dir(ncnn) if f.startswith("cpu_support_") or (f.startswith("get_") and f.endswith("_count"))]
+        self.info = {"opt": {k: getattr(opt, k) for k in dir(opt) if k.startswith(("use_", "num_threads", "lightmode")) and isinstance(getattr(opt, k), (bool, int))},
+                     "cpu": {f: _try(getattr(ncnn, f)) for f in probes}}
+
+    def __call__(self, x):
+        with self.net.create_extractor() as ex:
+            ex.input(self.input_name, self.ncnn.Mat(x[0]))
+            return np.array(ex.extract(self.output_name)[1])[None]
+
+    def close(self):
+        """The pip wheel creates a Vulkan instance even for CPU inference; left to interpreter shutdown it segfaults (Windows)."""
+        self.net.clear()
+        del self.net
+        if hasattr(self.ncnn, "destroy_gpu_instance"):
+            self.ncnn.destroy_gpu_instance()
+
+
+RUNTIMES = {"onnxruntime": OnnxRuntime, "openvino": OpenVINO, "ncnn": NCNN}
+
+
+# ---------------------------------------------------------------- device state (fails soft: Android hides most of it)
+
+
+def _try(fn, default=None):
+    try:
+        return fn()
+    except Exception:
+        return default
+
+
+def _read(path):
+    return _try(lambda: Path(path).read_text(encoding="utf-8", errors="replace").strip())
+
+
+def cpu_temp_c():
+    v = _read("/sys/class/thermal/thermal_zone0/temp")
+    return round(int(v) / 1000, 1) if v and v.lstrip("-").isdigit() else None
+
+
+def cpu_mhz():
+    v = _read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq")
+    return round(int(v) / 1000) if v and v.isdigit() else None
+
+
+def throttled():
+    """vcgencmd get_throttled as an int (Raspberry Pi only), else None."""
+    if not shutil.which("vcgencmd"):
+        return None
+    out = _try(lambda: subprocess.run(["vcgencmd", "get_throttled"], capture_output=True, text=True, timeout=5).stdout)
+    return _try(lambda: int(out.strip().split("=")[1], 16))
+
+
+def platform_info():
+    cpuinfo = _read("/proc/cpuinfo") or ""
+    fields = {}
+    for line in cpuinfo.splitlines():
+        k, _, v = line.partition(":")
+        fields.setdefault(k.strip(), v.strip())
+    cpu = fields.get("model name") or fields.get("Hardware") or fields.get("Model")
+    if not cpu and platform.system() == "Windows":
+        import winreg
+
+        cpu = _try(lambda: winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"), "ProcessorNameString")[0].strip())
+    getprop = shutil.which("getprop")
+    android = {k: _try(lambda k=k: subprocess.run([getprop, k], capture_output=True, text=True, timeout=5).stdout.strip()) for k in
+               ("ro.product.manufacturer", "ro.product.model", "ro.soc.model", "ro.build.version.release")} if getprop else None
+    return {
+        "uname": platform.uname()._asdict(),
+        "cpu_model": cpu or platform.processor() or None,
+        "cpu_part": fields.get("CPU part"),
+        "device_model": (_read("/proc/device-tree/model") or "").rstrip("\x00") or None,
+        "android": android,
+        "cpu_count": os.cpu_count(),
+        "cpu_affinity": _try(lambda: len(os.sched_getaffinity(0))),
+        "cpu_max_mhz": [_try(lambda c=c: round(int(_read(f"/sys/devices/system/cpu/cpu{c}/cpufreq/cpuinfo_max_freq")) / 1000))
+                        for c in range(os.cpu_count() or 0)] if os.path.isdir("/sys/devices/system/cpu") else None,
+        "governor": _read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
+        "mem_total_kb": _try(lambda: int(next(l for l in _read("/proc/meminfo").splitlines() if l.startswith("MemTotal")).split()[1])),
+    }
+
+
+def max_rss_mb():
+    import resource  # not on Windows
+
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return round(rss / (1 << 20 if sys.platform == "darwin" else 1 << 10), 1)
+
+
+# ---------------------------------------------------------------- bookkeeping
+
+
+def sha256_files(artifact):
+    p = Path(artifact)
+    files = [p] if p.is_file() else sorted(f for f in p.rglob("*") if f.is_file() and f.name != "manifest.json")
+    root = p.parent if p.is_file() else p
+    digests = {}
+    for f in files:
+        h = hashlib.sha256()
+        with open(f, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+        digests[f.relative_to(root).as_posix()] = h.hexdigest()
+    return digests
+
+
+def find_manifest(artifact):
+    p = Path(artifact).resolve()
+    for d in [p if p.is_dir() else p.parent, *list(p.parents)[:2]]:
+        if (d / "manifest.json").is_file():
+            return json.loads((d / "manifest.json").read_text(encoding="utf-8"))
+    return None
+
+
+def imread(path):
+    """utils/patches.py imread: np.fromfile + cv2.imdecode, IMREAD_COLOR (BGR)."""
+    return cv2.imdecode(np.fromfile(str(path), np.uint8), cv2.IMREAD_COLOR)
+
+
+def write_json(path, obj):
+    tmp = Path(str(path) + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=2), encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def load_progress(out):
+    """Images already recorded by a previous session: the ones complete in both predictions.jsonl and timings.csv."""
+    preds, rows = {}, {}
+    if not (out / "predictions.jsonl").exists() or not (out / "timings.csv").exists():
+        return set()
+    with open(out / "predictions.jsonl", "rb") as f:
+        for line in f:
+            try:
+                rec = json.loads(line)
+                preds[rec["file"]] = line
+            except ValueError:  # a line cut off by the crash
+                break
+    with open(out / "timings.csv", newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            if row.get("session") not in (None, ""):
+                rows[row["file"]] = row
+    done = [k for k in preds if k in rows]
+    with open(out / "predictions.jsonl", "wb") as f:  # rewrite both to the common, complete set
+        f.writelines(preds[k] for k in done)
+    with open(out / "timings.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, COLUMNS)
+        w.writeheader()
+        w.writerows(rows[k] for k in done)
+    return set(done)
+
+
+def stage_stats(out):
+    with open(out / "timings.csv", newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    cols = {k: np.array([float(r[k]) for r in rows]) for k in ("t_pre_ms", "t_net_ms", "t_post_ms")}
+    cols["t_total_ms"] = cols["t_pre_ms"] + cols["t_net_ms"] + cols["t_post_ms"]
+    stats = {k: {"median": round(float(np.median(v)), 3), "p95": round(float(np.percentile(v, 95)), 3),
+                 "mean": round(float(v.mean()), 3), "min": round(float(v.min()), 3), "max": round(float(v.max()), 3)} for k, v in cols.items()}
+    temps = [float(r["temp_c"]) for r in rows if r["temp_c"]]
+    mhz = [float(r["cpu_mhz"]) for r in rows if r["cpu_mhz"]]
+    n_cand = [int(r["n_cand"]) for r in rows]
+    return rows, stats, {
+        "temp_c": {"min": min(temps), "max": max(temps), "median": float(np.median(temps))} if temps else None,
+        "cpu_mhz": {"min": min(mhz), "max": max(mhz), "median": float(np.median(mhz))} if mhz else None,
+        "n_cand_max": max(n_cand) if n_cand else None,
+        "images_over_max_nms": sum(n > MAX_NMS for n in n_cand),
+    }
+
+
+def finalize_predictions(out):
+    """predictions.jsonl -> predictions.json, the list DetectionValidator.pred_to_json builds, streamed to keep memory flat."""
+    n = 0
+    with open(out / "predictions.jsonl", encoding="utf-8") as src, open(out / "predictions.json.tmp", "w", encoding="utf-8") as dst:
+        dst.write("[")
+        for line in src:
+            rec = json.loads(line)
+            stem = Path(rec["file"]).stem
+            image_id = int(stem) if stem.isnumeric() else stem
+            for x, y, w, h, s, c in rec["dets"]:
+                dst.write(("," if n else "") + json.dumps({"image_id": image_id, "file_name": rec["file"], "category_id": c, "bbox": [x, y, w, h], "score": s}))
+                n += 1
+        dst.write("]")
+    os.replace(out / "predictions.json.tmp", out / "predictions.json")
+    return n
+
+
+def throttle_summary(samples):
+    """samples: [[image index, vcgencmd get_throttled value or None], ...] taken at start, every 50 images and end."""
+    vals = [v for _, v in samples if v is not None]
+    if not vals:
+        return None
+    seen = 0
+    for v in vals:
+        seen |= v
+    # bits 0-3 are the state now, 16-19 "has occurred since boot"
+    flags = {"under_voltage": 0, "freq_capped": 1, "throttled": 2, "soft_temp_limit": 3}
+    return {"start": hex(vals[0]), "end": hex(vals[-1]), "or_of_samples": hex(seen),
+            "during_run": {k: bool(seen & (1 << b)) for k, b in flags.items()},
+            "since_boot": {k: bool(seen & (1 << (b + 16))) for k, b in flags.items()},
+            "samples": [[i, hex(v)] for i, v in samples if v is not None]}
+
+
+# ---------------------------------------------------------------- main
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    p.add_argument("--artifact", required=True, help="a cell directory written by studyexport.py, or the model file/directory")
+    p.add_argument("--runtime", required=True, choices=sorted(RUNTIMES))
+    p.add_argument("--imgsz", type=int, required=True)
+    p.add_argument("--images", required=True, help="the VisDrone test-dev images directory")
+    p.add_argument("--out", required=True)
+    p.add_argument("--threads", type=int, default=4, help="runtime and OpenCV threads (recorded)")
+    p.add_argument("--warmup", type=int, default=20, help="images run untimed first")
+    p.add_argument("--limit", type=int, default=None, help="time only the first N images (a quick check, not a cell)")
+    p.add_argument("--platform-tag", default=None, help="e.g. pi5, pi4b, m34, laptop")
+    p.add_argument("--resume", action="store_true", help="continue a run that died")
+    p.add_argument("--overwrite", action="store_true", help="discard an existing run in --out")
+    a = p.parse_args()
+
+    out = Path(a.out)
+    out.mkdir(parents=True, exist_ok=True)
+    all_files = sorted(f for f in os.listdir(a.images) if f.lower().endswith(IMG_SUFFIXES))  # the validator's order
+    files = all_files[: a.limit] if a.limit else all_files
+    model_file = find_model(a.artifact, a.runtime)
+    digests = sha256_files(a.artifact)
+    manifest = find_manifest(a.artifact)
+    if manifest and manifest.get("files") and any(manifest["files"].get(k) not in (None, v) for k, v in digests.items()):
+        sys.exit(f"{a.artifact} does not match its manifest.json: re-copy the artifact")
+    if manifest and (manifest.get("imgsz") != a.imgsz or manifest.get("runtime") != a.runtime):
+        sys.exit(f"--runtime {a.runtime} --imgsz {a.imgsz}, but the manifest says {manifest.get('runtime')} at {manifest.get('imgsz')}")
+    config = {"runtime": a.runtime, "imgsz": a.imgsz, "threads": a.threads, "artifact_sha256": digests,
+              "images": len(files), "images_sha1": hashlib.sha1("\n".join(files).encode()).hexdigest()}
+
+    meta_path = out / "meta.json"
+    old = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else None
+    if old and a.overwrite:
+        for f in ("meta.json", "predictions.json", "predictions.jsonl", "timings.csv"):
+            (out / f).unlink(missing_ok=True)
+        old = None
+    if old and old.get("status") == "complete":
+        sys.exit(f"{out} holds a complete run; pass --overwrite to replace it")
+    if old and not a.resume:
+        sys.exit(f"{out} holds an unfinished run; pass --resume to continue it or --overwrite to restart")
+    if old and old["config"] != config:
+        sys.exit(f"{out} was started with a different configuration; --overwrite to restart:\n{old['config']}\nvs\n{config}")
+    if not old:  # leftovers without a meta.json belong to no run
+        for f in ("predictions.json", "predictions.jsonl", "timings.csv"):
+            (out / f).unlink(missing_ok=True)
+    done = load_progress(out) if old else set()
+
+    cv2.setNumThreads(a.threads)
+    t_load = time.perf_counter()
+    rt = RUNTIMES[a.runtime](model_file, a.threads)
+    load_s = time.perf_counter() - t_load
+    if rt.input_shape and rt.input_shape[-2:] != [a.imgsz, a.imgsz]:
+        sys.exit(f"--imgsz {a.imgsz} but the model input is {rt.input_shape}")
+
+    meta = old or {
+        "tool": "studybench.py",
+        "status": "running",
+        "platform_tag": a.platform_tag,
+        "config": config,
+        "artifact": str(a.artifact),
+        "model_file": str(model_file),
+        "manifest": manifest,
+        "imgsz": a.imgsz,
+        "threads": a.threads,
+        "warmup": a.warmup,
+        "limit": a.limit,
+        "images_dir": str(a.images),
+        "complete_testdev": a.limit is None,
+        "preprocess": "validator rect=False batch 1: ceil long-side resize INTER_LINEAR, LetterBox pad 114 scaleup=False, BGR->RGB, CHW, /255",
+        "postprocess": {"conf": CONF, "iou": IOU, "max_det": MAX_DET, "max_nms": MAX_NMS, "max_wh": MAX_WH, "multi_label": True, "agnostic": False},
+        "timed": "pre + net + post per image; image read/decode and COCO conversion excluded",
+        "sessions": [],
+    }
+    meta["status"] = "running"
+    meta["platform"] = platform_info()
+    meta["versions"] = {"python": platform.python_version(), "numpy": np.__version__, "cv2": cv2.__version__, a.runtime: rt.version}
+    meta["runtime_info"] = rt.info
+    meta["cv2_threads"] = cv2.getNumThreads()
+    session = {"index": len(meta["sessions"]), "start": now(), "first_image": len(done), "model_load_s": round(load_s, 3), "warmup": a.warmup}
+    meta["sessions"].append(session)
+    throttle_samples = meta.setdefault("throttle_samples", [])
+    throttle_samples.append([len(done), throttled()])
+    write_json(meta_path, meta)
+
+    head = None
+
+    def infer(im):
+        nonlocal head
+        t0 = time.perf_counter_ns()
+        x, ratio_pad = preprocess(im, a.imgsz)
+        t1 = time.perf_counter_ns()
+        y = rt(x)[0]
+        t2 = time.perf_counter_ns()
+        if head is None:
+            head = "end2end" if y.shape[-1] == 6 else "raw"
+        boxes, scores, cls, n_cand = (postprocess_e2e if head == "end2end" else postprocess_raw)(y)
+        boxes = scale_boxes(boxes, ratio_pad, im.shape[:2])
+        t3 = time.perf_counter_ns()
+        return boxes, scores, cls, n_cand, ((t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6)
+
+    for f in all_files[: a.warmup]:
+        infer(imread(Path(a.images) / f))
+    session["warmup_done"] = now()
+
+    todo = [(i, f) for i, f in enumerate(files) if f not in done]
+    try:
+        run_images(a, out, todo, infer, session, throttle_samples, meta)
+    except BaseException as e:  # Ctrl-C, a dropped SSH session, a runtime error: leave the reason where the next session looks
+        session["end"], meta["status"], meta["error"] = now(), "interrupted", f"{type(e).__name__}: {e}"
+        write_json(meta_path, meta)
+        raise
+    finally:
+        getattr(rt, "close", lambda: None)()
+
+    throttle_samples.append([len(files), throttled()])
+    rows, stats, extra = stage_stats(out)
+    if len(rows) != len(files):
+        sys.exit(f"timings.csv has {len(rows)} rows for {len(files)} images: run again with --resume")
+    session["end"] = now()
+    meta.pop("throttle_samples")
+    meta.pop("error", None)
+    meta.update(status="complete", head=head, start=meta["sessions"][0]["start"], end=session["end"], images_timed=len(rows),
+                detections=finalize_predictions(out), timing_ms=stats, device_state=extra, throttle=throttle_summary(throttle_samples),
+                max_rss_mb=_try(max_rss_mb), resumed=len(meta["sessions"]) > 1)
+    write_json(meta_path, meta)
+    (out / "predictions.jsonl").unlink()
+    t = stats
+    print(f"done: {len(rows)} images, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} "
+          f"post {t['t_post_ms']['median']} total {t['t_total_ms']['median']} ms (p95 {t['t_total_ms']['p95']})")
+
+
+def run_images(a, out, todo, infer, session, throttle_samples, meta):
+    """The timed pass: one line in predictions.jsonl and one row in timings.csv per image, flushed as it finishes."""
+    new_csv = not (out / "timings.csv").exists()
+    with open(out / "predictions.jsonl", "a", encoding="utf-8") as pj, open(out / "timings.csv", "a", newline="", encoding="utf-8") as tc:
+        writer = csv.DictWriter(tc, COLUMNS)
+        if new_csv:
+            writer.writeheader()
+        for k, (i, f) in enumerate(todo, 1):
+            im = imread(Path(a.images) / f)
+            if im is None:
+                sys.exit(f"cannot read {f}")
+            boxes, scores, cls, n_cand, (t_pre, t_net, t_post) = infer(im)
+            pj.write(json.dumps({"file": f, "dets": to_coco(boxes, scores, cls)}, separators=(",", ":")) + "\n")
+            thr = throttled() if k % THROTTLE_EVERY == 0 else None
+            if thr is not None:
+                throttle_samples.append([i, thr])
+            writer.writerow({"index": i, "file": f, "t_pre_ms": f"{t_pre:.3f}", "t_net_ms": f"{t_net:.3f}", "t_post_ms": f"{t_post:.3f}",
+                             "n_cand": n_cand, "n_dets": len(scores), "temp_c": cpu_temp_c(), "cpu_mhz": cpu_mhz(),
+                             "throttled": hex(thr) if thr is not None else None, "img_crc32": f"{zlib.crc32(im):08x}", "session": session["index"]})
+            pj.flush()
+            tc.flush()
+            if k % FSYNC_EVERY == 0:
+                os.fsync(pj.fileno())
+                os.fsync(tc.fileno())
+                session["last_image"], session["last_update"] = i, now()
+                write_json(out / "meta.json", meta)
+            if k % 100 == 0 or k == len(todo):
+                print(f"[{k}/{len(todo)}] {f} pre {t_pre:.1f} net {t_net:.1f} post {t_post:.1f} ms, {len(scores)} dets", flush=True)
+
+
+if __name__ == "__main__":
+    main()
