@@ -172,18 +172,18 @@ check("10 seed-folder: A2, B2 (best.pt as last.pt), paused T2", rc == 0 and (bas
       and (base / "yolo26m-640-s0" / "weights" / "last.pt").exists() and (base / "yolo26s-640-s0" / "weights" / "best.pt").exists(), out)
 
 # 11. A zipped seed dataset (uav.zip) next to the notebook input supplies B2's best.pt: P4 is no longer blocked.
-import zipfile  # noqa: E402
+# The zip is built the way `kaggle datasets create --dir-mode zip` builds it (kaggle 2.2.4, DirectoryArchive):
+# shutil.make_archive with the folder itself as root, so its entries start at study/, not at uav/.
 reset()
 fake_run(nb_b, "yolo26s-640-s0")
 stamp(nb_b, "S-new")
 src = T / "seedsrc"
 fake_run(src, "yolo26s-960-s0")
 (s.INPUTS / "uav-vidhyarth-seed").mkdir(parents=True)
-with zipfile.ZipFile(s.INPUTS / "uav-vidhyarth-seed" / "uav.zip", "w") as z:
-    for f in (src / "uav").rglob("*"):
-        z.write(f, f.relative_to(src))
+shutil.make_archive(str(s.INPUTS / "uav-vidhyarth-seed" / "uav"), "zip", src / "uav")
 rc, out = call(s.preflight, ["train", "T2", "P4", "--new", "T2", "P4", "--input-from", "S-new"])
 check("11 zipped seed dataset unblocks P4", rc == 0 and "BLOCKED" not in out and "unpacked the seed" in out, out)
 
 print(f"\n{sum(ok for _, ok in results)}/{len(results)} passed")
 shutil.rmtree(T, ignore_errors=True)
+sys.exit(0 if all(ok for _, ok in results) else 1)

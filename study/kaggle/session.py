@@ -306,15 +306,19 @@ def find_in_inputs(pattern):
 
 
 def unpack_seeds():
-    """A seed dataset arrives as uav.zip (or uav.tar) if Kaggle does not unpack it: unpack it once, outside /kaggle/input."""
+    """A seed dataset arrives as uav.zip (or uav.tar) if Kaggle does not unpack it: unpack it once, outside /kaggle/input.
+
+    The Kaggle CLI archives the uav/ folder from inside it (its entries start at study/), so it is unpacked into a
+    folder named uav, which puts its files at .../uav/study/ like every other input.
+    """
+    import tarfile
+    import zipfile
+
     if SEED_DIR.exists() or not INPUTS.is_dir():
         return
     SEED_DIR.mkdir(parents=True)
     for n, archive in enumerate(sorted([*INPUTS.glob("**/uav.zip"), *INPUTS.glob("**/uav.tar")])):
-        import tarfile
-        import zipfile
-
-        dest = SEED_DIR / str(n)
+        dest = SEED_DIR / str(n) / "uav"
         (zipfile.ZipFile(archive) if archive.suffix == ".zip" else tarfile.open(archive)).extractall(dest)
         print(f"unpacked the seed {archive} -> {dest}", flush=True)
 
