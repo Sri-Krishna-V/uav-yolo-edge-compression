@@ -225,6 +225,7 @@ LPY=python3
 for p in .venv/Scripts/python.exe .venv/bin/python; do [[ -x "$p" ]] && { LPY="$STUDY/$p"; break; }; done
 
 die() { warn "$1"; exit 1; }
+LOST="lost the connection to the Pi (a session there keeps running): run the wizard again"
 [[ -f "$PLAN" ]] || die "no plan at study/$PLAN"
 lpy() { "$LPY" "$@" | tr -d '\r'; }
 PLATFORM=$(lpy -c 'import json, sys; print(json.load(open(sys.argv[1]))["platform"])' "$PLAN")
@@ -290,7 +291,7 @@ else
   key_ok || die "still no SSH: check the host and user, that SSH is on, and that the Pi is on this network; then run the wizard again"
   say "SSH with a key works now."
 fi
-MODEL=$(pi "tr -d '\\0' < /proc/device-tree/model 2>/dev/null; echo; uname -m" | tr -d '\r' | paste -sd ' ' -)
+MODEL=$(pi "tr -d '\\0' < /proc/device-tree/model 2>/dev/null; echo; uname -m" | tr -d '\r' | paste -sd ' ' -) || die "$LOST"
 say "The Pi says: $MODEL"
 if [[ "$PLATFORM" == pi5 && "$MODEL" != *"Raspberry Pi 5"* ]]; then
   warn "this plan is for a Pi 5, and this board is not one."
@@ -306,7 +307,7 @@ echo "temp=$(vcgencmd measure_temp 2>/dev/null | cut -d= -f2)"
 echo "throttled=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)"
 echo "free_bytes=$(df -Pk "$HOME" | awk 'NR == 2 {print $4 * 1024}')"
 EOF
-)
+) || die "$LOST"
 hw() { printf '%s\n' "$HW" | sed -n "s/^$1=//p"; }
 if [[ "$PLATFORM" == pi* ]]; then
   FAN=$(hw fan_rpm)
@@ -330,30 +331,35 @@ if [[ "$PLATFORM" == pi* ]]; then
     confirm "Go on anyway?" || exit 1
   fi
 fi
-NEED=$(du -scb "${NEEDS[@]}" | tail -n1 | cut -f1)
-NEED=$(( NEED + (1 << 30) ))   # 1 GB more for the results: a full cell's detections are about 150 MB
 FREE=$(hw free_bytes); FREE=${FREE:-0}
-say "SD card: $(( FREE >> 20 )) MB free; this plan needs up to $(( NEED >> 20 )) MB (its files, and 1 GB for the results)."
-if (( FREE < NEED )); then
-  warn "not enough space on the SD card."
-  confirm "Go on anyway?" || exit 1
-fi
+say "SD card: $(( FREE >> 20 )) MB free (stage 4 checks it against what must be copied)."
 next
 
 # ── 4 ─────────────────────────────────────────────────────────────────────
 stage "Copy the scripts, the exports, the images and the plan"
 for p in "${NEEDS[@]}"; do [[ -e "$p" ]] || die "missing on this laptop: study/$p (make an export with scripts/studyexport.py)"; done
-tar -cf - scripts/studybench.py scripts/studysession.py "$PLAN" | pi_in "mkdir -p \"\$HOME/$PI_DIR\" && tar -xf - -C \"\$HOME/$PI_DIR\""
-say "Copied the scripts and the plan."
+tar -cf - scripts/studybench.py scripts/studysession.py "$PLAN" | pi_in "mkdir -p \"\$HOME/$PI_DIR\" && tar -xf - -C \"\$HOME/$PI_DIR\"" \
+  || die "$LOST"
+say "Copied the scripts and the plan (small: always copied)."
+declare -A HASH=()
+TO_COPY=()
 for p in "${NEEDS[@]}"; do
-  HERE_HASH=$(tree_hash "$p")
-  if [[ "$(pi_hash "$p")" == "$HERE_HASH" ]]; then
-    say "already there: $p"
-    continue
-  fi
+  HASH[$p]=$(tree_hash "$p")
+  there=$(pi_hash "$p") || die "$LOST"
+  if [[ "$there" == "${HASH[$p]}" ]]; then say "already there: $p"; else TO_COPY+=("$p"); fi
+done
+if (( ${#TO_COPY[@]} )); then
+  NEED=$(( $(du -scb "${TO_COPY[@]}" | tail -n1 | cut -f1) + (1 << 30) ))   # and 1 GB for the results: a full cell's detections are about 150 MB
+  say "To copy: ${TO_COPY[*]}"
+  say "That needs up to $(( NEED >> 20 )) MB on the SD card, with the results; $(( FREE >> 20 )) MB are free."
+  (( FREE >= NEED )) || warn "not enough space on the SD card."
+  note "A path that differs at all is copied again whole, so an interrupted copy starts over."
+  confirm "Copy now?" || exit 0
+fi
+for p in ${TO_COPY[@]+"${TO_COPY[@]}"}; do
   say "copying $p ($(du -sh "$p" | cut -f1))..."
-  tar -cf - "$p" | pi_in "cd \"\$HOME/$PI_DIR\" && rm -rf $(printf '%q' "$p") && tar -xf -"
-  [[ "$(pi_hash "$p")" == "$HERE_HASH" ]] || die "the copy of $p on the Pi differs from the laptop's: run the wizard again"
+  tar -cf - "$p" | pi_in "cd \"\$HOME/$PI_DIR\" && rm -rf $(printf '%q' "$p") && tar -xf -" || die "the copy of $p failed: run the wizard again"
+  [[ "$(pi_hash "$p")" == "${HASH[$p]}" ]] || die "the copy of $p on the Pi differs from the laptop's: run the wizard again"
   say "  copied and checked."
 done
 next
@@ -363,8 +369,9 @@ stage "Install and setup checks"
 if pi "test -x \"\$HOME/$PI_VENV/bin/python\""; then
   say "The install is there (~/$PI_VENV)."
 else
-  PINS=$(lpy -c "import sys; sys.path.insert(0, 'scripts'); import studysession as s; print(' '.join(f'{k}=={v}' for k, v in s.PI_PINS.items() if k != 'ncnn'))")
-  NCNN=$(lpy -c "import sys; sys.path.insert(0, 'scripts'); import studysession as s; print('ncnn==' + s.PI_PINS['ncnn'])")
+  PINS=$(lpy -c "import sys; sys.path.insert(0, 'scripts'); import studysession as s; print(' '.join(f'{k}=={v}' for k, v in s.PI_PINS.items()))")
+  NCNN=$(printf '%s\n' $PINS | grep '^ncnn==')
+  PINS=$(printf '%s\n' $PINS | grep -v '^ncnn==' | paste -sd ' ' -)
   say "No install yet. It makes ~/$PI_VENV and installs PLATFORMS.md's pins:"
   note "  $PINS"
   note "  $NCNN (with --no-deps: it would pull in opencv-python, which clashes with the headless build)"
@@ -377,11 +384,12 @@ while :; do
   CHECK=$(pi_sh <<'EOF'
 "$PY" scripts/studysession.py "$PLAN" --check; echo "rc=$?"
 EOF
-)
+) || die "$LOST"
   printf '%s\n' "$CHECK" | grep -v '^rc=' | sed 's/^/  /'
   [[ "$CHECK" == *"rc=0"* ]] && break
   FIXES=()
   while IFS= read -r f; do FIXES+=("$f"); done < <(printf '%s\n' "$CHECK" | sed -n 's/^ *fix: //p')
+  (( ${#FIXES[@]} )) || die "the check itself failed on the Pi (see its output above), not a setup check: fix that, then run the wizard again"
   say "Some checks failed. Their fixes, to run on the Pi (sudo asks for the Pi's password):"
   for f in "${FIXES[@]}"; do note "  $f"; done
   note "The governor fix lasts until the next reboot; the runner checks it at every start."
@@ -423,7 +431,7 @@ nohup $S "$PY" -u scripts/studysession.py "$PLAN" --out "$OUT" "${args[@]}" >> "
 echo $! > "$OUT/runner.pid"
 EOF
 }
-ST=$(session_status)
+ST=$(session_status) || die "$LOST"
 case "$ST" in
   complete) say "This session is already complete on the Pi." ;;
   running)  say "This session is running on the Pi." ;;
@@ -436,7 +444,7 @@ case "$ST" in
             start_session; sleep 3 ;;
 esac
 while :; do
-  ST=$(session_status)
+  ST=$(session_status) || die "$LOST"
   _clear
   printf '\n%s%s▸ Stage %s/%s · %s%s\n\n' "$BOLD" "$BLUE" "$_STAGE_INDEX" "$TOTAL_STAGES" "Run the session on the Pi: $ST" "$RESET"
   show_progress
@@ -463,20 +471,41 @@ next
 # ── 7 ─────────────────────────────────────────────────────────────────────
 stage "Copy the results home, and score them"
 mkdir -p "$RESULTS"
-pi "cd \"\$HOME/$PI_DIR\" && tar -cf - $(printf '%q' "$OUT")" | tar -xf - -C "$RESULTS"
+confirm "Copy the results home and score them now?" || { say "Run the wizard again to do it later."; exit 0; }
+pi "cd \"\$HOME/$PI_DIR\" && tar -cf - $(printf '%q' "$OUT")" | tar -xf - -C "$RESULTS" || die "$LOST"
 say "Copied to $RESULTS/$OUT"
 SUMMARY="$RESULTS/$OUT/summary.csv"
+command -v cygpath >/dev/null 2>&1 && SUMMARY=$(cygpath -m "$SUMMARY")
+# The summary read by its column names, and the reference runs by studysession's own names
+INFO=$(lpy - "$SUMMARY" <<'PY'
+import csv, sys
+sys.path.insert(0, "scripts")
+import studysession as s
+with open(sys.argv[1], newline="", encoding="utf-8") as f:
+    rows = list(csv.DictReader(f))
+cells = [r for r in rows if r["cell"] not in s.DRIFT_UNITS]
+print("drift=" + (rows[0]["drift"] if rows else "unknown"))
+print("full=%d" % sum(r["images"] == "all" for r in cells))
+for r in cells:
+    if r["run_dir"]:
+        print("run=" + r["run_dir"])
+for r in [dict(zip(rows[0], rows[0])), *rows] if rows else []:
+    print("row=" + "\t".join(r[k] for k in ("cell", "images", "outcome", "latency_ms", "latency_source", "throttle", "drift")))
+PY
+)
 RUNS=()
-while IFS= read -r r; do RUNS+=("$r"); done < <(awk -F, 'NR > 1 && $1 != "drift-start" && $1 != "drift-end" && $11 != "" {print $11}' "$SUMMARY" | tr -d '\r')
-FULL=$(awk -F, 'NR > 1 && $4 == "all"' "$SUMMARY" | wc -l)
+while IFS= read -r r; do RUNS+=("$r"); done < <(printf '%s\n' "$INFO" | sed -n 's/^run=//p')
+FULL=$(printf '%s\n' "$INFO" | sed -n 's/^full=//p')
+DRIFT=$(printf '%s\n' "$INFO" | sed -n 's/^drift=//p')
 WANT_GB=$(( FULL > 0 ? 3 : 1 ))   # a full cell's evaluation holds about 1.4 GB; the memory cap of #20 will bound it
 SCORE_CMD=("$LPY" scripts/studyscore.py)
-for r in "${RUNS[@]}"; do
+for r in ${RUNS[@]+"${RUNS[@]}"}; do
   d="$RESULTS/$OUT/$r"
   command -v cygpath >/dev/null 2>&1 && d=$(cygpath -m "$d")
   SCORE_CMD+=("$d")
 done
 SCORED=""
+(( ${#RUNS[@]} )) || { warn "no cell finished, so there is nothing to score."; SCORED=none; }
 while (( ${#RUNS[@]} )); do
   GB=$(free_gb)
   if awk -v f="$GB" -v w="$WANT_GB" 'BEGIN {exit !(f >= w)}'; then
@@ -492,8 +521,13 @@ done
 [[ -n "$SCORED" ]] || SKIPPED+=("score later, from study/: ${SCORE_CMD[*]}")
 printf '\n'
 say "The session's summary (latency in ms):"
-cut -d, -f1,4,6,7,8,9,10 "$SUMMARY" | tr -d '\r' | column -t -s, | sed 's/^/    /'
+printf '%s\n' "$INFO" | sed -n 's/^row=//p' | column -t -s $'\t' | sed 's/^/    /'
 note "A run of 200 images is scored only on those images: a plumbing check, never a reported number."
+if [[ "$DRIFT" == re-run || "$DRIFT" == unknown ]]; then
+  warn "the drift check says $DRIFT: this session's latencies are not trusted, and its cells run again (#8)."
+  warn "Copy the plan to a new name, e.g. ${PLAN%.json}-2.json, and run the wizard with it: a new name is a new session."
+  SKIPPED+=("run this session's cells again (drift $DRIFT): cp $PLAN ${PLAN%.json}-2.json; bash pi/wizard.sh ${PLAN%.json}-2.json")
+fi
 [[ "$PLAN" == *pi5-speedtest* ]] && say "Next: the full cell, with  bash pi/wizard.sh plans/pi5-fullcell.json"
 next
 

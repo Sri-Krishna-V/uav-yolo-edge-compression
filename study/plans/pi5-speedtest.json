@@ -1,6 +1,6 @@
 {
   "platform": "pi5",
-  "note": "the speed test (#25): is INT8 slower than FP32 on the Pi 5, per runtime? A1 at 640, 200 images per cell; about 15-35 min with the start gates",
+  "note": "the speed test (#25): is INT8 slower than FP32 on the Pi 5, for ONNX Runtime and OpenVINO? A1 at 640, 200 images per cell, and NCNN (FP16 on the Pi 5) beside them; about 15-35 min with the start gates",
   "seed": 0,
   "cells": [
     {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640, "limit": 200},

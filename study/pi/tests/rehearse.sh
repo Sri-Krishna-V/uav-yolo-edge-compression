@@ -18,9 +18,10 @@ printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$PY" > "$FAKE_PI_HOME/sb/bin/pyt
 chmod +x "$FAKE_PI_HOME/sb/bin/python"
 echo "rehearsal in $TMP"
 
-# Enter (banner), y (ready), host, user, Enter x3 (stages 2-4), Enter (5), y (start), then nothing: the progress
-# loop waits on the session; then Enter (6), Enter (7). The run's own Enters arrive after the session completes.
-answers() { printf '\ny\nfakepi\ndev\n\n\n\n\ny\n'; sleep 5; while :; do sleep 20; printf '\n'; done; }
+# Enter (banner), y (ready), the host, the user, then y to everything: a y also passes a "Press Enter", and the
+# progress loop takes one as a refresh. Six at once reach the start of the session; then one every 20 s, while the
+# loop waits on the session, and for stage 7.
+answers() { printf '\ny\nfakepi\ndev\n'; yes y | head -n 6; while :; do sleep 20; printf 'y\n'; done; }
 answers | timeout 900 bash "$STUDY/pi/wizard.sh" plans/laptop-dry-run.json | tee "$TMP/wizard.out" || true
 
 OUT="$WIZ_RESULTS/bench/laptop/laptop-dry-run"
@@ -33,17 +34,7 @@ expect "both cells were scored at home" "[[ \$(find '$OUT/runs' -name score.json
 expect "the wizard finished" "grep -q 'Setup complete' '$TMP/wizard.out'"
 
 # A second run finds everything done: nothing is copied again, and the session is not run again.
-printf '
-y
-
-
-
-
-
-
-
-
-' | timeout 300 bash "$STUDY/pi/wizard.sh" plans/laptop-dry-run.json > "$TMP/wizard2.out" 2>&1 || true
+{ printf '\ny\n\n\n'; yes y | head -n 12; } | timeout 300 bash "$STUDY/pi/wizard.sh" plans/laptop-dry-run.json > "$TMP/wizard2.out" 2>&1 || true
 expect "a second run copies nothing again" "grep -q 'already there: datasets/VisDrone/images/test' '$TMP/wizard2.out' && ! grep -q 'copying ' '$TMP/wizard2.out'"
 expect "a second run finds the session complete" "grep -q 'already complete on the Pi' '$TMP/wizard2.out' && grep -q 'Setup complete' '$TMP/wizard2.out'"
 (( fail == 0 )) || { echo "rehearsal FAILED: see $TMP"; exit 1; }

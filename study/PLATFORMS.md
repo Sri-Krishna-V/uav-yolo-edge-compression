@@ -46,11 +46,16 @@ a start gate of up to 3 minutes per run:
 - the speed test: 5 cells of 200 images and the two reference runs, about 10 minutes of inference, so about 15–35
   minutes with the gates. INT8 has no published Pi 5 number for YOLO, and the speed test is there to measure it;
 - the full cell: ONNX Runtime FP32 on all 1,610 images, about 14 minutes, so about 20–30 minutes with the reference
-  runs and the gates.
+  runs and the gates;
+- both, one after the other: about 35–65 minutes. The full cell is a plan of its own, so the speed test's answer comes
+  first.
+
+The speed test's NCNN cell runs the `ncnn-fp32` export, but NCNN computes in FP16 on the Pi 5 (#13): its row is NCNN
+FP16, the Pi 5's NCNN baseline, and not an FP32 against INT8 pair.
 
 **Rehearsal.** `bash pi/tests/rehearse.sh` runs the whole wizard with the laptop standing in for the Pi (a fake ssh,
 `plans/laptop-dry-run.json`, `--dry-run`), through the copy home and the scoring, into a temporary folder. On
-2026-10-22 it passed in about 4 minutes.
+2026-10-22 it passed in about 5 minutes, with a second run that copied nothing and found the session complete.
 
 ## Galaxy M34 (Termux, Python 3.14)
 
