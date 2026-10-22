@@ -48,6 +48,9 @@ check("3 the blocker says what installs TensorRT", any("nvidia-jetpack" in b for
 v = jp.verdict({**ORIN_NANO_8GB_JP62, "pypi": False})
 check("3 PyPI out of reach: BLOCKED", v["decision"] == "BLOCKED" and any("PyPI" in b for b in v["blockers"]), v)
 check("3 a clean board has no blockers", jp.verdict(ORIN_NANO_8GB_JP62)["blockers"] == [])
+v = jp.verdict({**ORIN_NANO_8GB_JP62, "tensorrt": None, "tensorrt_dpkg": "libnvinfer10 10.3.0.30-1+cuda12.5"})
+check("3 TensorRT libraries without the Python package: the blocker names python3-libnvinfer",
+      v["decision"] == "BLOCKED" and any("python3-libnvinfer" in b for b in v["blockers"]), v)
 
 v = jp.verdict({**ORIN_NANO_8GB_JP62, "model": "NVIDIA Jetson Nano Developer Kit", "l4t": (32, 7, 4), "tensorrt": "8.2.1.8",
                 "mem_total_mb": 3956, "python": (3, 6, 9)})
@@ -75,6 +78,8 @@ modes, default = jp.parse_nvpmodel_conf(CONF)
 check("6 nvpmodel.conf: four modes, default 2", modes == [(0, "15W"), (1, "25W"), (2, "MAXN_SUPER"), (3, "7W")] and default == 2, (modes, default))
 check("6 the highest mode is MAXN_SUPER", jp.highest_mode(modes) == (2, "MAXN_SUPER"))
 check("6 without MAXN the highest is the most watts", jp.highest_mode([(0, "15W"), (1, "7W")]) == (0, "15W"))
+check("6 nvpmodel -q: the current mode", jp.current_mode("NV Power Mode: MAXN_SUPER\n2") == (2, "MAXN_SUPER"))
+check("6 nvpmodel -q failed: no mode", jp.current_mode(None) is None)
 
 
 def fake_sysfs(gpu_min, gpu_max, cpu_min, temps=(("cpu-thermal", 51250), ("gpu-thermal", 49500))):
@@ -104,6 +109,25 @@ check("7 jetson_clocks off: CPU minimum below its maximum", jp.jetson_clocks_on(
 check("7 jetson_clocks unknown without the nodes", jp.jetson_clocks_on(Path(tempfile.mkdtemp())) is None)
 s = jp.sample(fake_sysfs(1020000000, 1020000000, 1728000))
 check("7 sample: GPU clock in MHz and every thermal zone in C", s["gpu_mhz"] == 1020 and s["temp_c"] == {"cpu-thermal": 51.2, "gpu-thermal": 49.5}, s)
+
+try:
+    import studybench as sb  # needs numpy and cv2: run with the study venv's python
+except ImportError as e:
+    print(f"skip 8 (studybench not importable here: {e})")
+    sb = None
+if sb:
+    samples = [[0, {"temp_c": {"cpu-thermal": 50.0, "gpu-thermal": 48.0}, "gpu_mhz": 1020, "oc_events": {"hwmon1/oc1_event_cnt": 3}}],
+               [50, {"temp_c": {"cpu-thermal": 61.5, "gpu-thermal": 63.0}, "gpu_mhz": 918, "oc_events": {"hwmon1/oc1_event_cnt": 5}}],
+               [99, {"temp_c": {"cpu-thermal": 58.0}, "gpu_mhz": 1020, "oc_events": {"hwmon1/oc1_event_cnt": 5}}]]
+    rows = [{"gpu_mhz": "1020"}, {"gpu_mhz": "918"}, {"gpu_mhz": "918"}, {"gpu_mhz": ""}]
+    j = sb.jetson_summary(samples, rows, {"gpu_clocks": {"max": 1020}})
+    check("8 bench: an over-current counter that rose during the run is a throttle", j["over_current_throttled"] is True
+          and j["oc_events_during_run"] == {"hwmon1/oc1_event_cnt": 2}, j)
+    check("8 bench: images below the pinned GPU clock are counted", j["images_gpu_below_max"] == 2, j)
+    check("8 bench: hottest reading per zone, a zone missing from one sample is fine", j["temp_c_max"] == {"cpu-thermal": 61.5, "gpu-thermal": 63.0}, j)
+    j = sb.jetson_summary([[0, {"temp_c": {}, "gpu_mhz": None, "oc_events": {}}]], [], None)
+    check("8 bench: no counters and no clocks give unknown, not 'no throttle'", j["over_current_throttled"] is None and j["images_gpu_below_max"] is None, j)
+    check("8 bench: off a Jetson there is no summary", sb.jetson_summary([], [], None) is None)
 
 if FAILED:
     sys.exit(f"{len(FAILED)} failed: {FAILED}")

@@ -82,6 +82,12 @@ def parse_nvpmodel_conf(text):
     return modes, int(m[1]) if m else None
 
 
+def current_mode(text):
+    """`nvpmodel -q` output ('NV Power Mode: 15W' then the id) -> (id, name)."""
+    m = re.search(r"NV Power Mode:\s*(\S+)\s+(\d+)", text or "")
+    return (int(m[2]), m[1]) if m else None
+
+
 def highest_mode(modes):
     """The mode the study runs in: a MAXN mode (MAXN_SUPER first), else the one with the most watts."""
     def rank(mode):
@@ -174,6 +180,18 @@ def sample(root=None):
     return {"temp_c": thermal(root), "gpu_mhz": gpu.get("cur"), "oc_events": oc_events(root)}
 
 
+def board_state(root=None):
+    """The power and clock state a run or an engine records: no network, no child Python, no root."""
+    tegra = (_read(NV_TEGRA_RELEASE) or "").splitlines()
+    modes, default = parse_nvpmodel_conf(_read(NVPMODEL_CONF))
+    query = _run(["nvpmodel", "-q"], any_exit=True)
+    return {"board": (_read("/proc/device-tree/model") or "").rstrip("\x00") or None, "l4t": tegra[0] if tegra else None,
+            "nvpmodel_q": query, "nvpmodel_mode": current_mode(query), "nvpmodel_status": _read(NVPMODEL_STATUS),
+            "nvpmodel_modes": modes, "nvpmodel_default": default, "highest_mode": highest_mode(modes),
+            "jetson_clocks": jetson_clocks_on(root), "gpu_clocks": gpu_clocks(root), "cpu_clocks": cpu_clocks(root),
+            "emc_rate_hz": _int(EMC_RATE), "thermal": thermal(root), "oc_events": oc_events(root)}
+
+
 # ---------------------------------------------------------------- verdict (pure)
 
 
@@ -206,8 +224,10 @@ def verdict(f):
         return {"decision": CUT, "blockers": [], "notes": [], "route": None, "head_row": head_row(f.get("tensorrt"))}
     notes, blockers = [], []
     if not f.get("tensorrt"):
-        blockers.append("TensorRT is not installed: `sudo apt install nvidia-jetpack` installs it with CUDA and cuDNN"
-                        + ("" if f.get("sudo_group") else "; this account is not in the sudo group, so ask the lab"))
+        fix = ("TensorRT's libraries are there but Python cannot import it: `sudo apt install python3-libnvinfer`"
+               if f.get("tensorrt_dpkg") else
+               "TensorRT is not installed: `sudo apt install nvidia-jetpack` installs it with CUDA and cuDNN")
+        blockers.append(fix + ("" if f.get("sudo_group") else "; this account is not in the sudo group, so ask the lab"))
     if not f.get("pypi"):
         blockers.append("pip cannot reach PyPI: find the lab's proxy (set https_proxy) or a network that can")
     decision = "BLOCKED" if blockers else "GO"
@@ -314,6 +334,8 @@ def facts():
     if not trt and sys.executable != "/usr/bin/python3" and os.path.exists("/usr/bin/python3"):
         trt = _py("import tensorrt; print(tensorrt.__version__)", "/usr/bin/python3", timeout=60)  # outside this venv
     conf, _ = parse_nvpmodel_conf(_read(NVPMODEL_CONF))
+    dpkg = _dpkg("nvidia-jetpack", "nvidia-l4t-core", "tensorrt", "libnvinfer[0-9]*", "python3-libnvinfer",
+                 "cuda-runtime-*", "cuda-cudart-[0-9]*", "libcudnn[0-9]*", "cudss", "libcusparselt0")
     groups = set()
     for g in os.getgroups() if grp else []:
         try:
@@ -333,8 +355,7 @@ def facts():
         "disk_free_gb": round(home_free, 1),
         "root_device": next((line.split()[0] for line in (_read("/proc/mounts") or "").splitlines() if line.split()[1:2] == ["/"]), None),
         "l4t_raw": l4t_raw[0] if l4t_raw else None, "l4t": l4t, "jetpack": jetpack_for(l4t),
-        "dpkg": _dpkg("nvidia-jetpack", "nvidia-l4t-core", "tensorrt", "libnvinfer[0-9]*", "python3-libnvinfer",
-                      "cuda-runtime-*", "cuda-cudart-[0-9]*", "libcudnn[0-9]*", "cudss", "libcusparselt0"),
+        "dpkg": dpkg, "tensorrt_dpkg": next((p for p in dpkg if re.match(r"libnvinfer\d", p)), None),
         "tensorrt": trt, "cuda": _cuda(), "cudnn": _cudnn_header(),
         "python": tuple(sys.version_info[:3]), "python_exe": sys.executable,
         "pip": _run([sys.executable, "-m", "pip", "--version"]),
