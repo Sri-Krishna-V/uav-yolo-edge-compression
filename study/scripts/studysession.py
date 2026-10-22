@@ -29,7 +29,8 @@ The rules it applies, so that nobody applies them by hand:
 Writes to --out: session.log (every decision, appended), session.json (the state, rewritten after every step) and
 summary.csv (one row per cell and per reference run: attempts, outcome, median latency, throttle state, drift verdict,
 and the run directory to score). The same command resumes an interrupted session: it skips the runs that finished and
-restarts a half-done one from the start, in a fresh directory. An interruption is not a crash.
+restarts a half-done one from the start, in a fresh directory. An interruption is not a crash. A plan whose artifacts,
+reference cell or images are missing stops before anything runs.
 
 Latency is the median of studybench's e2e_deploy stage (latency at the deployment threshold, #22) when the benchmark
 gives it. A benchmark without it gives pre + net + post at the evaluation threshold instead; the log and the summary's
@@ -80,7 +81,7 @@ SUMMARY = ["cell", "runtime", "imgsz", "images", "attempts", "outcome", "latency
 # ---------------------------------------------------------------- the plan
 
 
-PLAN_KEYS = {"platform", "note", "seed", "images", "reference", "cells"}
+PLAN_KEYS = {"platform", "note", "seed", "images", "cells"}
 CELL_KEYS = {"name", "artifact", "runtime", "imgsz", "limit"}
 
 
@@ -112,7 +113,7 @@ def load_plan(plan):
     if not isinstance(plan.get("seed", 0), int):
         raise SystemExit(f"plan: seed must be an integer, not {plan['seed']!r}")
     return {"platform": plan["platform"], "note": plan.get("note"), "seed": plan.get("seed", 0),
-            "images": plan.get("images", "datasets/VisDrone/images/test"), "reference": plan.get("reference", REFERENCE), "cells": cells}
+            "images": plan.get("images", "datasets/VisDrone/images/test"), "cells": cells}
 
 
 def shuffled(plan):
@@ -124,7 +125,7 @@ def shuffled(plan):
 
 def unit_specs(plan):
     """{unit name: what studybench runs}: the plan's cells and the reference cell at both ends of the session."""
-    ref = {"artifact": plan["reference"], "runtime": "onnxruntime", "imgsz": 640, "limit": DRIFT_IMAGES}
+    ref = {"artifact": REFERENCE, "runtime": "onnxruntime", "imgsz": 640, "limit": DRIFT_IMAGES}
     specs = {u: {"name": u, **ref} for u in DRIFT_UNITS}
     specs.update({c["name"]: dict(c) for c in plan["cells"]})
     for s in specs.values():
@@ -313,7 +314,8 @@ class Session:
     def drift(self):
         """The drift check's record: the two reference medians and the verdict (pending until the closing run is done)."""
         (_, start), (_, end) = (self.outcome(u) for u in DRIFT_UNITS)
-        rec = {"start_ms": start and start["latency_ms"], "end_ms": end and end["latency_ms"], "change_pct": None}
+        rec = {"start_ms": start and start["latency_ms"], "end_ms": end and end["latency_ms"], "change_pct": None,
+               "throttled": [u for u, a in zip(DRIFT_UNITS, (start, end)) if a and a["throttle"] == "throttled"]}
         if pass_state(self.attempts(DRIFT_UNITS[1])) == "todo":
             return {**rec, "verdict": "pending"}
         if not start or not end or start["latency_source"] != end["latency_source"]:
@@ -350,9 +352,10 @@ class Session:
             self.log("drift check: UNKNOWN, a reference run failed: this session's latencies are unchecked")
         else:
             self.log(f"drift check: reference median {d['start_ms']} -> {d['end_ms']} ms ({d['change_pct']:+.1f}%): "
-                     + ("ok" if d["verdict"] == "ok" else f"moved more than {DRIFT_MAX:.0%}: every cell of this session is flagged for a re-run"))
+                     + ("ok" if d["verdict"] == "ok" else f"moved more than {DRIFT_MAX:.0%}: every cell of this session is flagged for a re-run")
+                     + "".join(f" ({u} throttled)" for u in d["throttled"]))
         for r in self.summary_rows():
-            self.log(f"  {r['cell']}: {r['outcome']}, {r['attempts']} attempt(s), median latency {r['latency_ms'] or '-'} ms "
+            self.log(f"  {r['cell']}: {r['outcome']}, {r['attempts']} attempt(s), median {r['latency_ms'] or '-'} ms "
                      f"({r['latency_source'] or '-'}), throttle {r['throttle'] or '-'}, drift {r['drift']}, {r['run_dir'] or 'no run to score'}")
         self.log(f"session complete: {self.out / 'summary.csv'}")
         return self.state
@@ -378,9 +381,10 @@ class Session:
         rec.update(judge(result), end=now_iso())
         self.save()
         if rec["result"] == "complete":
-            self.log(f"{u}: attempt {n} complete, median latency {rec['latency_ms']} ms"
-                     + (" (pre + net + post at the evaluation threshold: this studybench gives no e2e_deploy)"
-                        if rec["latency_source"] != "e2e_deploy" else "") + f", throttle {rec['throttle']}"
+            self.log(f"{u}: attempt {n} complete, median "
+                     + (f"latency {rec['latency_ms']} ms" if rec["latency_source"] == "e2e_deploy" else
+                        f"pre + net + post {rec['latency_ms']} ms (at the evaluation threshold, so not latency: this studybench "
+                        "gives no e2e_deploy, #22)") + f", throttle {rec['throttle']}"
                      + ("; it runs again at the end of the session" if pass_ == "main" and self.needs_rerun(u) else ""))
         else:
             then = "it runs again from the start" if pass_state(attempts, pass_) == "todo" else "a second crash: the cell is failed"
@@ -473,7 +477,7 @@ class Platform:
         if self.platform != "jetson":
             return None
         b = self._jetson().board_state()
-        return {k: b.get(k) for k in ("nvpmodel_mode", "highest_mode", "jetson_clocks", "gpu_clocks", "thermal")}
+        return {k: b.get(k) for k in ("nvpmodel_mode", "highest_mode", "jetson_clocks", "gpu_clocks", "cpu_clocks", "emc_rate_hz", "thermal")}
 
     def setup_facts(self):
         """What the setup checks read, and the versions and OS each invocation records."""
@@ -537,7 +541,13 @@ def main():
     p.add_argument("--override-checks", metavar="REASON", help="run although a Pi setup check failed; the reason is recorded")
     a = p.parse_args()
     plan = json.loads(Path(a.plan).read_text(encoding="utf-8"))
-    out = Path(a.out) if a.out else Path("bench") / str(plan.get("platform")) / Path(a.plan).stem
+    checked = load_plan(plan)
+    missing = [x for x in (checked["images"], REFERENCE, *(c["artifact"] for c in checked["cells"])) if not Path(x).exists()]
+    if missing:
+        sys.exit(f"missing on this platform (paths are relative to {Path.cwd()}): {missing}" + (
+            f"\nthe drift check runs the reference cell (YOLO11s baseline, ONNX Runtime FP32, 640) at the start and the end of "
+            f"every session: copy {REFERENCE} here, and install onnxruntime" if REFERENCE in missing else ""))
+    out = Path(a.out) if a.out else Path("bench") / checked["platform"] / Path(a.plan).stem
     try:
         run_session(plan, out, Platform(plan.get("platform")), a.dry_run, a.override_checks)
     except KeyboardInterrupt:

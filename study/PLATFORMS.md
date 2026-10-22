@@ -1,8 +1,9 @@
 # Benchmark platforms: install and run
 
 `scripts/studybench.py` runs on the platform. It times every test-dev image (pre, net and post separately, batch 1)
-and saves the detections. `scripts/studysession.py` runs a whole platform session through it (see "Running a session"). `scripts/studyscore.py` scores them later on the laptop. `scripts/studyexport.py` makes
-the artifacts on the laptop, except TensorRT engines, which the Jetson builds itself.
+and saves the detections. `scripts/studyscore.py` scores them later on the laptop. `scripts/studyexport.py` makes
+the artifacts on the laptop, except TensorRT engines, which the Jetson builds itself. `scripts/studysession.py` runs
+a whole platform session through the bench (see "Running a session").
 
 The bench needs only Python, numpy, OpenCV and the one runtime. The commands below install exactly that.
 
@@ -28,7 +29,7 @@ pkg install x11-repo && pkg install python python-numpy python-onnxruntime openc
 ## Running a session
 
 `scripts/studysession.py` runs one platform session: every cell of a **platform plan**, each through `studybench.py`,
-under the platform-run rules decided on #8 (22 October 2026). Run it on the platform, from `study/`, inside `tmux` or
+under the platform-run rules decided on #8 (2026-10-22). Run it on the platform, from `study/`, inside `tmux` or
 `nohup` so that a dropped SSH connection does not stop it:
 
 ```bash
@@ -55,6 +56,7 @@ start. Standard library only; it needs no more than the bench does.
 - **Cell order:** shuffled once with the plan's seed, and logged.
 - **Drift check:** the reference cell runs first and last: YOLO11s baseline, ONNX Runtime FP32, 640, on the first 200
   test-dev images. If its median latency moves by more than 3%, every cell of the session is flagged for a re-run.
+  The reference cell's export and onnxruntime must be on the platform: without them the runner does not start.
 - **Crashes:** a crashed cell runs again from the start, once. A second crash marks it failed.
 - **Throttling:** a throttled cell runs again at the end of the session, and both attempts are kept.
   - Pi: `vcgencmd` throttle flags.
@@ -86,9 +88,8 @@ A plan is a JSON file in `plans/`:
 | `seed` | the shuffle's seed; default 0 |
 | `note` | free text, logged |
 | `images` | default `datasets/VisDrone/images/test` |
-| `reference` | where the reference cell's artifact is; default `exports/yolo11s-640-s0/640/onnxruntime-fp32`. It always runs with ONNX Runtime at 640 on 200 images |
 
-A misspelt key stops the runner before anything runs.
+A misspelt key, or a missing artifact or image directory, stops the runner before anything runs.
 
 ### What it writes
 
@@ -104,8 +105,8 @@ Each attempt gets its own `runs/<cell>/attempt-<n>/`, holding the bench's files 
 ### Dry run
 
 `--dry-run` caps the gate at 5 s and marks the session DRY RUN; no number from it is reported.
-`plans/laptop-dry-run.json` is a two-cell plumbing check for the laptop. On 22 October 2026 it took 2 minutes, with a
-peak of 0.85 GB.
+`plans/laptop-dry-run.json` is a two-cell plumbing check for the laptop. On 2026-10-22 it took 2 minutes, with a peak of
+0.85 GB.
 
 ## Jetson Orin Nano (JetPack 6 only)
 

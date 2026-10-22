@@ -281,6 +281,11 @@ for end_ms, verdict in ((102.0, "ok"), (103.0, "ok"), (103.5, "re-run"), (96.0, 
 log = (out / "session.log").read_text(encoding="utf-8")
 check("6 a drift over 3% says, in the log, that every cell runs again", "-4.0%" in log and "every cell of this session" in log, log[-600:])
 
+env = FakeEnv(script={"drift-end": [{"throttled": True, "ms": 101.0}]})
+out, state = run(plan(A), env)
+check("6 a throttled reference run: the drift record and the log say so", state["drift"]["throttled"] == ["drift-end"]
+      and "drift-end throttled" in (out / "session.log").read_text(encoding="utf-8"), state["drift"])
+
 env = FakeEnv(script={"drift-start": [{"crash": True}, {"crash": True}]})
 out, state = run(plan(A), env)
 check("6 a reference run that failed: the verdict is unknown", state["drift"]["verdict"] == "unknown"
@@ -443,7 +448,8 @@ for label, bad, says in (("a misspelt key", {"platform": "pi5", "seeed": 3, "cel
                          ("two cells with one name", {"platform": "pi5", "cells": [CELL, {**CELL, "limit": 200}]}, "name"),
                          ("a cell named like a reference run", {"platform": "pi5", "cells": [{**CELL, "name": "drift-end"}]}, "drift-end"),
                          ("a limit that is not a positive integer", {"platform": "pi5", "cells": [{**CELL, "limit": "200"}]}, "limit"),
-                         ("no cells", {"platform": "pi5", "cells": []}, "cells")):
+                         ("no cells", {"platform": "pi5", "cells": []}, "cells"),
+                         ("a plan that moves the reference cell", {"platform": "pi5", "reference": B, "cells": [CELL]}, "reference")):
     env = FakeEnv()
     try:
         run(bad, env)
