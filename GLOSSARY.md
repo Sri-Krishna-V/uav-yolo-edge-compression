@@ -1,6 +1,6 @@
-# CONTEXT
+# UAV YOLO edge-compression study
 
-Glossary for the UAV YOLO edge-compression study. Terms only - no implementation detail, no decisions. Decisions live on the map at `.scratch/uav-yolo-edge/map.md`.
+Glossary for the UAV YOLO edge-compression study. Terms only - no implementation detail, no decisions. Decisions live on the map, [issue #1](https://github.com/Sri-Krishna-V/uav-yolo-edge-compression/issues/1).
 
 ## Model
 

@@ -42,7 +42,7 @@ per-level sensitivity map at matched parameters *and matched measured device lat
 | [`study/kaggle/`](study/kaggle) | The team guide to training on Kaggle, its wizard, the session runner, the run table and the machine probe |
 | [`study/RUNS.md`](study/RUNS.md) | The baseline run plan: 10 runs, owners, order, cut order |
 | [`study/verification/`](study/verification) | Per-machine smoke records, dataset fingerprint, per-run result records |
-| [`CONTEXT.md`](CONTEXT.md) | Glossary. *Cell*, *configuration*, *platform* vs *runtime*, *matrix resolution* |
+| [`GLOSSARY.md`](GLOSSARY.md) | Glossary. *Cell*, *configuration*, *platform* vs *runtime*, *matrix resolution* |
 | [`.scratch/uav-yolo-edge/`](.scratch/uav-yolo-edge) | The decision map and its research findings, with sources |
 
 ## Reproducing a run
