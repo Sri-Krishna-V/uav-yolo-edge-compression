@@ -89,7 +89,7 @@ VisDrone2019-DET, from the Ultralytics mirror `https://github.com/ultralytics/as
 | `rect` | `true` | What `model.val()` uses. |
 | `batch` | 16 | Rectangular batching pads each batch to its largest shape, so batch size moves mAP slightly. Constant across cells. If a config does not fit, evaluate on a larger GPU; do not lower the batch. |
 | COCO `maxDets` | **[1, 10, 100, 500]** | See trap 3 below. |
-| precision | FP32 (`quantize` unset) | Accuracy of `.pt` checkpoints. Accuracy of quantized artifacts belongs to *Precision and export matrix*. |
+| precision | FP32 (`quantize` unset) | Accuracy of `.pt` checkpoints. The precision of exported artifacts on a platform follows §8. |
 
 ### 4.1 Three traps in the stock Ultralytics path, all silent
 
@@ -159,6 +159,25 @@ Frozen 2026-10-09 by the map ticket *Baseline training recipe*. Machine-readable
 ### 7.1 Training machines
 
 **Kaggle only, accelerator T4 ×2.** The P100 option cannot run this environment: torch 2.14 is a CUDA 13 build and CUDA 13 dropped Pascal support. The RTX 4050 laptop does not train. Each executor uses one account. `scripts/smoke.py` runs once per account before it produces numbers; `kaggle/probe_kaggle.py` runs once for the study (the machine class is the same on both accounts) and its per-imgsz batch and pairing verdict are frozen in `kaggle/runs.yaml`. Both records are kept. Checkpoints are mirrored off Kaggle after every session. The procedure is [`kaggle/README.md`](kaggle/README.md).
+
+---
+
+## 8. Precision
+
+Decided 22 October 2026 by the map ticket *Precision and export matrix*. The term is defined in [`GLOSSARY.md`](../GLOSSARY.md).
+
+**The precision rule.** A `baseline` cell runs at its runtime's default precision on that platform, with no compression step from us. `quantized` means INT8 post-training quantization with calibration (QAT is out of the current matrix). An FP16 cell is a baseline wherever FP16 is the runtime's default (NCNN on the Pi 5, TensorRT on the Jetson). It is never a quantized cell. Precision is part of a cell's experimental condition, so every result table gives it a column of its own.
+
+**The OpenVINO FP32 rule.** OpenVINO runs an FP32 model in true FP32 on every platform. `studybench.py` compiles with `INFERENCE_PRECISION_HINT=f32` and `EXECUTION_MODE_HINT=ACCURACY` everywhere. Without them the CPU plugin lowers an FP32 model to f16 on ARM and to bf16 on an x86 CPU with AVX-512 BF16. The laptop's Ryzen 7 8845HS (Zen 4) is such a CPU, so before this rule its "FP32" OpenVINO runs computed in bf16. That includes the #9 OpenVINO FP32 reference, which gets scored again at true FP32. A quantized OpenVINO model keeps its INT8 layers under these hints. Only its float layers (the Detect head) stay in f32.
+
+**Recorded, not named.** Every `studybench.py` run writes the precision its runtime really computes in to `meta.json` (`precision`), and writes the evidence and its source to `runtime_info` (`precision_from`). The precision is never read from the artifact's name. `studyscore.py` copies it into `score.json`, and `studysession.py` into `summary.csv`.
+
+| Runtime | Precision | Taken from |
+|---|---|---|
+| ONNX Runtime (CPU) | FP32, or INT8 | INT8 when the graph has quantize/dequantize or integer operators. The CPU provider never lowers float arithmetic. |
+| OpenVINO (CPU) | FP32, or INT8 | The runtime precision of the compiled model's convolution and matmul layers. INT8 when any of them runs on u8/i8. A BF16 or FP16 verdict means the FP32 rule failed. |
+| NCNN (CPU) | FP16 where its defaults give FP16 arithmetic on that CPU, else FP32 | ncnn's options and its CPU probe. ncnn computes in FP16 only when `use_fp16_storage` and `use_fp16_arithmetic` are both on (the defaults) and `cpu_support_arm_asimdhp()` finds ARMv8.2 FP16 arithmetic. That probe reports it only under a 64-bit OS. So FP16 on the Pi 5's Cortex-A76, and FP32 on the Pi 4B's Cortex-A72 and on x86. Those two store at most a few layers' weights in fp16. |
+| TensorRT (Jetson GPU) | FP16, or INT8 | An INT8 engine is built with detailed profiling, so the engine inspector lists each layer's formats. INT8 when any layer runs on Int8, and a header that disagrees is noted. An FP16 engine lists layer names only, so its Ultralytics header (`args.quantize`) is the only evidence. FP16 lets TensorRT pick FP16 kernels; it still runs a layer in FP32 when that is faster. |
 
 ---
 

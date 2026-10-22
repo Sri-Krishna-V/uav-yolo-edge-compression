@@ -11,6 +11,8 @@ evaluation at maxDets 500 needs about as much again:
                 COCO(gt), loadRes, COCOeval_faster bbox, imgIds = every ground-truth image, maxDets from
                 cfg/invariants.yaml), in this process, which never imports torch or ultralytics
 The result carries the same stats keys evaluate() returns from coco_evaluate (every coco/* and metrics/mAP_*(B)).
+It also carries the cell's runtime and the precision the platform recorded (what the runtime really computed in),
+so the tables give precision a column of its own.
 A --limit run is scored only on the images it ran and is marked partial: a plumbing check, never a reported number.
 """
 
@@ -116,10 +118,11 @@ def main():
         if meta.get("complete_testdev") and ran != split_files:
             raise SystemExit(f"{run}: the platform ran {len(ran)} images, the {a.split} split has {len(split_files)}")
         result = score(run / "predictions.json", a.split, meta["imgsz"], images=None if ran == split_files else sorted(ran))
-        result.update(run=str(run), platform_tag=meta.get("platform_tag"), head=meta.get("head"), manifest=meta.get("manifest"))
+        result.update(run=str(run), platform_tag=meta.get("platform_tag"), runtime=meta["config"]["runtime"], precision=meta.get("precision"),
+                      head=meta.get("head"), manifest=meta.get("manifest"))
         (run / "score.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         s = result["stats"]
-        print(f"{run}: AP_all {s['coco/AP_all']:.4f}  AP_50 {s['coco/AP_50']:.4f}  AP_small {s['coco/AP_small']:.4f}  "
+        print(f"{run} ({result['runtime']} {result['precision'] or 'precision unrecorded'}): AP_all {s['coco/AP_all']:.4f}  AP_50 {s['coco/AP_50']:.4f}  AP_small {s['coco/AP_small']:.4f}  "
               f"AP_medium {s['coco/AP_medium']:.4f}  AP_large {s['coco/AP_large']:.4f}  AR_500 {s['coco/AR_500']:.4f}"
               + (f"  (PARTIAL: {result['images']} images)" if result["partial"] else ""))
 

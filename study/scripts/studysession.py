@@ -27,10 +27,10 @@ The rules it applies, so that nobody applies them by hand:
             flagged for a re-run: the summary's drift column says "re-run" ("unknown" if a reference run failed).
 
 Writes to --out: session.log (every decision, appended), session.json (the state, rewritten after every step) and
-summary.csv (one row per cell and per reference run: attempts, outcome, median latency, throttle state, drift verdict,
-and the run directory to score). The same command resumes an interrupted session: it skips the runs that finished and
-restarts a half-done one from the start, in a fresh directory. An interruption is not a crash. A plan whose artifacts,
-reference cell or images are missing stops before anything runs.
+summary.csv (one row per cell and per reference run: the precision the runtime computed in, attempts, outcome, median
+latency, throttle state, drift verdict, and the run directory to score). The same command resumes an interrupted
+session: it skips the runs that finished and restarts a half-done one from the start, in a fresh directory. An
+interruption is not a crash. A plan whose artifacts, reference cell or images are missing stops before anything runs.
 
 --needs prints the paths the plan needs on the platform (what to copy there), and --check runs only the setup checks:
 neither runs a cell or writes anything.
@@ -77,7 +77,7 @@ DESKTOP = {"Xorg", "Xwayland", "labwc", "wayfire", "lxsession", "lxpanel", "pcma
 DRIFT_MAX = 0.03
 DRIFT_UNITS = ("drift-start", "drift-end")
 THROTTLE_WORDS = {"throttled": "throttled", "none": "not throttled", "unknown": "throttle unknown"}
-SUMMARY = ["cell", "runtime", "imgsz", "images", "attempts", "outcome", "latency_ms", "latency_source", "throttle", "drift",
+SUMMARY = ["cell", "runtime", "precision", "imgsz", "images", "attempts", "outcome", "latency_ms", "latency_source", "throttle", "drift",
            "run_dir", "attempt_log"]
 
 
@@ -224,14 +224,14 @@ def throttle_state(meta):
 
 
 def judge(result):
-    """What studybench left behind -> the attempt's result, median latency and throttle state."""
+    """What studybench left behind -> the attempt's result, median latency, throttle state and precision."""
     meta = result.get("meta") or {}
     if result.get("exit") != 0 or meta.get("status") != "complete":
         return {"result": "crashed", "exit": result.get("exit"), "error": meta.get("error") or result.get("tail")}
     timing = meta["timing_ms"]
     source = "e2e_deploy" if "e2e_deploy" in timing else "pre+net+post"
     return {"result": "complete", "latency_ms": timing["e2e_deploy" if source == "e2e_deploy" else "t_total_ms"]["median"],
-            "latency_source": source, "throttle": throttle_state(meta)}
+            "latency_source": source, "throttle": throttle_state(meta), "precision": meta.get("precision")}
 
 
 def pass_state(attempts, pass_="main"):
@@ -374,7 +374,7 @@ class Session:
                      + ("ok" if d["verdict"] == "ok" else f"moved more than {DRIFT_MAX:.0%}: every cell of this session is flagged for a re-run")
                      + "".join(f" ({u} throttled)" for u in d["throttled"]))
         for r in self.summary_rows():
-            self.log(f"  {r['cell']}: {r['outcome']}, {r['attempts']} attempt(s), median {r['latency_ms'] or '-'} ms "
+            self.log(f"  {r['cell']}: {r['precision'] or '-'}, {r['outcome']}, {r['attempts']} attempt(s), median {r['latency_ms'] or '-'} ms "
                      f"({r['latency_source'] or '-'}), throttle {r['throttle'] or '-'}, drift {r['drift']}, {r['run_dir'] or 'no run to score'}")
         self.log(f"session complete: {self.out / 'summary.csv'}")
         return self.state
@@ -416,7 +416,7 @@ class Session:
             outcome, counted = self.outcome(u)
             rows.append({"cell": u, "runtime": spec["runtime"], "imgsz": spec["imgsz"], "images": spec["limit"] or "all",
                          "attempts": len(attempts), "outcome": outcome,
-                         **{k: (counted or {}).get(k, "") for k in ("latency_ms", "latency_source", "throttle")},
+                         **{k: (counted or {}).get(k, "") for k in ("precision", "latency_ms", "latency_source", "throttle")},
                          "drift": self.state["drift"]["verdict"], "run_dir": counted["dir"] if counted else "",
                          "attempt_log": "; ".join(f"a{a['n']}{' re-run' if a['pass'] == 'rerun' else ''} {a['result']}"
                                                   + (" " + THROTTLE_WORDS[a["throttle"]] if a["result"] == "complete" else "") for a in attempts)})

@@ -35,6 +35,7 @@ die). A run that died resumes with --resume: it re-warms, skips the images alrea
 """
 
 import argparse
+import collections
 import csv
 import functools
 import hashlib
@@ -42,6 +43,7 @@ import json
 import math
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -182,6 +184,52 @@ def find_model(artifact, runtime):
     return found[0]
 
 
+ONNX_INT8_OPS = {"QuantizeLinear", "DequantizeLinear", "DynamicQuantizeLinear", "QLinearConv", "QLinearMatMul",
+                 "ConvInteger", "MatMulInteger"}
+
+
+def _protobuf_fields(buf, pos, end):
+    """(field number, value) of each field in buf[pos:end]; a length-delimited value is its (start, end) span."""
+    def varint():
+        nonlocal pos
+        n = shift = 0
+        while True:
+            b = buf[pos]
+            pos += 1
+            n |= (b & 0x7F) << shift
+            shift += 7
+            if b < 0x80:
+                return n
+
+    while pos < end:
+        key = varint()
+        wire = key & 7
+        if wire == 0:
+            yield key >> 3, varint()
+        elif wire == 2:
+            n = varint()
+            yield key >> 3, (pos, pos + n)
+            pos += n
+        elif wire in (1, 5):
+            pos += 8 if wire == 1 else 4
+        else:
+            raise ValueError(f"protobuf wire type {wire} at byte {pos}")
+
+
+def onnx_precision(model):
+    """INT8 when the graph quantizes (ONNX Runtime's CPU provider then runs those convolutions on integers), else FP32:
+    that provider never lowers float arithmetic. Reads the operator of every top-level node (ModelProto.graph = field 7,
+    GraphProto.node = 1, NodeProto.op_type = 4) with no onnx package, which the Pis and the phone do not have."""
+    buf = memoryview(Path(model).read_bytes())
+    ops = set()
+    for field, graph in _protobuf_fields(buf, 0, len(buf)):
+        if field == 7:
+            for field, node in _protobuf_fields(buf, *graph):
+                if field == 1:
+                    ops.update(bytes(buf[slice(*v)]).decode() for k, v in _protobuf_fields(buf, *node) if k == 4)
+    return "INT8" if ops & ONNX_INT8_OPS else "FP32"
+
+
 class OnnxRuntime:
     def __init__(self, model, threads):
         import onnxruntime as ort
@@ -194,10 +242,26 @@ class OnnxRuntime:
         self.input_name, self.input_shape = inp.name, inp.shape
         self.version = ort.__version__
         self.info = {"providers": self.session.get_providers(), "intra_op_num_threads": threads, "inter_op_num_threads": 1,
-                     "input_type": inp.type, "outputs": [(o.name, o.shape) for o in self.session.get_outputs()]}
+                     "input_type": inp.type, "outputs": [(o.name, o.shape) for o in self.session.get_outputs()],
+                     "precision_from": "the graph's operators: quantize/dequantize or integer operators mean INT8"}
+        self.precision = _try(lambda: onnx_precision(model))
 
     def __call__(self, x):
         return self.session.run(None, {self.input_name: x})[0]
+
+
+OPENVINO_COMPUTE = {"Convolution", "GroupConvolution", "Deconvolution", "MatMul", "FullyConnected"}
+OPENVINO_TYPES = {"u8": "INT8", "i8": "INT8", "f16": "FP16", "bf16": "BF16", "f32": "FP32"}
+
+
+def openvino_precision(layers):
+    """[(layerType, runtimePrecision), ...] of a compiled model's runtime layers -> FP32, BF16, FP16, INT8, or None.
+
+    INT8 when any convolution or matmul runs on integers (the quantized model's Detect head stays float), else the
+    lowest float type a compute layer runs in: OpenVINO lowers an FP32 model to bf16 on a CPU with AVX-512 BF16 and to
+    f16 on ARM unless told not to."""
+    found = {OPENVINO_TYPES.get(p, p) for t, p in layers if t in OPENVINO_COMPUTE}
+    return next((v for v in ("INT8", "FP16", "BF16", "FP32") if v in found), None)
 
 
 class OpenVINO:
@@ -206,12 +270,12 @@ class OpenVINO:
 
         core = ov.Core()
         net = core.read_model(model=str(model), weights=str(model.with_suffix(".bin")))
-        # What Ultralytics' OpenVINOBackend compiles with, on CPU explicitly (it picks AUTO when a GPU is visible). On
-        # Linux ARM64 it forces f32 accuracy mode: the ARM CPU plugin otherwise runs an FP32 model in f16.
-        config = {"PERFORMANCE_HINT": "LATENCY", "INFERENCE_NUM_THREADS": threads}
-        if platform.system() == "Linux" and platform.machine() in ("aarch64", "arm64"):
-            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
-            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
+        # What Ultralytics' OpenVINOBackend compiles with, on CPU explicitly (it picks AUTO when a GPU is visible), with
+        # f32 accuracy mode forced on every platform: the ARM CPU plugin otherwise runs an FP32 model in f16, and an x86
+        # CPU with AVX-512 BF16 (the laptop's Zen 4) in bf16. Ultralytics forces it on Linux ARM64 only. A quantized
+        # model keeps its INT8 layers under these hints; only its float layers stay f32.
+        config = {"PERFORMANCE_HINT": "LATENCY", "INFERENCE_NUM_THREADS": threads,
+                  "EXECUTION_MODE_HINT": ov.properties.hint.ExecutionMode.ACCURACY, "INFERENCE_PRECISION_HINT": ov.Type.f32}
         compiled = core.compile_model(net, "CPU", config)
         self.request = compiled.create_infer_request()
         self.input_shape = [d.get_length() if d.is_static else None for d in net.input().get_partial_shape()]
@@ -219,10 +283,31 @@ class OpenVINO:
         props = ("PERFORMANCE_HINT", "INFERENCE_NUM_THREADS", "INFERENCE_PRECISION_HINT", "EXECUTION_MODE_HINT",
                  "NUM_STREAMS", "ENABLE_HYPER_THREADING", "ENABLE_CPU_PINNING", "SCHEDULING_CORE_TYPE", "EXECUTION_DEVICES")
         self.info = {"device": "CPU", "requested": {k: str(v) for k, v in config.items()}, "effective": {k: _try(lambda k=k: str(compiled.get_property(k))) for k in props}}
+        layers = _try(lambda: [(op.get_rt_info()["layerType"].astype(str), op.get_rt_info()["runtimePrecision"].astype(str))
+                               for op in compiled.get_runtime_model().get_ops()], [])
+        self.precision = openvino_precision(layers)
+        self.info["compute_layers"] = {f"{t} {p}": n for (t, p), n in sorted(collections.Counter(x for x in layers if x[0] in OPENVINO_COMPUTE).items())}
+        self.info["precision_from"] = "the runtime precision of the compiled model's convolution and matmul layers"
+        if self.precision in ("BF16", "FP16"):
+            sys.exit(f"OpenVINO {self.version} compiled {model} in {self.precision} despite INFERENCE_PRECISION_HINT=f32: "
+                     f"not a cell (INVARIANTS.md §8). Layers: {self.info['compute_layers']}")
 
     def __call__(self, x):
         self.request.infer({0: x})
         return self.request.get_output_tensor(0).data.copy()
+
+
+def ncnn_precision(opt, cpu):
+    """ncnn's options and CPU probes -> FP16 or FP32 (None when the probe failed): what its convolutions compute in.
+
+    On the CPU, ncnn computes a layer in FP16 only with fp16 storage and fp16 arithmetic on (its defaults) and ARMv8.2
+    FP16 arithmetic in the CPU (cpu_support_arm_asimdhp, a 64-bit OS only), e.g. the Pi 5's Cortex-A76 (net.cpp
+    convert_layout, layer/arm/convolution_arm.cpp, tag 20260526). The Pi 4B's Cortex-A72 and x86 compute in FP32; they
+    store at most a few layers' weights in fp16."""
+    asimdhp = cpu.get("cpu_support_arm_asimdhp")
+    if asimdhp is None:
+        return None
+    return "FP16" if opt.get("use_fp16_storage") and opt.get("use_fp16_arithmetic") and asimdhp else "FP32"
 
 
 class NCNN:
@@ -240,7 +325,9 @@ class NCNN:
         opt = self.net.opt
         probes = [f for f in dir(ncnn) if f.startswith("cpu_support_") or (f.startswith("get_") and f.endswith("_count"))]
         self.info = {"opt": {k: getattr(opt, k) for k in dir(opt) if k.startswith(("use_", "num_threads", "lightmode")) and isinstance(getattr(opt, k), (bool, int))},
-                     "cpu": {f: _try(getattr(ncnn, f)) for f in probes}}
+                     "cpu": {f: _try(getattr(ncnn, f)) for f in probes},
+                     "precision_from": "ncnn's fp16 storage and arithmetic options and cpu_support_arm_asimdhp (ARMv8.2 FP16)"}
+        self.precision = ncnn_precision(self.info["opt"], self.info["cpu"])
 
     def __call__(self, x):
         with self.net.create_extractor() as ex:
@@ -266,6 +353,27 @@ def engine_header(path):
             except ValueError:  # engine bytes, not a header
                 pass
     return 0, {}
+
+
+TRT_TYPES = (("INT8", re.compile(r"\bInt8\b|\bINT8\b")), ("FP16", re.compile(r"FP16|\bHalf\b")), ("FP32", re.compile(r"FP32|\bFloat\b")))
+TRT_QUANTIZE = {8: "INT8", 16: "FP16", None: "FP32", 32: "FP32"}
+
+
+def tensorrt_precision(header, layers):
+    """(precision, where it came from) of an engine, from its inspector's "Layers" and its Ultralytics header.
+
+    Ultralytics builds INT8 engines with DETAILED profiling, so their layers list their input/output formats and weight
+    types: INT8 when any layer runs on Int8, else FP16 when any runs in half, else FP32. It builds FP16 engines without,
+    so their layers are names only and the header's args.quantize (8, 16, or unset for FP32) is all there is."""
+    built = TRT_QUANTIZE.get((header.get("args") or {}).get("quantize", "missing"))
+    detail = [x for x in layers or [] if isinstance(x, dict)]
+    if not detail:
+        return built, "the engine header's args.quantize (the engine lists layer names only)" if built else "unknown: no layer detail and no header"
+    tokens = [s for x in detail for s in [*(t.get("Format/Datatype", "") for t in x.get("Inputs", []) + x.get("Outputs", [])),
+                                          *((x.get(k) or {}).get("Type", "") for k in ("Weights", "Bias"))]]
+    found = next((name for name, pattern in TRT_TYPES if any(pattern.search(s) for s in tokens)), None)
+    note = "" if found == built or built is None else f"; the header says {built}: they disagree"
+    return found, f"the engine's layer formats ({len(detail)} layers){note}"
 
 
 class TensorRT:
@@ -319,6 +427,8 @@ class TensorRT:
                      "buffers": "torch pinned host + device tensors, one non-default CUDA stream",
                      "net": "np.copyto into pinned input, H2D copy, execute_async_v3, D2H copy, stream sync",
                      "threads": f"TensorRT does not use --threads; it sets OpenCV's threads only ({threads})"}
+        layers = _try(lambda: json.loads(self.engine.create_engine_inspector().get_engine_information(trt.LayerInformationFormat.JSON))["Layers"])
+        self.precision, self.info["precision_from"] = tensorrt_precision(header, layers)
 
     def __call__(self, x):
         """The output is the pinned host buffer itself, valid until the next call (post-processing reads it at once)."""
@@ -657,7 +767,11 @@ def main():
     meta["status"] = "running"
     meta["platform"] = platform_info()
     meta["versions"] = {"python": platform.python_version(), "numpy": np.__version__, "cv2": cv2.__version__, a.runtime: rt.version}
+    if old and old.get("precision") != rt.precision:
+        sys.exit(f"{out} was started computing in {old.get('precision') or 'an unrecorded precision'}, and this session "
+                 f"computes in {rt.precision}: one run, one precision. --overwrite to restart")
     meta["runtime_info"] = rt.info
+    meta["precision"] = rt.precision  # what the runtime computes in here, from its own evidence (runtime_info.precision_from)
     meta["cv2_threads"] = cv2.getNumThreads()
     session = {"index": len(meta["sessions"]), "start": now(), "first_image": len(done), "model_load_s": round(load_s, 3), "warmup": a.warmup}
     meta["sessions"].append(session)
@@ -718,7 +832,7 @@ def main():
     write_json(meta_path, meta)
     (out / "predictions.jsonl").unlink()
     t = stats
-    print(f"done: {len(rows)} images, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} "
+    print(f"done: {len(rows)} images, {a.runtime} {rt.precision}, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} "
           f"post {t['t_post_ms']['median']} total {t['t_total_ms']['median']} ms (p95 {t['t_total_ms']['p95']})")
 
 
