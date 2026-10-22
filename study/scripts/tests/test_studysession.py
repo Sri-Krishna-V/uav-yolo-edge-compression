@@ -461,6 +461,27 @@ out, state = run({"platform": "laptop", "cells": [CELL, {**CELL, "limit": 200, "
 check("10 the same artifact twice, with names of its own: fine", state["status"] == "complete" and "a1-int8-200" in summary(out))
 check("10 a cell's limit reaches the benchmark", [c[4]["limit"] for c in env.calls if c[0] == "a1-int8-200"] == [200])
 
+# ---------------------------------------------------------------- 11: what the wizard copies: the paths a plan needs on the platform
+needs = ss.needed_paths({"platform": "pi5", "cells": [CELL, {**CELL, "limit": 200, "name": "a-200"}, {**CELL, "artifact": B}]})
+check("11 a plan needs its images, the reference cell and each artifact once, in that order",
+      needs == ["datasets/VisDrone/images/test", "exports/yolo11s-640-s0/640/onnxruntime-fp32", A, B], needs)
+needs = ss.needed_paths({"platform": "pi5", "images": "imgs", "cells": [{**CELL, "artifact": "exports\\x\\640\\onnxruntime-fp32"},
+                                                                         {**CELL, "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32"}]})
+check("11 a plan's own images; Windows separators; the reference artifact as a cell is not listed twice",
+      needs == ["imgs", "exports/yolo11s-640-s0/640/onnxruntime-fp32", "exports/x/640/onnxruntime-fp32"], needs)
+
+# ---------------------------------------------------------------- 12: the setup checks alone, before a session (the wizard's install step)
+env = FakeEnv(facts={**GOOD_PI, "desktop": ["labwc"], "packages": {**GOOD_PI["packages"], "openvino": None}})
+report = {c["check"]: c for c in ss.setup_report(PI, env)}
+check("12 a Pi's checks, without a session: the failed ones with their fix, the plan's runtimes only",
+      report["desktop"]["status"] == "fail" and "multi-user.target" in report["desktop"]["fix"]
+      and report["openvino"]["status"] == "fail" and "openvino==2026.4.1" in report["openvino"]["fix"]
+      and report["governor"]["status"] == "pass" and "ncnn" not in report, report)
+check("12 ... and no run starts", env.calls == [])
+check("12 the drift check's onnxruntime is checked even when no cell uses it",
+      "onnxruntime" in {c["check"] for c in ss.setup_report(plan(B, platform="pi5"), FakeEnv())})
+check("12 the laptop has no setup checks", ss.setup_report(plan(A), FakeEnv(facts={**GOOD_PI, "desktop": ["labwc"]})) == [])
+
 if FAILED:
     sys.exit(f"{len(FAILED)} failed: {FAILED}")
 print("all passed")

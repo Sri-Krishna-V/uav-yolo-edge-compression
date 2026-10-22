@@ -1,0 +1,8 @@
+{
+  "platform": "pi5",
+  "note": "one full cell after the speed test (#25): A1 at 640, ONNX Runtime FP32, all 1,610 test-dev images, to learn the real time of a full cell; about 20-30 min",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}

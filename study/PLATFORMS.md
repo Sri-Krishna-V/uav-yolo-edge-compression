@@ -17,6 +17,41 @@ pip install numpy==2.4.6 opencv-python-headless==5.0.0.93 onnxruntime==1.31.0 op
 pip install --no-deps ncnn==1.0.20260526   # --no-deps: ncnn otherwise pulls in opencv-python, which clashes with the headless build
 ```
 
+### The Pi 5 wizard
+
+The Pi 5 is with us until 31 October (#10), so it keeps its own SD card and its install. `pi/wizard.sh` takes one
+plan through a Pi session from the laptop (Git Bash), with no agent in the loop:
+
+```bash
+cd study
+bash pi/wizard.sh plans/pi5-speedtest.json    # first: is INT8 slower than FP32 on the Pi 5? (#25)
+bash pi/wizard.sh plans/pi5-fullcell.json     # then: the real time of one full cell
+```
+
+**Have ready:** the Pi 5 on its official 27 W supply with the Active Cooler fitted, on the laptop's network; its host
+name or IP and user; SSH on (`raspi-config` → Interface Options → SSH); the Pi's password (for the SSH key and the
+sudo fixes); internet on the Pi if the install is not done yet.
+
+Its 7 stages: what to have ready; connect (it sets up an SSH key if there is none); fan, power and SD card; copy the
+scripts, the plan, the exports and the test-dev images (a path already on the Pi with the same content is not copied
+again); the install and the setup checks (it offers to run the fixes); start the session under `nohup`, or follow or
+resume one; copy the results home to `study/bench/` and score them. Every stage finds what is already done, so run it
+again at any time: after closing it, after a dropped connection, or when a session finishes. Your host and user are kept
+in `pi/.env` (not in git).
+
+**Time.** From Ultralytics' Pi 5 table for YOLO11s at 640 (ONNX 450, OpenVINO 182, NCNN 224 ms per image, inference
+only; `ultralytics@532459b59c`, docs/en/guides/raspberry-pi.md), plus our pre and post at the evaluation threshold, and
+a start gate of up to 3 minutes per run:
+
+- the speed test: 5 cells of 200 images and the two reference runs, about 10 minutes of inference, so about 15–35
+  minutes with the gates. INT8 has no published Pi 5 number for YOLO, and the speed test is there to measure it;
+- the full cell: ONNX Runtime FP32 on all 1,610 images, about 14 minutes, so about 20–30 minutes with the reference
+  runs and the gates.
+
+**Rehearsal.** `bash pi/tests/rehearse.sh` runs the whole wizard with the laptop standing in for the Pi (a fake ssh,
+`plans/laptop-dry-run.json`, `--dry-run`), through the copy home and the scoring, into a temporary folder. On
+2026-10-22 it passed in about 4 minutes.
+
 ## Galaxy M34 (Termux, Python 3.14)
 
 From the same build. Versions seen in the Termux index on 2026-10-21: python 3.14.8, python-numpy 2.5.4,
@@ -72,7 +107,7 @@ A plan is a JSON file in `plans/`:
 ```json
 {
   "platform": "pi5",
-  "note": "the 1-hour speed test",
+  "note": "the speed test",
   "seed": 0,
   "cells": [
     {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640, "limit": 200},
@@ -101,6 +136,9 @@ In `--out`:
   drift verdict, and `run_dir`, the attempt to score with `studyscore.py`.
 
 Each attempt gets its own `runs/<cell>/attempt-<n>/`, holding the bench's files and its output in `bench.log`.
+
+`--needs` prints the paths a plan needs on the platform, and `--check` runs only the setup checks (exit 1 if one
+fails). Neither runs a cell or writes anything; the Pi wizard uses both.
 
 ### Dry run
 

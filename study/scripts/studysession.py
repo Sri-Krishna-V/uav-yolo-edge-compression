@@ -32,6 +32,9 @@ and the run directory to score). The same command resumes an interrupted session
 restarts a half-done one from the start, in a fresh directory. An interruption is not a crash. A plan whose artifacts,
 reference cell or images are missing stops before anything runs.
 
+--needs prints the paths the plan needs on the platform (what to copy there), and --check runs only the setup checks:
+neither runs a cell or writes anything.
+
 Latency is the median of studybench's e2e_deploy stage (latency at the deployment threshold, #22) when the benchmark
 gives it. A benchmark without it gives pre + net + post at the evaluation threshold instead; the log and the summary's
 latency_source say which.
@@ -116,6 +119,12 @@ def load_plan(plan):
             "images": plan.get("images", "datasets/VisDrone/images/test"), "cells": cells}
 
 
+def needed_paths(plan):
+    """What a plan needs on the platform, relative to study/: its images, the reference cell's artifact, each artifact once."""
+    plan = load_plan(plan)
+    return list(dict.fromkeys([plan["images"], REFERENCE, *(c["artifact"] for c in plan["cells"])]))
+
+
 def shuffled(plan):
     """The cell order of the session: the plan's order, shuffled once with the plan's seed."""
     order = [c["name"] for c in plan["cells"]]
@@ -153,6 +162,17 @@ def pi_checks(facts, runtimes):
         out.append({"check": name, "status": "pass" if have == PI_PINS[name] else "fail", "value": have,
                     "fix": f"pip install {'--no-deps ' if name == 'ncnn' else ''}{name}=={PI_PINS[name]}"})
     return out
+
+
+def platform_checks(plan, facts):
+    """A validated plan and its platform's setup_facts() -> its setup checks: a Pi's, for every runtime its runs use; none elsewhere."""
+    return pi_checks(facts, {s["runtime"] for s in unit_specs(plan).values()}) if plan["platform"] in PIS else []
+
+
+def setup_report(plan, env):
+    """The setup checks of a plan's platform, read now, without a session: nothing runs and nothing is written."""
+    plan = load_plan(plan)
+    return platform_checks(plan, env.setup_facts())
 
 
 # ---------------------------------------------------------------- the start gate
@@ -296,8 +316,7 @@ class Session:
     def setup_checks(self):
         """Record this invocation's platform facts and, on a Pi, refuse a failed setup check unless overridden."""
         facts = self.env.setup_facts()
-        runtimes = {s["runtime"] for s in self.specs.values()}
-        checks = pi_checks(facts, runtimes) if self.plan["platform"] in PIS else []
+        checks = platform_checks(self.plan, facts)
         self.state.setdefault("invocations", []).append({"start": now_iso(), "facts": facts, "checks": checks, "override": self.override})
         for c in checks:
             self.log(f"setup check {c['check']}: {c['status']} ({c['value']})" + (f"; fix: {c['fix']}" if c["status"] == "fail" else ""))
@@ -539,10 +558,22 @@ def main():
     p.add_argument("--out", help="the session directory (default bench/<platform>/<plan file name>); the same --out resumes")
     p.add_argument("--dry-run", action="store_true", help="a plumbing check: the gate waits 5 s at most; nothing from it is reported")
     p.add_argument("--override-checks", metavar="REASON", help="run although a Pi setup check failed; the reason is recorded")
+    p.add_argument("--needs", action="store_true", help="only print the paths the plan needs on the platform, one per line")
+    p.add_argument("--check", action="store_true", help="only run the setup checks and print them; exit 1 if one fails")
     a = p.parse_args()
     plan = json.loads(Path(a.plan).read_text(encoding="utf-8"))
     checked = load_plan(plan)
-    missing = [x for x in (checked["images"], REFERENCE, *(c["artifact"] for c in checked["cells"])) if not Path(x).exists()]
+    if a.needs:
+        print("\n".join(needed_paths(plan)))
+        return
+    if a.check:
+        checks = setup_report(plan, Platform(checked["platform"]))
+        failed = any(c["status"] == "fail" for c in checks)
+        for c in checks:
+            print(f"{c['status']:>10}  {c['check']}: {c['value']}" + (f"\n            fix: {c['fix']}" if c["status"] == "fail" else ""))
+        print(f"{checked['platform']}: " + ("no setup checks" if not checks else "a setup check FAILED" if failed else "setup checks passed"))
+        sys.exit(1 if failed else 0)
+    missing = [x for x in needed_paths(plan) if not Path(x).exists()]
     if missing:
         sys.exit(f"missing on this platform (paths are relative to {Path.cwd()}): {missing}" + (
             f"\nthe drift check runs the reference cell (YOLO11s baseline, ONNX Runtime FP32, 640) at the start and the end of "
