@@ -1,0 +1,9 @@
+{
+  "platform": "laptop",
+  "note": "a dry run of the session runner: two tiny real cells and the drift check; a plumbing check, never a reported number",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640, "limit": 10},
+    {"artifact": "exports/yolo11s-640-s0/640/openvino-fp32", "runtime": "openvino", "imgsz": 640, "limit": 10}
+  ]
+}

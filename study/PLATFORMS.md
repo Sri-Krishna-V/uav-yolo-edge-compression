@@ -1,7 +1,7 @@
 # Benchmark platforms: install and run
 
 `scripts/studybench.py` runs on the platform. It times every test-dev image (pre, net and post separately, batch 1)
-and saves the detections. `scripts/studyscore.py` scores them later on the laptop. `scripts/studyexport.py` makes
+and saves the detections. `scripts/studysession.py` runs a whole platform session through it (see "Running a session"). `scripts/studyscore.py` scores them later on the laptop. `scripts/studyexport.py` makes
 the artifacts on the laptop, except TensorRT engines, which the Jetson builds itself.
 
 The bench needs only Python, numpy, OpenCV and the one runtime. The commands below install exactly that.
@@ -24,6 +24,88 @@ python-onnxruntime 1.31.0-3, opencv-python 4.14.0-4 (it pulls in qt6, a large do
 ```bash
 pkg install x11-repo && pkg install python python-numpy python-onnxruntime opencv-python
 ```
+
+## Running a session
+
+`scripts/studysession.py` runs one platform session: every cell of a **platform plan**, each through `studybench.py`,
+under the platform-run rules decided on #8 (22 October 2026). Run it on the platform, from `study/`, inside `tmux` or
+`nohup` so that a dropped SSH connection does not stop it:
+
+```bash
+python3 scripts/studysession.py plans/<plan>.json --out bench/<platform>/<session>
+```
+
+If it stops anyway, run the same command again. It skips the runs that finished and restarts a half-done one from the
+start. Standard library only; it needs no more than the bench does.
+
+### The rules it applies
+
+- **Threads and warm-up:** 4 threads and 20 untimed warm-up images per run, recorded.
+- **Pi setup checks:** on a Pi, before it starts and again on every resume, it checks:
+  - the CPU governor is `performance` on every CPU;
+  - no desktop session is running;
+  - `apt-daily.timer` and `apt-daily-upgrade.timer` are off;
+  - the packages the plan needs are at this guide's versions.
+
+  A failed check stops it and prints the fix. `--override-checks "<why>"` runs anyway and records the reason.
+- **Start gate**, before every run:
+  - a run starts when the CPU is below 50 °C, or after 3 minutes;
+  - the phone waits a fixed 3 minutes, and logs its battery temperature when Termux can read it;
+  - a Jetson records its power mode and clocks at every gate.
+- **Cell order:** shuffled once with the plan's seed, and logged.
+- **Drift check:** the reference cell runs first and last: YOLO11s baseline, ONNX Runtime FP32, 640, on the first 200
+  test-dev images. If its median latency moves by more than 3%, every cell of the session is flagged for a re-run.
+- **Crashes:** a crashed cell runs again from the start, once. A second crash marks it failed.
+- **Throttling:** a throttled cell runs again at the end of the session, and both attempts are kept.
+  - Pi: `vcgencmd` throttle flags.
+  - Jetson: over-current counters and the GPU clock.
+  - The laptop and the phone give no signal, so their throttle state is "unknown".
+- **Latency:** the bench's `e2e_deploy` median (#22). Until the bench has `e2e_deploy`, the runner uses pre + net +
+  post at the evaluation threshold, and says so in the log.
+
+### The plan
+
+A plan is a JSON file in `plans/`:
+
+```json
+{
+  "platform": "pi5",
+  "note": "the 1-hour speed test",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640, "limit": 200},
+    {"artifact": "exports/yolo11s-640-s0/640/ncnn-fp32", "runtime": "ncnn", "imgsz": 640}
+  ]
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `platform` | required: `pi5`, `pi4b`, `m34`, `jetson` or `laptop` |
+| `cells` | required. Each cell has `artifact` (a `studyexport.py` directory), `runtime` and `imgsz`. Optional: `limit`, the first N test-dev images (leave it out for a full cell), and `name`, which defaults to the artifact path after `exports/` (give one when two cells share an artifact) |
+| `seed` | the shuffle's seed; default 0 |
+| `note` | free text, logged |
+| `images` | default `datasets/VisDrone/images/test` |
+| `reference` | where the reference cell's artifact is; default `exports/yolo11s-640-s0/640/onnxruntime-fp32`. It always runs with ONNX Runtime at 640 on 200 images |
+
+A misspelt key stops the runner before anything runs.
+
+### What it writes
+
+In `--out`:
+
+- `session.log`: every decision.
+- `session.json`: the state it resumes from.
+- `summary.csv`: one row per cell and per reference run, with attempts, outcome, median latency, throttle state, the
+  drift verdict, and `run_dir`, the attempt to score with `studyscore.py`.
+
+Each attempt gets its own `runs/<cell>/attempt-<n>/`, holding the bench's files and its output in `bench.log`.
+
+### Dry run
+
+`--dry-run` caps the gate at 5 s and marks the session DRY RUN; no number from it is reported.
+`plans/laptop-dry-run.json` is a two-cell plumbing check for the laptop. On 22 October 2026 it took 2 minutes, with a
+peak of 0.85 GB.
 
 ## Jetson Orin Nano (JetPack 6 only)
 
