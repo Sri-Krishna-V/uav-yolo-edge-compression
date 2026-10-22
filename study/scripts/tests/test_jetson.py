@@ -129,6 +129,122 @@ if sb:
     check("8 bench: no counters and no clocks give unknown, not 'no throttle'", j["over_current_throttled"] is None and j["images_gpu_below_max"] is None, j)
     check("8 bench: off a Jetson there is no summary", sb.jetson_summary([], [], None) is None)
 
+
+def fake_engine_modules(shapes, deserialize_ok=True):
+    """Fake torch and tensorrt that move real numpy data: the engine writes 2 x the first N input values to its output.
+    The TensorRT names they offer are the ones checked against the real tensorrt 10.3.0 bindings."""
+    import contextlib
+    import json as _json
+    from types import SimpleNamespace as NS
+
+    import numpy as np
+
+    log, blobs, buffers = [], [], {}
+
+    class Tensor:
+        def __init__(self, shape, dtype, kind):
+            self.a, self.kind = np.zeros(shape, dtype), kind
+            buffers[id(self)] = self
+
+        def data_ptr(self):
+            return id(self)
+
+        def numpy(self):
+            return self.a
+
+        def copy_(self, src, non_blocking=False):
+            np.copyto(self.a, src.a)
+            log.append("h2d" if self.kind == "device" else "d2h")
+
+    class Context:
+        addr = {}
+
+        def set_tensor_address(self, name, ptr):
+            self.addr[name] = ptr
+
+        def execute_async_v3(self, stream):
+            src, dst = buffers[self.addr["images"]].a, buffers[self.addr["output0"]].a
+            dst.flat[:] = 2 * src.flat[:dst.size]
+            log.append("exec")
+            return True
+
+    class Engine:
+        num_io_tensors, device_memory_size_v2 = 2, 1234
+
+        def get_tensor_name(self, i):
+            return ["output0", "images"][i]  # output first: the runner must find the input by mode, not position
+
+        def get_tensor_mode(self, name):
+            return "IN" if name == "images" else "OUT"
+
+        def get_tensor_shape(self, name):
+            return shapes[name]
+
+        def get_tensor_dtype(self, name):
+            return "FLOAT"
+
+        def create_execution_context(self):
+            return Context()
+
+    class Runtime:
+        def __init__(self, logger):
+            pass
+
+        def deserialize_cuda_engine(self, blob):
+            blobs.append(blob)
+            return Engine() if deserialize_ok else None
+
+    logger = type("Logger", (), {"WARNING": 2, "__init__": lambda self, severity: None})
+    trt = NS(__version__="10.3.0", Runtime=Runtime, Logger=logger, TensorIOMode=NS(INPUT="IN", OUTPUT="OUT"), nptype=lambda d: np.float32)
+    torch = NS(__version__="fake", version=NS(cuda="12.6"), from_numpy=lambda a: NS(dtype=a.dtype),
+               empty=lambda shape, dtype, pin_memory=False, device=None: Tensor(shape, dtype, "device" if device else "host"),
+               cuda=NS(Stream=lambda: NS(cuda_stream=7, synchronize=lambda: log.append("sync")),
+                       stream=lambda s: contextlib.nullcontext(), get_device_name=lambda i: "fake GPU",
+                       get_device_capability=lambda i: (8, 7)))
+    return {"tensorrt": trt, "torch": torch}, log, blobs, _json
+
+
+if sb:
+    import numpy as np
+
+    mods, log, blobs, _json = fake_engine_modules({"images": (1, 3, 32, 32), "output0": (1, 14, 21)})
+    saved = {k: sys.modules.get(k) for k in mods}
+    sys.modules.update(mods)
+    try:
+        eng = Path(tempfile.mkdtemp()) / "model.engine"
+        header = _json.dumps({"imgsz": [32, 32], "batch": 1, "end2end": False}).encode()
+        eng.write_bytes(len(header).to_bytes(4, "little") + header + b"PLAN-BYTES")
+        rt = sb.TensorRT(eng, 4)
+        check("9 runner: the Ultralytics header is skipped, the plan alone is deserialized", blobs == [b"PLAN-BYTES"], blobs)
+        check("9 runner: input shape and header read", rt.input_shape == [1, 3, 32, 32] and rt.info["engine_header"]["imgsz"] == [32, 32], rt.info)
+        x = np.random.default_rng(0).random((1, 3, 32, 32), dtype=np.float32)
+        log.clear()
+        y = rt(x)
+        check("9 runner: the input reaches the engine and its output comes back", y.shape == (1, 14, 21)
+              and np.array_equal(y.ravel(), 2 * x.ravel()[:294]))
+        check("9 runner: net is H2D, execute, D2H, then a stream sync", log == ["h2d", "exec", "d2h", "sync"], log)
+        rt.close()
+        mods, *_ = fake_engine_modules({"images": (-1, 3, 32, 32), "output0": (1, 14, 21)})
+        sys.modules.update(mods)
+        try:
+            sb.TensorRT(eng, 4)
+            check("9 runner: a dynamic-shape engine is refused", False)
+        except SystemExit as e:
+            check("9 runner: a dynamic-shape engine is refused", "dynamic" in str(e), str(e))
+        mods, *_ = fake_engine_modules({"images": (1, 3, 32, 32), "output0": (1, 14, 21)}, deserialize_ok=False)
+        sys.modules.update(mods)
+        try:
+            sb.TensorRT(eng, 4)
+            check("9 runner: an engine from another GPU or TensorRT says to rebuild it here", False)
+        except SystemExit as e:
+            check("9 runner: an engine from another GPU or TensorRT says to rebuild it here", "studyexport.py" in str(e), str(e))
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                sys.modules.pop(k, None)
+            else:
+                sys.modules[k] = v
+
 if FAILED:
     sys.exit(f"{len(FAILED)} failed: {FAILED}")
 print("all passed")

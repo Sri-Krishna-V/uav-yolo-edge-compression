@@ -4,7 +4,8 @@
       --images VisDrone/images/test --out bench/pi5/yolo11s-640-s0/640/onnxruntime-fp32 --platform-tag pi5
 
 Runs ON the platform. Needs only the standard library, numpy, cv2 and the one runtime module (imported lazily); runs on
-Python 3.11 (Raspberry Pi OS Bookworm), 3.14 (Termux) and the laptop. Never import torch, ultralytics or studyenv here.
+Python 3.11 (Raspberry Pi OS Bookworm), 3.14 (Termux), 3.10 (Jetson, JetPack 6) and the laptop. Never import
+ultralytics or studyenv here, and torch only inside the TensorRT runner (see there).
 
 Warm-up first (the first --warmup images, untimed), then every image is timed, batch 1, single stream, in three stages.
 Reading and decoding the file is not timed.
@@ -12,7 +13,8 @@ Reading and decoding the file is not timed.
         rounding (data/base.py load_image, INTER_LINEAR), LetterBox pad of 114 (scaleup=False, so it only pads),
         BGR->RGB, CHW, float32 / 255. Not the predictor's LetterBox, which rounds the short side and differs by a row
         on 1,084 of the 1,610 test-dev images.
-  net   one runtime call.
+  net   one runtime call. For TensorRT that is the whole GPU round trip: copy into pinned memory, host-to-device copy,
+        execute, device-to-host copy, stream sync.
   post  box decode + NMS exactly as DetectionValidator calls utils/nms.py non_max_suppression (conf 0.001, iou 0.7,
         max_det 500, multi_label, class-offset NMS, max_nms 30000), or the end2end branch for an NMS-free head, then
         scale_boxes with the validator's ratio_pad. Converting to COCO json is not timed.
@@ -23,6 +25,10 @@ to 5, category = class + 1). Score them on the laptop with `python studyscore.py
 (measured on the laptop: 1, 2 and 4 threads agree, 8 and 16 each differ, by up to 49 px on a box; FP32 does not move).
 Ultralytics leaves ONNX Runtime at its default, one thread per physical core.
 
+On a Jetson (/etc/nv_tegra_release exists) the run also records the GPU temperature and clock per image, and the
+board's power mode, jetson_clocks state, clocks, temperatures and over-current counters at the start, every 50
+images and the end, with jetson_probe.py's readers (that file must sit beside this one; only a Jetson imports it).
+
 Crash-visible: every image is appended to predictions.jsonl and timings.csv and flushed as it finishes (fsync every
 50 images), and meta.json says "running" until the run completes ("interrupted", with the error, if Python saw it
 die). A run that died resumes with --resume: it re-warms, skips the images already recorded, and logs each session.
@@ -30,6 +36,7 @@ die). A run that died resumes with --resume: it re-warms, skips the images alrea
 
 import argparse
 import csv
+import functools
 import hashlib
 import json
 import math
@@ -53,7 +60,8 @@ MAX_NMS, MAX_WH = 30000, 7680
 PAD_VALUE = 114
 IMG_SUFFIXES = (".jpg", ".jpeg", ".png", ".bmp")
 FSYNC_EVERY = THROTTLE_EVERY = 50
-COLUMNS = ["index", "file", "t_pre_ms", "t_net_ms", "t_post_ms", "n_cand", "n_dets", "temp_c", "cpu_mhz", "throttled", "img_crc32", "session"]
+COLUMNS = ["index", "file", "t_pre_ms", "t_net_ms", "t_post_ms", "n_cand", "n_dets", "temp_c", "cpu_mhz", "throttled", "img_crc32", "session",
+           "gpu_temp_c", "gpu_mhz"]  # the last two: Jetson only
 
 
 # ---------------------------------------------------------------- pre-processing
@@ -165,7 +173,7 @@ def to_coco(boxes, scores, cls):
 
 def find_model(artifact, runtime):
     p = Path(artifact)
-    pattern = {"onnxruntime": "*.onnx", "openvino": "*.xml", "ncnn": "*.param"}[runtime]
+    pattern = {"onnxruntime": "*.onnx", "openvino": "*.xml", "ncnn": "*.param", "tensorrt": "*.engine"}[runtime]
     if p.is_file():
         return p
     found = sorted(p.rglob(pattern))
@@ -247,7 +255,93 @@ class NCNN:
             self.ncnn.destroy_gpu_instance()
 
 
-RUNTIMES = {"onnxruntime": OnnxRuntime, "openvino": OpenVINO, "ncnn": NCNN}
+def engine_header(path):
+    """The metadata header Ultralytics writes ahead of an engine (4-byte little-endian length, then JSON): (offset, dict)."""
+    with open(path, "rb") as f:
+        n = int.from_bytes(f.read(4), "little")
+        if 0 < n <= f.seek(0, 2) - 4:
+            f.seek(4)
+            try:
+                return 4 + n, json.loads(f.read(n))
+            except ValueError:  # engine bytes, not a header
+                pass
+    return 0, {}
+
+
+class TensorRT:
+    """A static batch-1 engine built by studyexport.py on this platform, through TensorRT's named-tensor API (8.5 and later,
+    so JetPack 6.0's 8.6 and 6.1/6.2's 10.3 alike). One non-default stream; net time covers the whole GPU round trip."""
+
+    def __init__(self, model, threads):
+        # Device and pinned host buffers and the stream come from torch, imported here and nowhere else in this file.
+        # JetPack has no Python CUDA binding (pycuda and cuda-python are extra installs), torch with CUDA is on the board
+        # anyway for the export, and it is what Ultralytics' TensorRTBackend uses. The Pi and the phone never get here.
+        import torch
+        import tensorrt as trt
+
+        self.torch, offset, header = torch, *engine_header(model)
+        self.runtime = trt.Runtime(trt.Logger(trt.Logger.WARNING))
+        with open(model, "rb") as f:
+            f.seek(offset)
+            self.engine = self.runtime.deserialize_cuda_engine(f.read())
+        if self.engine is None:
+            sys.exit(f"TensorRT {trt.__version__} cannot load {model}: an engine runs only on the GPU and TensorRT version that "
+                     "built it. Build it on this platform with studyexport.py")
+        self.context = self.engine.create_execution_context()
+        self.stream = torch.cuda.Stream()
+        names = [self.engine.get_tensor_name(i) for i in range(self.engine.num_io_tensors)]
+        inputs = [n for n in names if self.engine.get_tensor_mode(n) == trt.TensorIOMode.INPUT]
+        outputs = sorted(n for n in names if n not in inputs)  # Ultralytics' order: output0 first
+        if len(inputs) != 1:
+            sys.exit(f"{model}: expected one input tensor, found {inputs}")
+        self.buffers, io = {}, []
+        for n in names:
+            shape = tuple(self.engine.get_tensor_shape(n))
+            if -1 in shape:
+                sys.exit(f"{model}: {n} has a dynamic shape {shape}; studyexport.py builds static batch-1 engines")
+            dtype = trt.nptype(self.engine.get_tensor_dtype(n))
+            tdtype = torch.from_numpy(np.empty(0, dtype)).dtype
+            host = torch.empty(shape, dtype=tdtype, pin_memory=True)
+            device = torch.empty(shape, dtype=tdtype, device="cuda")
+            self.context.set_tensor_address(n, device.data_ptr())
+            self.buffers[n] = (host, device)
+            io.append([n, "input" if n in inputs else "output", list(shape), np.dtype(dtype).name])
+        self.inputs, self.outputs = inputs, outputs
+        self.host_in = self.buffers[inputs[0]][0].numpy()
+        self.host_out = self.buffers[outputs[0]][0].numpy()
+        self.input_shape = [int(d) for d in self.engine.get_tensor_shape(inputs[0])]
+        self.version = trt.__version__
+        mem = getattr(self.engine, "device_memory_size_v2", None)
+        self.info = {"device": torch.cuda.get_device_name(0), "compute_capability": list(torch.cuda.get_device_capability(0)),
+                     "torch": torch.__version__, "torch_cuda": torch.version.cuda, "io": io,
+                     "device_memory_bytes": mem if mem is not None else getattr(self.engine, "device_memory_size", None),
+                     "engine_header": {k: header.get(k) for k in ("version", "date", "imgsz", "batch", "end2end", "args")},
+                     "buffers": "torch pinned host + device tensors, one non-default CUDA stream",
+                     "net": "np.copyto into pinned input, H2D copy, execute_async_v3, D2H copy, stream sync",
+                     "threads": f"TensorRT does not use --threads; it sets OpenCV's threads only ({threads})"}
+
+    def __call__(self, x):
+        """The output is the pinned host buffer itself, valid until the next call (post-processing reads it at once)."""
+        np.copyto(self.host_in, x, casting="same_kind")
+        with self.torch.cuda.stream(self.stream):
+            for n in self.inputs:
+                host, device = self.buffers[n]
+                device.copy_(host, non_blocking=True)
+            if not self.context.execute_async_v3(self.stream.cuda_stream):
+                raise RuntimeError("TensorRT execute_async_v3 failed")
+            for n in self.outputs:
+                host, device = self.buffers[n]
+                host.copy_(device, non_blocking=True)
+        self.stream.synchronize()
+        return self.host_out
+
+    def close(self):
+        """Free in dependency order while CUDA is still up; left to interpreter shutdown, TensorRT may crash on exit."""
+        self.stream.synchronize()
+        del self.context, self.engine, self.runtime, self.buffers
+
+
+RUNTIMES = {"onnxruntime": OnnxRuntime, "openvino": OpenVINO, "ncnn": NCNN, "tensorrt": TensorRT}
 
 
 # -------------------------------------------------------------- platform state (fails soft: Android hides most of it)
@@ -282,6 +376,50 @@ def throttled():
     return _try(lambda: int(out.strip().split("=")[1], 16))
 
 
+@functools.lru_cache(maxsize=None)
+def _jetson():
+    """jetson_probe (beside this file) on a Jetson, else None. Imported lazily, so the Pi and the phone never need it."""
+    if not os.path.exists("/etc/nv_tegra_release"):
+        return None
+    import jetson_probe
+
+    return jetson_probe
+
+
+@functools.lru_cache(maxsize=None)
+def _gpu_nodes():
+    """The Jetson's GPU thermal-zone and devfreq clock files, found once; (None, None) elsewhere."""
+    jp = _jetson()
+    if jp is None:
+        return None, None
+    zone = next((z / "temp" for z in sorted(Path("/sys/devices/virtual/thermal").glob("thermal_zone*"))
+                 if "gpu" in (_read(z / "type") or "").lower()), None)
+    dev = jp.gpu_devfreq()
+    return zone, (dev / "cur_freq" if dev else None)
+
+
+def gpu_state():
+    """(GPU temperature in C, GPU clock in MHz) for the per-image columns; (None, None) off a Jetson."""
+    t, f = (_read(p) if p else None for p in _gpu_nodes())
+    return (round(int(t) / 1000, 1) if t and t.lstrip("-").isdigit() else None, round(int(f) / 1e6) if f and f.isdigit() else None)
+
+
+def jetson_summary(samples, rows, start_state):
+    """samples: [[image index, jetson_probe.sample()], ...] taken at the start, every 50 images and the end of each session.
+
+    The throttle signals a user can read without root: an over-current counter that rose between the first and the last
+    sample, and images whose GPU clock was below the maximum it was pinned to (jetson_clocks) at the start."""
+    s = [x for _, x in samples if x]
+    if not s:
+        return None
+    oc = {k: s[-1]["oc_events"].get(k, v) - v for k, v in s[0]["oc_events"].items()}
+    pinned = ((start_state or {}).get("gpu_clocks") or {}).get("max")
+    below = sum(1 for r in rows if r.get("gpu_mhz") and pinned and float(r["gpu_mhz"]) < pinned)
+    return {"temp_c_max": {z: max(x["temp_c"][z] for x in s if z in x["temp_c"]) for z in s[0]["temp_c"]},
+            "oc_events_during_run": oc, "over_current_throttled": any(v > 0 for v in oc.values()) if oc else None,
+            "gpu_max_mhz_at_start": pinned, "images_gpu_below_max": below if pinned else None, "samples": samples}
+
+
 def platform_info():
     cpuinfo = _read("/proc/cpuinfo") or ""
     fields = {}
@@ -308,6 +446,7 @@ def platform_info():
                         for c in range(os.cpu_count() or 0)] if os.path.isdir("/sys/devices/system/cpu") else None,
         "governor": _read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
         "mem_total_kb": _try(lambda: int(next(l for l in _read("/proc/meminfo").splitlines() if l.startswith("MemTotal")).split()[1])),
+        "jetson": _jetson().board_state() if _jetson() else None,
     }
 
 
@@ -391,12 +530,17 @@ def stage_stats(out):
     cols["t_total_ms"] = cols["t_pre_ms"] + cols["t_net_ms"] + cols["t_post_ms"]
     stats = {k: {"median": round(float(np.median(v)), 3), "p95": round(float(np.percentile(v, 95)), 3),
                  "mean": round(float(v.mean()), 3), "min": round(float(v.min()), 3), "max": round(float(v.max()), 3)} for k, v in cols.items()}
-    temps = [float(r["temp_c"]) for r in rows if r["temp_c"]]
-    mhz = [float(r["cpu_mhz"]) for r in rows if r["cpu_mhz"]]
+
+    def spread(col):
+        v = [float(r[col]) for r in rows if r.get(col)]
+        return {"min": min(v), "max": max(v), "median": float(np.median(v))} if v else None
+
     n_cand = [int(r["n_cand"]) for r in rows]
     return rows, stats, {
-        "temp_c": {"min": min(temps), "max": max(temps), "median": float(np.median(temps))} if temps else None,
-        "cpu_mhz": {"min": min(mhz), "max": max(mhz), "median": float(np.median(mhz))} if mhz else None,
+        "temp_c": spread("temp_c"),
+        "cpu_mhz": spread("cpu_mhz"),
+        "gpu_temp_c": spread("gpu_temp_c"),
+        "gpu_mhz": spread("gpu_mhz"),
         "n_cand_max": max(n_cand) if n_cand else None,
         "images_over_max_nms": sum(n > MAX_NMS for n in n_cand),
     }
@@ -448,7 +592,7 @@ def main():
     p.add_argument("--threads", type=int, default=4, help="runtime and OpenCV threads (recorded)")
     p.add_argument("--warmup", type=int, default=20, help="images run untimed first")
     p.add_argument("--limit", type=int, default=None, help="time only the first N images (a quick check, not a cell)")
-    p.add_argument("--platform-tag", default=None, help="e.g. pi5, pi4b, m34, laptop")
+    p.add_argument("--platform-tag", default=None, help="e.g. pi5, pi4b, m34, jetson, laptop")
     p.add_argument("--resume", action="store_true", help="continue a run that died")
     p.add_argument("--overwrite", action="store_true", help="discard an existing run in --out")
     a = p.parse_args()
@@ -519,6 +663,13 @@ def main():
     meta["sessions"].append(session)
     throttle_samples = meta.setdefault("throttle_samples", [])
     throttle_samples.append([len(done), throttled()])
+    board = meta["platform"]["jetson"]
+    if board:
+        meta.setdefault("jetson_samples", []).append([len(done), _jetson().sample()])
+        meta.setdefault("jetson_state_at_start", board)
+        if board["jetson_clocks"] is not True or (board["highest_mode"] and board["nvpmodel_mode"] != board["highest_mode"]):
+            print(f"WARNING: the study runs a Jetson in its highest nvpmodel mode {board['highest_mode']} with jetson_clocks on; "
+                  f"this board is in {board['nvpmodel_mode']}, jetson_clocks {board['jetson_clocks']}. meta.json records it.")
     write_json(meta_path, meta)
 
     head = None
@@ -552,6 +703,8 @@ def main():
         getattr(rt, "close", lambda: None)()
 
     throttle_samples.append([len(files), throttled()])
+    if "jetson_samples" in meta:
+        meta["jetson_samples"].append([len(files), _jetson().sample()])
     rows, stats, extra = stage_stats(out)
     if len(rows) != len(files):
         sys.exit(f"timings.csv has {len(rows)} rows for {len(files)} images: run again with --resume")
@@ -560,6 +713,7 @@ def main():
     meta.pop("error", None)
     meta.update(status="complete", head=head, start=meta["sessions"][0]["start"], end=session["end"], images_timed=len(rows),
                 detections=finalize_predictions(out), timing_ms=stats, device_state=extra, throttle=throttle_summary(throttle_samples),
+                jetson=jetson_summary(meta.pop("jetson_samples", []), rows, meta.get("jetson_state_at_start")),
                 max_rss_mb=_try(max_rss_mb), resumed=len(meta["sessions"]) > 1)
     write_json(meta_path, meta)
     (out / "predictions.jsonl").unlink()
@@ -584,9 +738,13 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
             thr = throttled() if k % THROTTLE_EVERY == 0 else None
             if thr is not None:
                 throttle_samples.append([i, thr])
+            if k % THROTTLE_EVERY == 0 and "jetson_samples" in meta:
+                meta["jetson_samples"].append([i, _jetson().sample()])
+            gpu_temp, gpu_mhz = gpu_state()
             writer.writerow({"index": i, "file": f, "t_pre_ms": f"{t_pre:.3f}", "t_net_ms": f"{t_net:.3f}", "t_post_ms": f"{t_post:.3f}",
                              "n_cand": n_cand, "n_dets": len(scores), "temp_c": cpu_temp_c(), "cpu_mhz": cpu_mhz(),
-                             "throttled": hex(thr) if thr is not None else None, "img_crc32": f"{zlib.crc32(im):08x}", "session": session["index"]})
+                             "throttled": hex(thr) if thr is not None else None, "img_crc32": f"{zlib.crc32(im):08x}", "session": session["index"],
+                             "gpu_temp_c": gpu_temp, "gpu_mhz": gpu_mhz})
             pj.flush()
             tc.flush()
             if k % FSYNC_EVERY == 0:
