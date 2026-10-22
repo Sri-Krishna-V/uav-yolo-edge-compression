@@ -10,8 +10,8 @@ A **model** is one architecture at one scale, e.g. `YOLO11s`. This study has two
 
 A **configuration** is one point in the compression pipeline applied to a study model. Five are defined:
 
-- `baseline` - FP32, fine-tuned on VisDrone, no compression
-- `quantized` - PTQ (or QAT) to FP16 or INT8
+- `baseline` - fine-tuned on VisDrone, no compression step; it runs at its runtime's default precision on that platform
+- `quantized` - post-training quantization (or QAT) to INT8, with calibration
 - `pruned` - structured channel pruning plus recovery fine-tuning
 - `distilled` - trained with a teacher
 - `combined` - pruned, recovered with a teacher (distillation does the recovery), then quantized to INT8
@@ -26,6 +26,20 @@ _Avoid_: "30% smaller" for a 30% pruning ratio.
 A **platform** is a physical device: Raspberry Pi 5, Raspberry Pi 4B, Jetson, Galaxy M34, laptop CPU. A **runtime** is the inference engine and model format used on it: TensorRT, NCNN, TFLite/LiteRT, ONNX Runtime, PyTorch. One platform may support several runtimes, and the runtime is part of the experimental condition, never an implementation detail - runtime choice alone moves Pi 5 throughput by ~2.8x.
 
 Do not write "device" when you mean platform, or "format" when you mean runtime.
+
+The **precision** is the arithmetic a runtime computes in on a platform: FP32, FP16 or INT8. A baseline's precision is its runtime's default on that platform, so it is FP16 where that default is FP16 (NCNN on the Pi 5, TensorRT on the Jetson). Precision is part of a cell's experimental condition and is always stated with the cell.
+_Avoid_: calling an FP16 baseline "quantized"; FP16 is a runtime default here, never a configuration.
+
+## Head
+
+A **one-to-many head** predicts many overlapping boxes per object and needs NMS to keep one. Every cell runs it unless stated otherwise. YOLO26 also has an **NMS-free head** (its one-to-one head), which predicts one box per object and needs no NMS.
+_Avoid_: "end2end" or "e2e" in prose.
+
+## Latency and confidence thresholds
+
+**Latency** is the end-to-end time for one image at batch 1 on one platform: pre-processing, the runtime call and post-processing, measured at the deployment threshold. Reading and decoding the image file is not part of it. Every compression budget and equal-latency comparison is in latency.
+
+The **evaluation threshold** is the low confidence threshold accuracy is measured at, so that every low-score box counts. The **deployment threshold** is the confidence threshold a deployed detector uses, and the one latency is measured at. NMS cost depends on the threshold, so a post-processing time is always stated with its threshold.
 
 ## Cell
 
