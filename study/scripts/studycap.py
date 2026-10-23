@@ -4,9 +4,8 @@ The laptop has 15 GB of RAM and often only 2-4 GB free. An uncapped job once gre
 on Windows a Python MemoryError arrives only at the system commit limit, after the page file has grown, so nothing
 inside the job fails fast. So on Windows the child starts suspended, joins a Job Object whose memory limit covers it
 and every process it starts, and only then runs. The kernel refuses any commit past the cap and tells the parent,
-which stops the whole job at once. The parent also stops it at the timeout, and when the laptop's free RAM falls below
-a floor (1.5 GB; STUDY_RAM_FLOOR_GB), because a cap above what is free would still page. INVARIANTS.md section 1.4
-holds the rule.
+which stops the whole job at once. The parent also stops it at the timeout. The cap is the only memory limit: keep it
+below what the laptop has free, or close other programs first. INVARIANTS.md section 1.4 holds the rule.
 
   code = studycap.run([script, *args], "scoring run X")   # the child's exit code; raises Stopped when it was stopped
 
@@ -23,7 +22,6 @@ import time
 GB = 1 << 30
 WINDOWS = sys.platform == "win32"
 CAP_GB, TIMEOUT_MIN = 4, 60  # INT8 export at 960 and 1280 needs 4-5 GB: raise the cap for those, with the laptop idle
-FLOOR_GB = 1.5  # the step is stopped when the laptop's free RAM falls below this, whatever its own size
 _INSIDE = "STUDY_CAPPED_STEP"  # set in a capped step's environment
 
 
@@ -60,7 +58,6 @@ if WINDOWS:
         ("AssignProcessToJobObject", wt.BOOL, [wt.HANDLE, wt.HANDLE]),
         ("TerminateJobObject", wt.BOOL, [wt.HANDLE, wt.UINT]),
         ("CloseHandle", wt.BOOL, [wt.HANDLE]),
-        ("GlobalMemoryStatusEx", wt.BOOL, [ctypes.c_void_p]),
     ]:
         getattr(_k32, _name).restype, getattr(_k32, _name).argtypes = _res, _args
     _ntdll.NtResumeProcess.restype, _ntdll.NtResumeProcess.argtypes = ctypes.c_long, [wt.HANDLE]  # an NTSTATUS, 0 on success
@@ -88,17 +85,6 @@ if WINDOWS:
         assoc = _COMPLETION_PORT(None, port)
         _check(_k32.SetInformationJobObject(job, _ASSOCIATE_COMPLETION_PORT, ctypes.byref(assoc), ctypes.sizeof(assoc)), "SetInformationJobObject")
         return job, port
-
-    class _MEMORYSTATUSEX(ctypes.Structure):
-        _fields_ = [("dwLength", wt.DWORD), ("dwMemoryLoad", wt.DWORD), *[(n, ctypes.c_ulonglong) for n in (
-            "ullTotalPhys", "ullAvailPhys", "ullTotalPageFile", "ullAvailPageFile", "ullTotalVirtual", "ullAvailVirtual", "ullAvailExtendedVirtual")]]
-
-    def _free_ram():
-        """The laptop's available physical RAM, in bytes."""
-        s = _MEMORYSTATUSEX()
-        s.dwLength = ctypes.sizeof(s)
-        _check(_k32.GlobalMemoryStatusEx(ctypes.byref(s)), "GlobalMemoryStatusEx")
-        return s.ullAvailPhys
 
     def _hit_cap(port):
         """Drain the job's messages; True when one says a commit went past the cap."""
@@ -157,7 +143,6 @@ def run(argv, step, cap_gb=None, timeout_min=None):
             child.kill()
             child.wait()
             raise
-        floor_gb = float(os.environ.get("STUDY_RAM_FLOOR_GB", FLOOR_GB))
         t0 = time.monotonic()
         while True:
             done = child.poll() is not None  # read before the messages, so a cap hit just before exiting is seen
@@ -168,9 +153,6 @@ def run(argv, step, cap_gb=None, timeout_min=None):
                 return child.returncode
             elif time.monotonic() - t0 > timeout_min * 60:
                 reason = f"it ran past its {timeout_min:g} min timeout"
-            elif _free_ram() < floor_gb * GB:
-                reason = (f"the laptop's free RAM fell below {floor_gb:g} GB, where it starts to page (close other programs, "
-                          "or lower the floor with STUDY_RAM_FLOOR_GB)")
             if reason:
                 _k32.TerminateJobObject(job, 1)
                 child.wait()

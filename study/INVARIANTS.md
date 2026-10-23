@@ -51,7 +51,7 @@ Decided 22 October 2026 by the map ticket *Final matrix and schedule* (#10); bui
 
 **The rule: on the laptop, every heavy step runs in a child process under a hard memory cap and a timeout, and a step that goes over either is stopped, never waited out.** The heavy steps are scoring's ground-truth build, its COCO evaluation, and the calibration of every INT8 export.
 
-**The code enforces it; nobody applies it by hand.** `scripts/studycap.py` starts the step suspended, puts it in a Windows Job Object whose memory limit covers it and every process it starts, then lets it run. The kernel refuses any commit past the cap, and the parent stops the whole job at once. The parent also stops it at the timeout, and when the laptop's free RAM falls below 1.5 GB (`STUDY_RAM_FLOOR_GB`), because a cap above what is free would still page. A stopped step exits 1 with a message that names the step and the limit it crossed. A step that stays inside its limits keeps its own output and exit code.
+**The code enforces it; nobody applies it by hand.** `scripts/studycap.py` starts the step suspended, puts it in a Windows Job Object whose memory limit covers it and every process it starts, then lets it run. The kernel refuses any commit past the cap, and the parent stops the whole job at once. The parent also stops it at the timeout. The cap is the only memory limit, so it protects the laptop only while it is below what is free: close other programs before a step that needs most of it. A stopped step exits 1 with a message that names the step and the limit it crossed. A step that stays inside its limits keeps its own output and exit code.
 
 | Script | What runs capped | Unit |
 |---|---|---|
@@ -59,7 +59,7 @@ Decided 22 October 2026 by the map ticket *Final matrix and schedule* (#10); bui
 | `studyexport.py` | each INT8 variant's export, calibration included | one variant; a stopped variant is reported failed and the others go on |
 
 - **Limits**: 4 GB and 60 minutes per step. Change them with `--mem-cap-gb` / `--timeout-min` on either script, or `STUDY_MEM_CAP_GB` / `STUDY_TIMEOUT_MIN`. INT8 export at 960 and 1280 needs 4–5 GB: raise the cap for those, with the laptop otherwise idle.
-- **Off Windows the cap does nothing**: on the Pis, the Jetson and Kaggle the steps run as before, with no cap and no timeout. `scripts/tests/test_studycap.py` proves both sides: a step over its cap, its timeout or the free-RAM floor is stopped at once, and the same step off Windows runs to the end with its exit code.
+- **Off Windows the cap does nothing**: on the Pis, the Jetson and Kaggle the steps run as before, with no cap and no timeout. `scripts/tests/test_studycap.py` proves both sides: a step over its cap or its timeout is stopped at once, and the same step off Windows runs to the end with its exit code.
 - **Checked on the laptop, 23 October 2026**: scoring a 50-image A1 ONNX Runtime FP32 run went through the cap, rebuilding the 640 test-dev ground truth byte-identical to the cached one and writing the same `score.json` as the uncapped path. At `--mem-cap-gb 0.3` and `--timeout-min 0.02` the scorer stopped with exit 1 and said why. A1's ONNX Runtime INT8 export at 640 went through the cap in 116 s, and its graph and weights are identical to the 21 October export behind #9's parity numbers (only the export date in the metadata differs). At `--mem-cap-gb 1` the export was stopped after 11 s and reported failed.
 
 ---

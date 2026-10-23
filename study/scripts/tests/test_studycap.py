@@ -54,17 +54,10 @@ if sys.platform == "win32":
     msg, code, s = stopped(["-c", f"import subprocess, sys; sys.exit(subprocess.run([sys.executable, *{ALLOC_1GB!r}]).returncode)"], cap_gb=0.25, timeout_min=1)
     check("1 a process the child starts is under the same cap", msg is not None and "0.25 GB memory cap" in msg, msg or f"exit {code}")
 
-    # ---------------------------------------------------------------- 2: over the timeout, or the laptop running out of free RAM
+    # ---------------------------------------------------------------- 2: over the timeout
     msg, code, s = stopped(["-c", "import time; time.sleep(60)"], cap_gb=1, timeout_min=0.05)
     check("2 a child that runs past its timeout is stopped", msg is not None and "the test step" in msg and "timeout" in msg, msg or f"exit {code}")
     check("2 it is stopped at the timeout, not when it ends", s < 15, f"{s:.1f} s")
-
-    saved = {"STUDY_RAM_FLOOR_GB": os.environ.get("STUDY_RAM_FLOOR_GB")}
-    os.environ["STUDY_RAM_FLOOR_GB"] = "100000"  # more than any laptop has free: the floor is crossed at once
-    msg, code, s = stopped(["-c", "import time; time.sleep(60)"], cap_gb=1, timeout_min=1)
-    restore(saved)
-    check("2 a child is stopped when the laptop's free RAM falls below the floor", msg is not None and "free RAM" in msg, msg or f"exit {code}")
-    check("2 it is stopped at once", s < 15, f"{s:.1f} s")
 
     # ---------------------------------------------------------------- 3: a step that stays inside its limits is untouched
     msg, code, s = stopped(["-c", "import sys; print('child output'); sys.exit(3)"], cap_gb=1, timeout_min=1)
