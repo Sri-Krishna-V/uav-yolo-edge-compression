@@ -1,0 +1,10 @@
+{
+  "platform": "pi5",
+  "mode": "energy",
+  "note": "the first real energy session (#26): A1 at 640, ONNX Runtime FP32 and INT8, the speed test's exports; per cell a 1-minute idle reading and a 3-minute run with the PMIC read, and right after FP32's, FP32 once more with the sampler off, for its cost on FPS; about 15-25 min with the start gates. A check of the energy mode, not the equal-latency pairs",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}

@@ -41,6 +41,11 @@ _Avoid_: "end2end" or "e2e" in prose.
 
 The **evaluation threshold** is the low confidence threshold accuracy is measured at, so that every low-score box counts. The **deployment threshold** is the confidence threshold a deployed detector uses, and the one latency is measured at. NMS cost depends on the threshold, so a post-processing time is always stated with its threshold.
 
+## Rail sum
+
+The **rail sum** is the Pi 5's on-board power as its PMIC reports it: the sum of voltage × current over its output rails. It is not wall power, which also includes what bypasses those rails.
+_Avoid_: "power draw" or "wall power" for a rail sum.
+
 ## Cell
 
 A **cell** is one measured combination: model x configuration x platform (x runtime, where more than one is benchmarked). The **matrix** is the set of cells the study commits to running. Cells are the unit of scope cutting.

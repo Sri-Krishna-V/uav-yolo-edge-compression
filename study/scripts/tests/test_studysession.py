@@ -36,7 +36,7 @@ def bench_meta(ms=100.0, throttled=False, e2e_deploy=None, jetson=None):
 GOOD_PI = {"governors": ["performance"] * 4, "desktop": [], "update_units": {"apt-daily.timer": "inactive", "apt-daily-upgrade.timer": "inactive"},
            "packages": {"numpy": "2.4.6", "opencv-python-headless": "5.0.0.93", "onnxruntime": "1.31.0", "openvino": "2026.4.1",
                         "ncnn": "1.0.20260526"},
-           "python": "3.11.2", "os": "Debian GNU/Linux 12 (bookworm)"}
+           "python": "3.11.2", "os": "Debian GNU/Linux 12 (bookworm)", "pmic_w": 2.9}
 
 
 class FakeEnv:
@@ -48,12 +48,33 @@ class FakeEnv:
       {"throttled": True}  a complete run that throttled
       {"interrupt": True}  Ctrl-C while the benchmark runs
       {"meta": {...}}  this exact meta.json
+    An energy run (a spec with "seconds") loads for load_s, then runs `seconds` at `fps` frames per second; its outcome
+    may also set {"fps": 4.0}, or {"no_power": True} (the sampler read nothing).
+
+    The fake sampler: power(t, phase) gives the rail sum in W at time t, phase "idle", "load" (model load and warm-up)
+    or "run"; it is read every SAMPLE_S, during the idle window and through the whole of a sampled bench.
     """
 
-    def __init__(self, temps=lambda t: 40.0, script=None, bench_s=60.0, battery=None, board=None, facts=None):
+    SAMPLE_S = 0.5
+
+    def __init__(self, temps=lambda t: 40.0, script=None, bench_s=60.0, battery=None, board=None, facts=None,
+                 power=lambda t, phase: 3.0, fps=5.0, load_s=10.0):
         self.t, self.temps, self.script, self.bench_s = 0.0, temps, script or {}, bench_s
         self.battery, self.board, self.facts = battery, board, GOOD_PI if facts is None else facts  # a Pi set up as the protocol asks
+        self.power, self.fps, self.load_s = power, fps, load_s
         self.calls = []  # (unit name, attempt directory, clock at the call, CPU temperature at the call)
+        self.idles = []  # (clock at the start of an idle window, its length)
+
+    def readings(self, t0, t1, phase, end=False):
+        n = round((t1 - t0) / self.SAMPLE_S) + (1 if end else 0)
+        return [[t0 + k * self.SAMPLE_S, self.power(t0 + k * self.SAMPLE_S, phase(t0 + k * self.SAMPLE_S) if callable(phase) else phase)]
+                for k in range(n)]
+
+    def idle_window(self, seconds):
+        self.idles.append((self.t, seconds))
+        samples = self.readings(self.t, self.t + seconds, "idle")
+        self.t += seconds
+        return samples
 
     def now(self):
         return self.t
@@ -79,6 +100,8 @@ class FakeEnv:
         self.calls.append((name, Path(out_dir), self.t, self.cpu_temp_c(), spec))
         todo = self.script.get(name, [])
         outcome = todo[k] if k < len(todo) else {}
+        if spec.get("seconds"):
+            return self.energy_bench(spec, outcome)
         self.t += self.bench_s
         if outcome.get("interrupt"):
             raise KeyboardInterrupt
@@ -86,6 +109,21 @@ class FakeEnv:
             return {"exit": 1, "meta": {"status": "interrupted", "error": "RuntimeError: boom"}, "tail": "RuntimeError: boom"}
         meta = outcome.get("meta") or bench_meta(outcome.get("ms", 100.0), outcome.get("throttled", False))
         return {"exit": 0, "meta": meta, "tail": "done"}
+
+    def energy_bench(self, spec, outcome):
+        t0, fps = self.t, outcome.get("fps", self.fps)
+        w0, w1 = t0 + self.load_s, t0 + self.load_s + spec["seconds"]
+        self.t = w1
+        if outcome.get("interrupt"):
+            raise KeyboardInterrupt
+        if outcome.get("crash"):
+            return {"exit": 1, "meta": {"status": "interrupted", "error": "RuntimeError: boom"}, "tail": "RuntimeError: boom", "power": []}
+        meta = bench_meta(0.0, outcome.get("throttled", False))
+        del meta["timing_ms"]
+        meta.update(mode="energy", precision="FP32", energy={"frames": round(fps * spec["seconds"]), "window": [w0, w1]})
+        power = [] if outcome.get("no_power") or not spec["sample_power"] else \
+            self.readings(t0, w1, lambda t: "load" if t < w0 else "run", end=True)
+        return {"exit": 0, "meta": meta, "tail": "done", "power": power}
 
 
 A = "exports/yolo11s-640-s0/640/onnxruntime-int8"
@@ -481,6 +519,173 @@ check("12 ... and no run starts", env.calls == [])
 check("12 the drift check's onnxruntime is checked even when no cell uses it",
       "onnxruntime" in {c["check"] for c in ss.setup_report(plan(B, platform="pi5"), FakeEnv())})
 check("12 the laptop has no setup checks", ss.setup_report(plan(A), FakeEnv(facts={**GOOD_PI, "desktop": ["labwc"]})) == [])
+
+
+# ---------------------------------------------------------------- 13: an energy session (#26): idle, then a 3-minute run, per cell
+def energy(*artifacts, **kw):
+    return {**plan(*artifacts, platform="pi5"), "mode": "energy", **kw}
+
+
+def windows(state, unit, k=0):
+    a = state["units"][unit]["attempts"][k]
+    return a.get("idle"), a.get("run")
+
+
+env = FakeEnv(power=lambda t, load: 6.0 if load == "run" else 4.5 if load == "load" else 3.0, fps=5.0)
+out, state = run(energy(A, B), env)
+called = [c[0] for c in env.calls]
+first = state["order"].index(name(A)) + 1
+check("13 each cell runs once, in the shuffled order, with the sampler-off run right after the plan's first cell; no reference runs",
+      called == state["order"][:first] + ["sampler-off"] + state["order"][first:] and sorted(state["order"]) == sorted([name(A), name(B)]),
+      (called, state["order"]))
+sampled = [c for c in env.calls if c[0] != "sampler-off"]
+check("13 each energy run: a 1-minute idle reading right after the gate, then a 3-minute run with the sampler on",
+      env.idles[0] == (0, 60) and [t + s for t, s in env.idles] == [c[2] for c in sampled]
+      and all(c[4]["seconds"] == 180 and c[4]["sample_power"] for c in sampled), (env.idles, [c[2] for c in env.calls]))
+idle, run_ = windows(state, name(A))
+check("13 the idle window and the run window are recorded next to each other, as rail sums",
+      idle["mean_w"] == 3.0 and idle["seconds"] == 60 and idle["samples"] == 120
+      and run_["mean_w"] == 6.0 and run_["seconds"] == 180 and run_["samples"] == 361, (idle, run_))
+a = state["units"][name(A)]["attempts"][0]
+check("13 the model load and warm-up (between the windows) are in neither", run_["mean_w"] == 6.0 and idle["mean_w"] == 3.0)
+check("13 J per frame: the run's rail energy over its frames, and net of the idle reading",
+      a["frames"] == 900 and a["fps"] == 5.0 and a["rail_j_per_frame"] == 1.2 and a["rail_j_per_frame_net"] == 0.6, a)
+s = summary(out)
+check("13 the summary: one row per cell, with FPS, both windows, J per frame, and the boundary",
+      s[name(A)]["outcome"] == "ok" and s[name(A)]["fps"] == "5.0" and s[name(A)]["rail_idle_w"] == "3.0"
+      and s[name(A)]["rail_run_w"] == "6.0" and s[name(A)]["rail_j_per_frame"] == "1.2" and s[name(A)]["rail_j_per_frame_net"] == "0.6"
+      and s[name(A)]["measures"] == "rail sum, not wall power", s.get(name(A)))
+check("13 ... and no latency column: an energy run is never a latency", "latency_ms" not in s[name(A)], list(s[name(A)]))
+log = (out / "session.log").read_text(encoding="utf-8")
+check("13 the log labels the energy as the rail sum, not wall power", "rail sum, not wall power" in log, log[-800:])
+power = (out / a["dir"] / "power.csv").read_text(encoding="utf-8").splitlines()
+check("13 every reading is kept in the run's power.csv, with its window",
+      power[0] == "window,t_s,rail_w" and sum(r.startswith("idle,") for r in power) == 120 and sum(r.startswith("run,") for r in power) == 361
+      and any(r.startswith("between,") for r in power), power[:3])
+
+# ---------------------------------------------------------------- 14: the sampler's cost on FPS, measured once per energy session
+env = FakeEnv(script={name(A): [{"fps": 4.9}], "sampler-off": [{"fps": 5.0}]})
+out, state = run(energy(A, B), env)
+off = next(c for c in env.calls if c[0] == "sampler-off")
+on = next(c for c in env.calls if c[0] == name(A))
+check("14 the sampler-off run: the plan's first cell, the same 3 minutes, the sampler off",
+      off[0] == "sampler-off" and off[4]["artifact"] == A and off[4]["seconds"] == 180 and off[4]["sample_power"] is False, off[4])
+check("14 ... right after the sampled run of that cell, and it rests the same minute first, without readings",
+      env.calls.index(off) == env.calls.index(on) + 1 and len(env.idles) == 2 and off[2] - on[2] == 10 + 180 + 60,
+      (env.idles, [c[2] for c in env.calls]))
+c = state["sampler_cost"]
+check("14 the cost: FPS with the sampler against FPS without it", c == {"cell": name(A), "fps_sampler_on": 4.9, "fps_sampler_off": 5.0,
+                                                                    "cost_pct": 2.0, "throttled": []}, c)
+s = summary(out)
+check("14 the sampler-off row has its FPS and no energy", s["sampler-off"]["sampler"] == "off" and s["sampler-off"]["fps"] == "5.0"
+      and s["sampler-off"]["rail_j_per_frame"] == "" and s["sampler-off"]["measures"] == "", s["sampler-off"])
+check("14 ... and the log gives the cost", "the sampler's cost on FPS" in (out / "session.log").read_text(encoding="utf-8")
+      and "+2.0%" in (out / "session.log").read_text(encoding="utf-8"))
+
+# ---------------------------------------------------------------- 15: an energy run never shares a pass with a latency measurement
+env = FakeEnv()
+out, state = run(plan(A, B, platform="pi5"), env)
+check("15 a latency session never reads the PMIC and never runs timed", env.idles == []
+      and not any(c[4].get("sample_power") or c[4].get("seconds") for c in env.calls), [c[4] for c in env.calls])
+env = FakeEnv()
+out, state = run(energy(A, B), env)
+check("15 an energy session never runs a latency pass: every run is timed, with no reference runs", all(c[4].get("seconds") for c in env.calls)
+      and "drift-start" not in state["units"] and "drift" not in state, list(state["units"]))
+check("15 an energy session needs no reference cell on the Pi", ss.needed_paths(energy(A, B)) == ["datasets/VisDrone/images/test", A, B])
+for label, bad, says in (("on another platform", {**energy(A), "platform": "laptop"}, "Pi 5"),
+                         ("a cell with a limit", {**energy(A), "cells": [{**CELL, "limit": 200}]}, "limit"),
+                         ("an unknown mode", {**plan(A, platform="pi5"), "mode": "power"}, "mode"),
+                         ("a cell named like the sampler-off run", {**energy(A), "cells": [{**CELL, "name": "sampler-off"}]}, "sampler-off")):
+    try:
+        run(bad, FakeEnv())
+        check(f"15 an energy plan {label}: refused", False)
+    except SystemExit as e:
+        check(f"15 an energy plan {label}: refused, naming the problem", says in str(e), str(e))
+P0 = plan(A, B, platform="pi5")
+check("15 a latency plan validates as before #26, so a session started before it resumes", "mode" not in ss.load_plan(P0))
+
+# ---------------------------------------------------------------- 16: the PMIC check, and the run rules in an energy session
+for label, w in (("unreadable", None), ("reading 0 W", 0.0)):
+    env = FakeEnv(facts={**GOOD_PI, "pmic_w": w})
+    try:
+        run(energy(A), env)
+        check(f"16 PMIC rails {label}: an energy session is refused", False)
+    except SystemExit as e:
+        check(f"16 PMIC rails {label}: an energy session is refused before any run, with the fix", env.calls == [] and "pmic_read_adc" in str(e), str(e))
+check("16 a latency session does not check the PMIC", "PMIC rails" not in {c["check"] for c in ss.setup_report(P0, FakeEnv())})
+
+env = FakeEnv(script={name(A): [{"no_power": True}]})
+out, state = run(energy(A, B), env)
+r = summary(out)[name(A)]
+check("16 a run the sampler read nothing in counts as a crash, and runs again", r["attempts"] == "2" and r["outcome"] == "ok"
+      and "readings" in state["units"][name(A)]["attempts"][0]["error"], (r, state["units"][name(A)]["attempts"][0]))
+env = FakeEnv(script={name(A): [{"crash": True}, {"crash": True}]})
+out, state = run(energy(A, B), env)
+check("16 two crashes: the cell is failed, and the sampler's cost is unknown", summary(out)[name(A)]["outcome"] == "failed"
+      and state["sampler_cost"]["cost_pct"] is None and state["status"] == "complete", state["sampler_cost"])
+env = FakeEnv(script={name(B): [{"throttled": True, "fps": 4.0}, {}]})
+out, state = run(energy(A, B), env)
+order = [c[0] for c in env.calls]
+check("16 a throttled energy run runs again at the end, with its own idle reading",
+      order[-1] == name(B) and order.count(name(B)) == 2 and len(env.idles) == 3, (order, env.idles))
+r = summary(out)[name(B)]
+check("16 ... and the clean attempt gives the cell's energy", r["outcome"] == "ok" and r["fps"] == "5.0" and r["run_dir"].endswith("attempt-2"), r)
+env = FakeEnv(script={"sampler-off": [{"throttled": True, "fps": 4.0}, {"fps": 5.1}]})
+out, state = run(energy(A, B), env)
+check("16 a throttled sampler-off run runs again at the end too, and the clean one gives the cost",
+      [c[0] for c in env.calls][-1] == "sampler-off" and state["sampler_cost"]["fps_sampler_off"] == 5.1
+      and state["sampler_cost"]["throttled"] == [], state["sampler_cost"])
+env = FakeEnv(script={"sampler-off": [{"throttled": True, "fps": 4.0}, {"throttled": True, "fps": 4.2}]})
+out, state = run(energy(A, B), env)
+check("16 throttled twice: the cost record and the log say so", state["sampler_cost"]["throttled"] == ["sampler-off"]
+      and "sampler-off throttled" in (out / "session.log").read_text(encoding="utf-8"), state["sampler_cost"])
+env = FakeEnv()
+out, state = run(energy(A), env, dry_run=True)
+check("16 a dry run: a 10 s idle reading and 15 s runs", [s for _, s in env.idles] == [10] and all(c[4]["seconds"] == 15 for c in env.calls),
+      (env.idles, [c[4]["seconds"] for c in env.calls]))
+
+# ---------------------------------------------------------------- 17: the PMIC reading and the sampler on the real platform
+PMIC = """     3V7_WL_SW_A current(0)=0.00000000A
+       3V3_SYS_A current(1)=0.10000000A
+      VDD_CORE_A current(7)=2.00000000A
+          HDMI_A current(22)=0.02000000A
+     3V7_WL_SW_V volt(8)=3.74639000V
+       3V3_SYS_V volt(9)=3.30000000V
+      VDD_CORE_V volt(15)=0.75000000V
+          HDMI_V volt(23)=5.00000000V
+         EXT5V_V volt(24)=5.13072000V
+          BATT_V volt(25)=0.00000000V
+"""
+w = ss.parse_pmic(PMIC)
+check("17 the rail sum: each rail's current times its own voltage, summed; EXT5V and BATT have no current",
+      w is not None and abs(w - (0.1 * 3.3 + 2.0 * 0.75 + 0.02 * 5.0)) < 1e-9, w)
+check("17 a rail with a current and no voltage is not counted", abs(ss.parse_pmic(PMIC + "       1V8_SYS_A current(2)=1.0A\n") - w) < 1e-9)
+check("17 output with no rails (another Pi, an error) gives no reading", ss.parse_pmic("error=1 error_msg=\"Command not registered\"") is None
+      and ss.parse_pmic("") is None)
+
+
+class FakePmic(ss.Platform):
+    """The real platform with a fake PMIC: every reading is 2.5 W, every third fails."""
+    sample_s = 0.02
+    n = 0
+
+    def read_power(self):
+        self.n += 1
+        return None if self.n % 3 == 0 else 2.5
+
+
+p = FakePmic("pi5")
+t0 = ss.time.monotonic()
+samples = p.idle_window(0.5)
+t1 = ss.time.monotonic()
+check("17 an idle window: the sampler reads for its length, at its interval, and keeps the readings that worked",
+      10 <= len(samples) <= 25 and all(x == 2.5 for _, x in samples), len(samples))
+check("17 ... each reading timed on the monotonic clock the bench's window uses", all(t0 <= t <= t1 for t, _ in samples)
+      and [t for t, _ in samples] == sorted(t for t, _ in samples) and t1 - t0 >= 0.5, (t0, samples[:2], t1))
+sampler = ss.PowerSampler(lambda: 1 / 0, 0.01)
+sampler.start()
+ss.time.sleep(0.1)
+check("17 a reader that raises: the sampler keeps going and gives no readings", sampler.stop() == [] and sampler.failed > 3, sampler.failed)
 
 if FAILED:
     sys.exit(f"{len(FAILED)} failed: {FAILED}")

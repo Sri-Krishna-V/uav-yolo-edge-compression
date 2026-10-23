@@ -26,6 +26,10 @@ Latency is e2e_deploy, pre + net + the 0.25 pass, in meta.json's timing_ms besid
 The detections are written exactly as DetectionValidator.pred_to_json writes them (bbox rounded to 3 decimals, score
 to 5, category = class + 1). Score them on the laptop with `python studyscore.py <out>`.
 
+--seconds makes it an energy run instead (#26, studysession.py's energy sessions). It runs pre + net + post at 0.25 over
+the --limit images, decoded first and cycled, for that many seconds. It saves nothing per frame, and meta.json records
+the frames and the window on the monotonic clock that the session's PMIC sampler uses.
+
 --threads is part of the cell, not only a speed knob: ONNX Runtime's INT8 output changes with intra_op_num_threads
 (measured on the laptop: 1, 2 and 4 threads agree, 8 and 16 each differ, by up to 49 px on a box; FP32 does not move).
 Ultralytics leaves ONNX Runtime at its default, one thread per physical core.
@@ -736,6 +740,8 @@ def main():
     p.add_argument("--platform-tag", default=None, help="e.g. pi5, pi4b, m34, jetson, laptop")
     p.add_argument("--resume", action="store_true", help="continue a run that died")
     p.add_argument("--overwrite", action="store_true", help="discard an existing run in --out")
+    p.add_argument("--seconds", type=float, default=None,
+                   help="an energy run (#26): frames for this long over the --limit images, nothing per frame saved (studysession.py's energy mode)")
     a = p.parse_args()
 
     out = Path(a.out)
@@ -749,6 +755,10 @@ def main():
         sys.exit(f"{a.artifact} does not match its manifest.json: re-copy the artifact")
     if manifest and (manifest.get("imgsz") != a.imgsz or manifest.get("runtime") != a.runtime):
         sys.exit(f"--runtime {a.runtime} --imgsz {a.imgsz}, but the manifest says {manifest.get('runtime')} at {manifest.get('imgsz')}")
+    if a.seconds is not None:
+        if a.seconds <= 0:
+            sys.exit(f"--seconds is the energy run's length, not {a.seconds}")
+        return energy_run(a, out, files, model_file, digests, manifest)
     config = {"runtime": a.runtime, "imgsz": a.imgsz, "threads": a.threads, "artifact_sha256": digests,
               "images": len(files), "images_sha1": hashlib.sha1("\n".join(files).encode()).hexdigest(),
               "deploy_conf": DEPLOY_CONF}  # also keeps a run started before the deployment pass from resuming into this one
@@ -870,6 +880,79 @@ def main():
     print(f"done: {len(rows)} images, {a.runtime} {rt.precision}, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} ms; "
           f"latency (e2e_deploy, conf {DEPLOY_CONF}) {t['e2e_deploy']['median']} ms (p95 {t['e2e_deploy']['p95']}), post {t['post_deploy']['median']} ms; "
           f"at conf {CONF}: total {t['t_total_ms']['median']}, post {t['t_post_ms']['median']} ms")
+
+
+def energy_loop(images, infer, seconds, clock=time.monotonic, throttle=throttled):
+    """An energy run's timed part: infer(image) over the images, cycled in order, until `seconds` have passed on `clock`; the
+    frame running then finishes and counts. -> {frames, window [start, end] on clock, throttle_samples [[frame, value], ...]}
+    (read at the start, every 50 frames and at the end, as in a latency run)."""
+    samples = [[0, throttle()]]
+    frames, t0 = 0, clock()
+    while clock() - t0 < seconds:
+        infer(images[frames % len(images)])
+        frames += 1
+        if frames % THROTTLE_EVERY == 0:
+            samples.append([frames, throttle()])
+    t1 = clock()
+    samples.append([frames, throttle()])
+    return {"frames": frames, "window": [t0, t1], "throttle_samples": samples}
+
+
+def energy_run(a, out, files, model_file, digests, manifest):
+    """--seconds: an energy run (#26), for studysession.py's energy sessions, which read the Pi 5's PMIC from outside this
+    process. Each frame is what a deployed detector does, pre + net + post at the deployment threshold, over the --limit
+    images decoded beforehand, for --seconds. Nothing per frame is saved: no latency and no accuracy come from it."""
+    meta_path = out / "meta.json"
+    if meta_path.exists() and not a.overwrite:
+        sys.exit(f"{out} holds a run; an energy run does not resume: pass --overwrite to replace it")
+    if a.resume:
+        sys.exit("an energy run does not resume: run it again")
+    images = [imread(Path(a.images) / f) for f in files]
+    if any(im is None for im in images):
+        sys.exit(f"cannot read {files[[im is None for im in images].index(True)]}")
+    cv2.setNumThreads(a.threads)
+    t_load = time.perf_counter()
+    rt = RUNTIMES[a.runtime](model_file, a.threads)
+    load_s = time.perf_counter() - t_load
+    if rt.input_shape and rt.input_shape[-2:] != [a.imgsz, a.imgsz]:
+        sys.exit(f"--imgsz {a.imgsz} but the model input is {rt.input_shape}")
+    meta = {"tool": "studybench.py", "mode": "energy", "status": "running", "platform_tag": a.platform_tag, "artifact": str(a.artifact),
+            "model_file": str(model_file), "artifact_sha256": digests, "manifest": manifest, "runtime": a.runtime, "imgsz": a.imgsz,
+            "threads": a.threads, "warmup": a.warmup, "images_dir": str(a.images), "images": len(files),
+            "images_sha1": hashlib.sha1("\n".join(files).encode()).hexdigest(), "deploy_conf": DEPLOY_CONF,
+            "frame": f"pre + net + post at conf {DEPLOY_CONF} (the deployment threshold); images decoded before the timed run, cycled in order",
+            "start": now(), "model_load_s": round(load_s, 3), "platform": platform_info(),
+            "versions": {"python": platform.python_version(), "numpy": np.__version__, "cv2": cv2.__version__, a.runtime: rt.version},
+            "runtime_info": rt.info, "precision": rt.precision, "cv2_threads": cv2.getNumThreads()}
+    write_json(meta_path, meta)
+    head = None
+
+    def infer(im):
+        nonlocal head
+        x, ratio_pad = preprocess(im, a.imgsz)
+        y = rt(x)[0]
+        if head is None:
+            head = "end2end" if y.shape[-1] == 6 else "raw"
+        postprocess(y, head, DEPLOY_CONF, ratio_pad, im.shape[:2])
+
+    try:
+        for i in range(a.warmup):
+            infer(images[i % len(images)])
+        meta["warmup_done"] = now()
+        e = energy_loop(images, infer, a.seconds)
+    except BaseException as ex:
+        meta.update(status="interrupted", error=f"{type(ex).__name__}: {ex}", end=now())
+        write_json(meta_path, meta)
+        raise
+    finally:
+        getattr(rt, "close", lambda: None)()
+    seconds = e["window"][1] - e["window"][0]
+    meta.update(status="complete", end=now(), head=head, throttle=throttle_summary(e.pop("throttle_samples")), max_rss_mb=_try(max_rss_mb),
+                energy={"seconds_asked": a.seconds, "frames": e["frames"], "window": e["window"], "seconds": round(seconds, 3),
+                        "fps": round(e["frames"] / seconds, 3), "clock": "time.monotonic, the clock studysession's PMIC sampler stamps readings with"})
+    write_json(meta_path, meta)
+    print(f"done: energy run, {e['frames']} frames in {seconds:.1f} s ({meta['energy']['fps']} FPS), {a.runtime} {rt.precision}, head {head}; "
+          f"{len(files)} images cycled, post at conf {DEPLOY_CONF}")
 
 
 def run_images(a, out, todo, infer, session, throttle_samples, meta):

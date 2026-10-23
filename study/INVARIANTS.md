@@ -151,6 +151,19 @@ Decided 22 October 2026 by the map ticket *Measurement protocol* (#8); built by 
   - **Run the INT8 half at `--threads 8`.** #9 evaluated through Ultralytics, which leaves ONNX Runtime at one thread per physical core, 8 on the laptop, and ONNX Runtime's INT8 detections change with the thread count (FP32's did not move across 1–16 threads; `studybench.py`'s docstring). At the platform runs' 4 threads, the same INT8 artifact gives **16.86 / 7.65**: that is the laptop reference for a 4-thread INT8 cell, not a parity failure.
   - Last passed: 23 October 2026, with #22's two passes in the bench. FP32 at 4 threads gave 18.76 / 9.04 and INT8 at 8 threads 16.84 / 7.74. Over the first 100 test-dev images, the bench before and after #22 wrote byte-identical `predictions.json` for both.
 
+### 4.6 Platform runs: energy, on the Pi 5 only
+
+Decided 22 October 2026 by the map ticket *Measurement protocol* (#8), from *Power measurement capability* (#7); built by #26. The **rail sum** is defined in [`GLOSSARY.md`](../GLOSSARY.md).
+
+- **Where:** the Pi 5 only, and only for the cells of the equal-latency pairs. The other platforms get no energy numbers. Joules per frame is compared within the Pi 5 only, never across platforms: each platform's power reading has a different boundary (#7).
+- **What is read:** the PMIC rail sum, Σ V_i·I_i over the rails `vcgencmd pmic_read_adc` reports both for, every 0.5 s. It leaves out the USB ports, the fan and everything else fed straight from 5 V, and the PMIC's conversion losses. It is always labelled **"rail sum, not wall power"**. The only published comparison, one hobbyist's board, puts it 18–31 % below input power.
+- **Never in a latency pass.** Energy runs are a session of their own: a plan with `"mode": "energy"`, run by `studysession.py`. Latency sessions never start the sampler; a Pi 5's setup checks read the PMIC once, before any run. An energy run saves no per-frame time and no detections, and `studyscore.py` refuses it.
+- **One energy run:** after the start gate, a 1-minute idle reading, then 3 minutes of the cell with the sampler on. The idle window and the run window are recorded next to each other, and every reading is kept, with its window, in the run's `power.csv` (`idle`, `between`, `run` or `after`; `bench` for a run that crashed and has no window). Each frame is what a deployed detector does: pre + net + post at the deployment threshold, over the first 100 test-dev images. They are decoded before the run and cycled in order, so reading files is not in the energy. The model load and the 20 warm-up images happen between the two windows and are in neither.
+  - **J per frame** = the run's mean rail sum × its duration / its frames.
+  - **Net of idle** = (run mean − idle mean) × duration / frames. Both are recorded.
+- **The sampler's cost on FPS**, measured once per energy session. Right after the plan's first cell, that cell runs once more with the same rest minute and the same 3 minutes, but with the sampler off. `session.json` records the FPS with and without the sampler, the difference, and which of the two runs throttled. It is one pair of runs: #7 saw FPS move about 7 % between two identical laptop runs, so a difference of a few percent is within the noise. That bounds the sampler's cost; it does not measure it.
+- The latency session's other rules apply unchanged: the start gate, the shuffled order, 4 threads, a re-run after a crash or a throttle (the sampler-off run's included). There is no drift check, since no latency comes from the session. A run whose windows hold fewer than 10 readings has no energy, and counts as a crash.
+
 ---
 
 ## 5. Which YOLO26 head is scored: `nms: null`

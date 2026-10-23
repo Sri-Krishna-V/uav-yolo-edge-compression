@@ -32,6 +32,13 @@ latency, throttle state, drift verdict, and the run directory to score). The sam
 session: it skips the runs that finished and restarts a half-done one from the start, in a fresh directory. An
 interruption is not a crash. A plan whose artifacts, reference cell or images are missing stops before anything runs.
 
+An energy session (#26, INVARIANTS.md section 4.6) is a plan with "mode": "energy", on the Pi 5 only, and never a latency
+measurement. Each cell, after the gate, gets a 1-minute idle reading of the PMIC rail sum, then a 3-minute studybench
+--seconds run with the PMIC read every 0.5 s by a thread here. Right after the plan's first cell, that cell runs once more
+with the sampler off, for the sampler's cost on FPS. There is no drift check. The crash and throttle rules hold as above. A Pi setup check is
+added: the PMIC rails must read. Its summary.csv gives FPS, the idle and run rail sums, and J per frame gross and net of
+idle, labelled "rail sum, not wall power". Each run's power.csv keeps every reading.
+
 --needs prints the paths the plan needs on the platform (what to copy there), and --check runs only the setup checks:
 neither runs a cell or writes anything.
 
@@ -50,9 +57,12 @@ import json
 import os
 import platform as pyplatform
 import random
+import re
 import shutil
+import statistics
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from importlib import metadata
@@ -79,13 +89,26 @@ DRIFT_UNITS = ("drift-start", "drift-end")
 THROTTLE_WORDS = {"throttled": "throttled", "none": "not throttled", "unknown": "throttle unknown"}
 SUMMARY = ["cell", "runtime", "precision", "imgsz", "images", "attempts", "outcome", "latency_ms", "latency_source", "throttle", "drift",
            "run_dir", "attempt_log"]
+# An energy session (#26): the Pi 5 only, each cell an idle reading and then a timed run with the PMIC sampled, never a latency
+IDLE_S, ENERGY_S, DRY_IDLE_S, DRY_ENERGY_S = 60, 180, 10, 15
+ENERGY_IMAGES = 100  # an energy run cycles over the first 100 test-dev images, decoded before it starts
+SAMPLE_S = 0.5  # the PMIC is read every 0.5 s
+MIN_READINGS = 10  # fewer in a window, and the run has no energy: it counts as a crash
+SAMPLER_OFF = "sampler-off"  # the plan's first cell once more, right after it, without the sampler: the sampler's cost on FPS
+MEASURES = "rail sum, not wall power"
+ENERGY_SUMMARY = ["cell", "runtime", "precision", "imgsz", "attempts", "outcome", "sampler", "fps", "rail_idle_w", "rail_run_w",
+                  "rail_j_per_frame", "rail_j_per_frame_net", "measures", "throttle", "run_dir", "attempt_log"]
 
 
 # ---------------------------------------------------------------- the plan
 
 
-PLAN_KEYS = {"platform", "note", "seed", "images", "cells"}
+PLAN_KEYS = {"platform", "mode", "note", "seed", "images", "cells"}
 CELL_KEYS = {"name", "artifact", "runtime", "imgsz", "limit"}
+
+
+def is_energy(plan):
+    return plan.get("mode") == "energy"
 
 
 def load_plan(plan):
@@ -97,6 +120,10 @@ def load_plan(plan):
         raise SystemExit(f"plan: unknown keys {sorted(set(plan) - PLAN_KEYS)}; a plan has {sorted(PLAN_KEYS)}")
     if plan.get("platform") not in PLATFORMS:
         raise SystemExit(f"plan: platform must be one of {PLATFORMS}, not {plan.get('platform')!r}")
+    if plan.get("mode", "latency") not in ("latency", "energy"):
+        raise SystemExit(f"plan: mode is latency (the default) or energy, not {plan['mode']!r}")
+    if is_energy(plan) and plan["platform"] != "pi5":
+        raise SystemExit(f"plan: energy runs are on the Pi 5 only (#8: its PMIC rail sum is the one energy reading), not the {plan['platform']}")
     cells = []
     for c in plan.get("cells") or []:
         if set(c) - CELL_KEYS:
@@ -105,6 +132,8 @@ def load_plan(plan):
             raise SystemExit(f"plan: a cell needs artifact, runtime (one of {RUNTIMES}) and imgsz: {c}")
         if c.get("limit") is not None and not positive_int(c["limit"]):
             raise SystemExit(f"plan: a cell's limit is a number of images, not {c['limit']!r}")
+        if c.get("limit") is not None and is_energy(plan):
+            raise SystemExit(f"plan: an energy run is {ENERGY_S // 60} minutes over the first {ENERGY_IMAGES} images: its cells take no limit")
         artifact = str(c["artifact"]).replace("\\", "/")
         cells.append({"name": c.get("name") or artifact.split("exports/", 1)[-1], "artifact": artifact, "runtime": c["runtime"],
                       "imgsz": c["imgsz"], "limit": c.get("limit")})
@@ -113,16 +142,20 @@ def load_plan(plan):
     names = [c["name"] for c in cells]
     if len(set(names)) < len(names) or set(names) & set(DRIFT_UNITS):
         raise SystemExit(f"plan: every cell needs a name of its own, and not {DRIFT_UNITS}: give the cell a \"name\". Names: {names}")
+    if set(names) & {SAMPLER_OFF}:
+        raise SystemExit(f"plan: {SAMPLER_OFF!r} is the energy session's own run: give the cell another \"name\"")
     if not isinstance(plan.get("seed", 0), int):
         raise SystemExit(f"plan: seed must be an integer, not {plan['seed']!r}")
-    return {"platform": plan["platform"], "note": plan.get("note"), "seed": plan.get("seed", 0),
-            "images": plan.get("images", "datasets/VisDrone/images/test"), "cells": cells}
+    # "mode" only when it is energy: a latency plan validates as it did before #26, so its session resumes
+    return {"platform": plan["platform"], **({"mode": "energy"} if is_energy(plan) else {}), "note": plan.get("note"),
+            "seed": plan.get("seed", 0), "images": plan.get("images", "datasets/VisDrone/images/test"), "cells": cells}
 
 
 def needed_paths(plan):
-    """What a plan needs on the platform, relative to study/: its images, the reference cell's artifact, each artifact once."""
+    """What a plan needs on the platform, relative to study/: its images, the reference cell's artifact (a latency session's
+    drift check), each artifact once."""
     plan = load_plan(plan)
-    return list(dict.fromkeys([plan["images"], REFERENCE, *(c["artifact"] for c in plan["cells"])]))
+    return list(dict.fromkeys([plan["images"], *([] if is_energy(plan) else [REFERENCE]), *(c["artifact"] for c in plan["cells"])]))
 
 
 def shuffled(plan):
@@ -132,11 +165,17 @@ def shuffled(plan):
     return order
 
 
-def unit_specs(plan):
-    """{unit name: what studybench runs}: the plan's cells and the reference cell at both ends of the session."""
-    ref = {"artifact": REFERENCE, "runtime": "onnxruntime", "imgsz": 640, "limit": DRIFT_IMAGES}
-    specs = {u: {"name": u, **ref} for u in DRIFT_UNITS}
-    specs.update({c["name"]: dict(c) for c in plan["cells"]})
+def unit_specs(plan, dry_run=False):
+    """{unit name: what studybench runs}: the plan's cells and the reference cell at both ends of the session; in an energy
+    session, the cells as timed runs with the PMIC sampled, and the first cell once more without the sampler."""
+    if is_energy(plan):
+        secs = DRY_ENERGY_S if dry_run else ENERGY_S
+        specs = {c["name"]: {**c, "limit": ENERGY_IMAGES, "seconds": secs, "sample_power": True} for c in plan["cells"]}
+        specs[SAMPLER_OFF] = {**specs[plan["cells"][0]["name"]], "name": SAMPLER_OFF, "sample_power": False}
+    else:
+        ref = {"artifact": REFERENCE, "runtime": "onnxruntime", "imgsz": 640, "limit": DRIFT_IMAGES}
+        specs = {u: {"name": u, **ref} for u in DRIFT_UNITS}
+        specs.update({c["name"]: dict(c) for c in plan["cells"]})
     for s in specs.values():
         s.update(images=plan["images"], threads=THREADS, warmup=WARMUP, platform=plan["platform"])
     return specs
@@ -145,8 +184,9 @@ def unit_specs(plan):
 # ---------------------------------------------------------------- the Pi setup checks
 
 
-def pi_checks(facts, runtimes):
-    """What the platform's setup_facts() could read -> [{check, status (pass, fail or unreadable), value, fix}]."""
+def pi_checks(facts, runtimes, energy=False):
+    """What the platform's setup_facts() could read -> [{check, status (pass, fail or unreadable), value, fix}]. An energy
+    session also needs the PMIC's rails: a rail sum it cannot read fails, since the session would measure nothing."""
     def check(name, value, ok, fix):
         return {"check": name, "status": "unreadable" if value is None else "pass" if ok else "fail", "value": value, "fix": fix}
 
@@ -161,12 +201,17 @@ def pi_checks(facts, runtimes):
         have = packages.get(name)
         out.append({"check": name, "status": "pass" if have == PI_PINS[name] else "fail", "value": have,
                     "fix": f"pip install {'--no-deps ' if name == 'ncnn' else ''}{name}=={PI_PINS[name]}"})
+    if energy:
+        w = facts.get("pmic_w")
+        out.append({"check": "PMIC rails", "status": "pass" if w else "fail", "value": w,
+                    # one command, so the Pi wizard can run it: shows what vcgencmd says, and adds the group it needs (from the next login)
+                    "fix": 'vcgencmd pmic_read_adc | head -n 3; sudo usermod -aG video "$USER"'})
     return out
 
 
 def platform_checks(plan, facts):
     """A validated plan and its platform's setup_facts() -> its setup checks: a Pi's, for every runtime its runs use; none elsewhere."""
-    return pi_checks(facts, {s["runtime"] for s in unit_specs(plan).values()}) if plan["platform"] in PIS else []
+    return pi_checks(facts, {s["runtime"] for s in unit_specs(plan).values()}, is_energy(plan)) if plan["platform"] in PIS else []
 
 
 def setup_report(plan, env):
@@ -234,6 +279,49 @@ def judge(result):
             "latency_source": source, "throttle": throttle_state(meta), "precision": meta.get("precision")}
 
 
+def window_stats(watts, seconds):
+    return {"seconds": seconds, "samples": len(watts), "mean_w": round(statistics.fmean(watts), 3), "sd_w": round(statistics.pstdev(watts), 3)}
+
+
+def judge_energy(result, idle, idle_s):
+    """An energy run -> its result, FPS, throttle state and precision; with the sampler on, its idle and run windows and
+    J per frame. idle: the idle window's [[t, W], ...] (None with the sampler off); result["power"]: the readings taken
+    through the run, on the clock of its meta's energy window. Only the readings inside the window are the run's."""
+    meta = result.get("meta") or {}
+    if result.get("exit") != 0 or meta.get("status") != "complete":
+        return {"result": "crashed", "exit": result.get("exit"), "error": meta.get("error") or result.get("tail")}
+    e = meta["energy"]
+    (t0, t1), frames = e["window"], e["frames"]
+    seconds = round(t1 - t0, 3)
+    if not frames or seconds <= 0:
+        return {"result": "crashed", "exit": result["exit"], "error": f"the run timed {frames} frames in {seconds} s"}
+    rec = {"result": "complete", "sampler": "off" if idle is None else "on", "frames": frames, "seconds": seconds,
+           "fps": round(frames / seconds, 3), "throttle": throttle_state(meta), "precision": meta.get("precision")}
+    if idle is None:
+        return rec
+    run = [w for t, w in result.get("power") or [] if t0 <= t <= t1]
+    if len(idle) < MIN_READINGS or len(run) < MIN_READINGS:
+        return {"result": "crashed", "exit": result["exit"], "error": f"the PMIC sampler gave {len(idle)} readings in the idle window and "
+                f"{len(run)} in the run window; each needs {MIN_READINGS}"}
+    rec.update(idle=window_stats([w for _, w in idle], idle_s), run=window_stats(run, seconds), measures=MEASURES)
+    rec.update(rail_j_per_frame=round(rec["run"]["mean_w"] * seconds / frames, 4),
+               rail_j_per_frame_net=round((rec["run"]["mean_w"] - rec["idle"]["mean_w"]) * seconds / frames, 4))
+    return rec
+
+
+def write_power(path, idle, readings, window):
+    """Every reading of an energy run, with the window it fell in: idle, between (model load and warm-up), run or after."""
+    rows = [("idle", t, w) for t, w in idle or []]
+    for t, w in readings or []:
+        rows.append(("bench" if not window else "between" if t < window[0] else "run" if t <= window[1] else "after", t, w))
+    if rows:
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(["window", "t_s", "rail_w"])
+            w.writerows((k, round(t, 3), round(x, 4)) for k, t, x in rows)
+
+
 def pass_state(attempts, pass_="main"):
     """A unit's attempts in one pass ("main", or "rerun" after a throttle) -> "complete", "failed" (crashed twice) or "todo"."""
     attempts = [a for a in attempts if a["pass"] == pass_]
@@ -258,7 +346,10 @@ def write_json(path, obj):
 class Session:
     def __init__(self, plan, out, env, dry_run, override):
         self.plan, self.out, self.env, self.dry_run, self.override = plan, Path(out), env, dry_run, override
-        self.specs = unit_specs(plan)
+        self.energy = is_energy(plan)
+        self.specs = unit_specs(plan, dry_run)
+        # the runs either side of the cells: a latency session's drift check; an energy session has none
+        self.opening, self.closing = ([], None) if self.energy else ([DRIFT_UNITS[0]], DRIFT_UNITS[1])
         sha = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
         old = json.loads((self.out / "session.json").read_text(encoding="utf-8")) if (self.out / "session.json").exists() else None
         if old and (old["plan_sha256"], old["dry_run"]) != (sha, dry_run):
@@ -280,26 +371,37 @@ class Session:
             f.write(line + "\n")
 
     def save(self):
-        self.state["drift"] = self.drift()
+        if self.energy:
+            self.state["sampler_cost"] = self.sampler_cost()
+        else:
+            self.state["drift"] = self.drift()
         write_json(self.out / "session.json", self.state)
         self.write_summary()
 
     def attempts(self, u):
         return self.state["units"][u]["attempts"]
 
+    def sequence(self):
+        """The runs between the opening and the closing ones: the cells in their shuffled order; in an energy session, with
+        the sampler-off run right after the plan's first cell, so the two runs of the sampler's cost are neighbours."""
+        order = list(self.state["order"])
+        if self.energy:
+            order.insert(order.index(self.plan["cells"][0]["name"]) + 1, SAMPLER_OFF)
+        return order
+
     def needs_rerun(self, u):
-        """A cell whose main pass completed throttled gets a re-run pass."""
-        return u not in DRIFT_UNITS and any(a["pass"] == "main" and a.get("throttle") == "throttled" for a in self.attempts(u))
+        """A cell (or the sampler-off run) whose main pass completed throttled gets a re-run pass."""
+        return u in self.sequence() and any(a["pass"] == "main" and a.get("throttle") == "throttled" for a in self.attempts(u))
 
     def next_run(self):
-        """(unit, pass) to run next, or None: the opening reference run, the cells, the throttle re-runs, the closing reference run."""
-        for u in [DRIFT_UNITS[0], *self.state["order"]]:
+        """(unit, pass) to run next, or None: the opening reference run, the cells, the throttle re-runs, the closing run."""
+        for u in [*self.opening, *self.sequence()]:
             if pass_state(self.attempts(u)) == "todo":
                 return u, "main"
-        for u in self.state["order"]:
+        for u in self.sequence():
             if self.needs_rerun(u) and pass_state(self.attempts(u), "rerun") == "todo":
                 return u, "rerun"
-        return (DRIFT_UNITS[1], "main") if pass_state(self.attempts(DRIFT_UNITS[1])) == "todo" else None
+        return (self.closing, "main") if self.closing and pass_state(self.attempts(self.closing)) == "todo" else None
 
     def outcome(self, u):
         """(outcome, the attempt that gives the cell's latency or None)."""
@@ -342,12 +444,28 @@ class Session:
         moved = abs(end["latency_ms"] - start["latency_ms"]) > DRIFT_MAX * start["latency_ms"]
         return {**rec, "change_pct": round(100 * (end["latency_ms"] / start["latency_ms"] - 1), 1), "verdict": "re-run" if moved else "ok"}
 
+    def sampler_cost(self):
+        """The sampler's cost on FPS: the plan's first cell with the sampler on (its counted run) against the sampler-off run."""
+        cell = self.plan["cells"][0]["name"]
+        (_, on), (_, off) = self.outcome(cell), self.outcome(SAMPLER_OFF)
+        rec = {"cell": cell, "fps_sampler_on": on and on["fps"], "fps_sampler_off": off and off["fps"], "cost_pct": None,
+               "throttled": [u for u, a in ((cell, on), (SAMPLER_OFF, off)) if a and a["throttle"] == "throttled"]}
+        if on and off:
+            rec["cost_pct"] = round(100 * (1 - on["fps"] / off["fps"]), 1)
+        return rec
+
     def run(self):
         if self.state.get("status") == "complete":
             self.log("this session is already complete")
             return self.state
-        self.log(f"session on {self.plan['platform']}" + (f" ({self.plan['note']})" if self.plan["note"] else "")
+        self.log(f"{'energy ' if self.energy else ''}session on {self.plan['platform']}" + (f" ({self.plan['note']})" if self.plan["note"] else "")
                  + f": {len(self.plan['cells'])} cells; every run uses {THREADS} threads and {WARMUP} warm-up images, untimed")
+        if self.energy:
+            spec = self.specs[SAMPLER_OFF]
+            self.log(f"energy runs: after the start gate, a {_dur(self.idle_s)} idle reading, then {_dur(spec['seconds'])} of the cell over "
+                     f"the first {spec['limit']} images, with the PMIC read every {SAMPLE_S:g} s throughout. Energy is the PMIC "
+                     f"{MEASURES}. No latency comes from this session. Right after {self.plan['cells'][0]['name']}, {SAMPLER_OFF}: the same cell once more "
+                     "without the sampler, for its cost on FPS")
         if self.resumed:
             done = sum(a["result"] != "interrupted" for u in self.state["units"] for a in self.attempts(u))
             self.log(f"resuming the session in {self.out}: {done} runs recorded; a half-done run restarts from the start")
@@ -366,6 +484,14 @@ class Session:
             raise
         self.state["status"] = "complete"
         self.save()
+        if self.energy:
+            self.log_energy_end()
+        else:
+            self.log_latency_end()
+        self.log(f"session complete: {self.out / 'summary.csv'}")
+        return self.state
+
+    def log_latency_end(self):
         d = self.state["drift"]
         if d["verdict"] == "unknown":
             self.log("drift check: UNKNOWN, a reference run failed: this session's latencies are unchecked")
@@ -376,8 +502,21 @@ class Session:
         for r in self.summary_rows():
             self.log(f"  {r['cell']}: {r['precision'] or '-'}, {r['outcome']}, {r['attempts']} attempt(s), median {r['latency_ms'] or '-'} ms "
                      f"({r['latency_source'] or '-'}), throttle {r['throttle'] or '-'}, drift {r['drift']}, {r['run_dir'] or 'no run to score'}")
-        self.log(f"session complete: {self.out / 'summary.csv'}")
-        return self.state
+
+    def log_energy_end(self):
+        c = self.state["sampler_cost"]
+        self.log(f"the sampler's cost on FPS ({c['cell']}): " + (
+            f"{c['fps_sampler_on']} FPS with it, {c['fps_sampler_off']} without: {c['cost_pct']:+.1f}%" if c["cost_pct"] is not None
+            else "UNKNOWN, a run of the pair failed") + "".join(f" ({u} throttled, twice)" for u in c["throttled"]))
+        for r in self.summary_rows():
+            self.log(f"  {r['cell']}: {r['precision'] or '-'}, {r['outcome']}, {r['attempts']} attempt(s), sampler {r['sampler'] or '-'}, "
+                     f"{r['fps'] or '-'} FPS" + (f", rail idle {r['rail_idle_w']} W, run {r['rail_run_w']} W: {r['rail_j_per_frame']} J/frame "
+                                                 f"({r['rail_j_per_frame_net']} net of idle; {MEASURES})" if r["rail_run_w"] != "" else "")
+                     + f", throttle {r['throttle'] or '-'}")
+
+    @property
+    def idle_s(self):
+        return DRY_IDLE_S if self.dry_run else IDLE_S
 
     def attempt(self, u, pass_):
         attempts = self.attempts(u)
@@ -391,12 +530,21 @@ class Session:
         attempts.append(rec)
         self.save()
         self.log(f"{u}: attempt {n} starts" + (" (the throttle re-run)" if pass_ == "rerun" else ""))
+        spec, idle = self.specs[u], None
         try:
-            result = self.env.bench(self.specs[u], run_dir)
+            if self.energy:
+                idle = self.idle_reading(u, spec)
+            result = self.env.bench(spec, run_dir)
         except BaseException as e:  # the next invocation restarts this run; run() records the session as interrupted
             rec.update(result="interrupted", error=f"{type(e).__name__}: {e}", end=now_iso())
             self.log(f"{u}: attempt {n} INTERRUPTED")
             raise
+        if self.energy:
+            rec.update(judge_energy(result, idle, self.idle_s), end=now_iso())
+            write_power(run_dir / "power.csv", idle, result.get("power"), ((result.get("meta") or {}).get("energy") or {}).get("window"))
+            self.save()
+            self.log_energy_attempt(u, rec)
+            return
         rec.update(judge(result), end=now_iso())
         self.save()
         if rec["result"] == "complete":
@@ -409,7 +557,47 @@ class Session:
             then = "it runs again from the start" if pass_state(attempts, pass_) == "todo" else "a second crash: the cell is failed"
             self.log(f"{u}: attempt {n} CRASHED (exit {rec['exit']}): {rec['error']}; {then}")
 
+    def idle_reading(self, u, spec):
+        """An energy run's idle minute, right before it: the PMIC's readings ([[t, W], ...]), or, with the sampler off, a
+        wait of the same length, so that both runs of the sampler's cost start from the same rest."""
+        if not spec["sample_power"]:
+            self.log(f"{u}: {_dur(self.idle_s)} at rest before the run, with the sampler off")
+            self.env.sleep(self.idle_s)
+            return None
+        self.log(f"{u}: the {_dur(self.idle_s)} idle reading")
+        return self.env.idle_window(self.idle_s)
+
+    def log_energy_attempt(self, u, rec):
+        n = rec["n"]
+        if rec["result"] != "complete":
+            then = "it runs again from the start" if pass_state(self.attempts(u), rec["pass"]) == "todo" else "a second crash: the cell is failed"
+            self.log(f"{u}: attempt {n} CRASHED (exit {rec['exit']}): {rec['error']}; {then}")
+            return
+        msg = f"{u}: attempt {n} complete, {rec['frames']} frames in {rec['seconds']:g} s, {rec['fps']} FPS"
+        if rec["sampler"] == "on":
+            i, r = rec["idle"], rec["run"]
+            msg += (f"; rail sum idle {i['mean_w']} W ({i['samples']} readings), run {r['mean_w']} W ({r['samples']} readings): "
+                    f"{rec['rail_j_per_frame']} J/frame, {rec['rail_j_per_frame_net']} net of idle ({MEASURES})")
+        self.log(msg + f", throttle {rec['throttle']}" + ("; it runs again at the end of the session" if rec["pass"] == "main" and self.needs_rerun(u) else ""))
+
     def summary_rows(self):
+        return self.energy_rows() if self.energy else self.latency_rows()
+
+    def energy_rows(self):
+        rows = []
+        for u, spec in self.specs.items():
+            attempts = self.attempts(u)
+            outcome, counted = self.outcome(u)
+            c = counted or {}
+            rows.append({"cell": u, "runtime": spec["runtime"], "imgsz": spec["imgsz"], "attempts": len(attempts), "outcome": outcome,
+                         **{k: c.get(k, "") for k in ("precision", "sampler", "fps", "throttle", "rail_j_per_frame", "rail_j_per_frame_net")},
+                         "rail_idle_w": c["idle"]["mean_w"] if "idle" in c else "", "rail_run_w": c["run"]["mean_w"] if "run" in c else "",
+                         "measures": MEASURES if "run" in c else "", "run_dir": c.get("dir", ""),
+                         "attempt_log": "; ".join(f"a{a['n']}{' re-run' if a['pass'] == 'rerun' else ''} {a['result']}"
+                                                  + (" " + THROTTLE_WORDS[a["throttle"]] if a["result"] == "complete" else "") for a in attempts)})
+        return rows
+
+    def latency_rows(self):
         rows = []
         for u, spec in self.specs.items():
             attempts = self.attempts(u)
@@ -424,7 +612,7 @@ class Session:
 
     def write_summary(self):
         with open(self.out / "summary.csv", "w", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, SUMMARY)
+            w = csv.DictWriter(f, ENERGY_SUMMARY if self.energy else SUMMARY)
             w.writeheader()
             w.writerows(self.summary_rows())
 
@@ -456,6 +644,53 @@ def _version(dist):
         return None
 
 
+PMIC_ROW = re.compile(r"^\s*(\S+)_([AV])\s+\w+\(\d+\)=(-?[\d.]+)[AV]\s*$")
+
+
+def parse_pmic(text):
+    """`vcgencmd pmic_read_adc` on a Pi 5 -> the rail sum in W: each rail's current times its own voltage (VDD_CORE's
+    2 A is at 0.75 V, not 5 V), over the rails that report both. EXT5V and BATT report a voltage only. None if no rail does."""
+    rails = collections.defaultdict(dict)
+    for line in text.splitlines():
+        m = PMIC_ROW.match(line)
+        if m:
+            rails[m[1]][m[2]] = float(m[3])
+    both = [r["A"] * r["V"] for r in rails.values() if "A" in r and "V" in r]
+    return sum(both) if both else None
+
+
+class PowerSampler:
+    """Reads the power every `interval` s on a thread of its own, from start() to stop(): stop() -> [[monotonic t, W], ...].
+    A reading that fails (None, or an exception) is counted in .failed and left out."""
+
+    def __init__(self, read, interval):
+        self.read, self.interval, self.samples, self.failed = read, interval, [], 0
+        self.done = threading.Event()
+        self.thread = threading.Thread(target=self.loop, daemon=True)
+
+    def loop(self):
+        while not self.done.is_set():
+            t = time.monotonic()
+            try:
+                w = self.read()
+            except Exception:
+                w = None
+            if w is None:
+                self.failed += 1
+            else:
+                self.samples.append([(t + time.monotonic()) / 2, w])  # the middle of the call that read it
+            self.done.wait(max(0.0, self.interval - (time.monotonic() - t)))
+
+    def start(self):
+        self.thread.start()
+        return self
+
+    def stop(self):
+        self.done.set()
+        self.thread.join()
+        return self.samples
+
+
 class Platform:
     """The platform this runs on, read without root: its clock, temperatures and setup, and studybench.py as a child."""
 
@@ -464,6 +699,25 @@ class Platform:
 
     now = staticmethod(time.monotonic)
     sleep = staticmethod(time.sleep)
+    sample_s = SAMPLE_S
+
+    def read_power(self):
+        """The Pi 5's PMIC rail sum now, in W; None where vcgencmd or its rails are missing."""
+        if not shutil.which("vcgencmd"):
+            return None
+        try:
+            return parse_pmic(subprocess.run(["vcgencmd", "pmic_read_adc"], capture_output=True, text=True, timeout=5).stdout)
+        except (OSError, subprocess.SubprocessError):
+            return None
+
+    def idle_window(self, seconds):
+        """The PMIC read for `seconds` with nothing else running: [[monotonic t, W], ...]."""
+        sampler = PowerSampler(self.read_power, self.sample_s).start()
+        try:
+            self.sleep(seconds)
+        finally:
+            samples = sampler.stop()
+        return samples
 
     def cpu_temp_c(self):
         """The thermal zone named cpu ("cpu-thermal" on the Pis and the Jetson), else zone 0, in C; None when unreadable."""
@@ -518,38 +772,48 @@ class Platform:
                  "device_model": (_read(self.root / "proc/device-tree/model") or "").rstrip("\x00") or None}
         if self.platform == "jetson":
             facts["jetson"] = self._jetson().board_state()
+        if self.platform == "pi5":
+            w = self.read_power()
+            facts["pmic_w"] = None if w is None else round(w, 3)
         return facts
 
     def bench(self, spec, out_dir):
-        """One studybench.py run into out_dir, its output shown and kept in bench.log: {exit, meta (its meta.json), tail}."""
+        """One studybench.py run into out_dir, its output shown and kept in bench.log: {exit, meta (its meta.json), tail}. An
+        energy run (spec "seconds") is timed for that long; with spec "sample_power", the PMIC is read from before the child
+        starts until it exits, and the readings come back as "power" ([[monotonic t, W], ...])."""
         cmd = [sys.executable, "-u", str(HERE / "studybench.py"), "--artifact", spec["artifact"], "--runtime", spec["runtime"],
                "--imgsz", str(spec["imgsz"]), "--images", spec["images"], "--out", str(out_dir), "--threads", str(spec["threads"]),
-               "--warmup", str(spec["warmup"]), "--platform-tag", spec["platform"], *(["--limit", str(spec["limit"])] if spec["limit"] else [])]
+               "--warmup", str(spec["warmup"]), "--platform-tag", spec["platform"], *(["--limit", str(spec["limit"])] if spec["limit"] else []),
+               *(["--seconds", str(spec["seconds"])] if spec.get("seconds") else [])]
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         tail = collections.deque(maxlen=20)
-        with open(Path(out_dir) / "bench.log", "w", encoding="utf-8") as log:
-            log.write(" ".join(cmd) + "\n")
-            child = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
-                                     env={**os.environ, "PYTHONIOENCODING": "utf-8"})
-            try:
-                for line in child.stdout:
-                    log.write(line)
-                    log.flush()
-                    print("    " + line, end="", flush=True)
-                    tail.append(line.rstrip())
-                code = child.wait()
-            except BaseException:  # Ctrl-C reaches the child too: let it record "interrupted" in its meta.json, then make sure it is gone
+        sampler = PowerSampler(self.read_power, self.sample_s).start() if spec.get("sample_power") else None
+        try:
+            with open(Path(out_dir) / "bench.log", "w", encoding="utf-8") as log:
+                log.write(" ".join(cmd) + "\n")
+                child = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                                         env={**os.environ, "PYTHONIOENCODING": "utf-8"})
                 try:
-                    child.wait(timeout=30)
-                except subprocess.TimeoutExpired:
-                    child.kill()
-                    child.wait()
-                raise
+                    for line in child.stdout:
+                        log.write(line)
+                        log.flush()
+                        print("    " + line, end="", flush=True)
+                        tail.append(line.rstrip())
+                    code = child.wait()
+                except BaseException:  # Ctrl-C reaches the child too: let it record "interrupted" in its meta.json, then make sure it is gone
+                    try:
+                        child.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        child.kill()
+                        child.wait()
+                    raise
+        finally:
+            power = sampler.stop() if sampler else []
         try:
             meta = json.loads((Path(out_dir) / "meta.json").read_text(encoding="utf-8"))
         except (OSError, ValueError):
             meta = None
-        return {"exit": code, "meta": meta, "tail": "\n".join(tail)}
+        return {"exit": code, "meta": meta, "tail": "\n".join(tail), "power": power}
 
 
 def main():

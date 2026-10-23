@@ -136,6 +136,8 @@ def main():
         return
     for run in map(Path, a.runs):
         meta = json.loads((run / "meta.json").read_text(encoding="utf-8"))
+        if meta.get("mode") == "energy":
+            raise SystemExit(f"{run}: an energy run (#26) saves no detections and gives no latency: its numbers are in its session's summary.csv")
         if meta.get("status") != "complete":
             raise SystemExit(f"{run}: the run is not complete (resume it with studybench.py --resume)")
         drift = {k: (meta["postprocess"].get(k), studyenv.EVAL_ARGS[k]) for k in ("conf", "iou", "max_det") if meta["postprocess"].get(k) != studyenv.EVAL_ARGS[k]}

@@ -26,6 +26,7 @@ plan through a Pi session from the laptop (Git Bash), with no agent in the loop:
 cd study
 bash pi/wizard.sh plans/pi5-speedtest.json    # first: is INT8 slower than FP32 on the Pi 5? (#25)
 bash pi/wizard.sh plans/pi5-fullcell.json     # then: the real time of one full cell
+bash pi/wizard.sh plans/pi5-energy-check.json # the energy mode's first real run (#26; "Energy sessions" below)
 ```
 
 **Have ready:** the Pi 5 on its official 27 W supply with the Active Cooler fitted, on the laptop's network; its host
@@ -146,9 +147,34 @@ Each attempt gets its own `runs/<cell>/attempt-<n>/`, holding the bench's files 
 `--needs` prints the paths a plan needs on the platform, and `--check` runs only the setup checks (exit 1 if one
 fails). Neither runs a cell or writes anything; the Pi wizard uses both.
 
+### Energy sessions (Pi 5 only)
+
+A plan with `"mode": "energy"` is an energy session (#26, INVARIANTS.md §4.6). It is never mixed with latency: an energy
+session times no latency, and a latency session never runs the PMIC sampler. Its cells take no `limit`, and it runs no
+reference cell.
+
+- **Each cell:** the start gate; a 1-minute idle reading of the PMIC rail sum; then 3 minutes of the cell over the first
+  100 test-dev images (decoded beforehand, cycled) with the PMIC read every 0.5 s.
+- **`sampler-off`, right after the plan's first cell:** that cell once more, with the same rest and 3 minutes, and the
+  sampler off. This measures the sampler's cost on FPS. One pair of runs bounds the cost rather than resolving it.
+- **The setup checks** add one: `vcgencmd pmic_read_adc` gives a rail sum. If it does not, the session refuses to start.
+- **`summary.csv`:** FPS, the idle and run rail sums (W), J per frame and J per frame net of idle, all labelled
+  "rail sum, not wall power". `session.json` holds the sampler's cost. Each run's `power.csv` keeps every reading with
+  its window.
+
+`plans/pi5-energy-check.json` is the first real one: A1 at 640, ONNX Runtime FP32 and INT8, about 15–25 minutes. It
+checks the energy mode on the board. The equal-latency pairs get their own plan once the Pi 5's latencies give the pairs.
+`bash pi/wizard.sh plans/pi5-energy-check.json` runs it; the wizard shows the energy summary, and there is nothing to
+score.
+
+On the laptop, on 23 October 2026, a dry run of that plan took about 2 minutes, with a fake PMIC reading in place of
+`vcgencmd`. The bench's 15 s windows lined up with the session's readings: 20 idle readings and 30 run readings. This
+was a plumbing check only. A fake reading costs nothing, so the sampler's cost on FPS can only be measured on the Pi 5.
+
 ### Dry run
 
-`--dry-run` caps the gate at 5 s and marks the session DRY RUN; no number from it is reported.
+`--dry-run` caps the gate at 5 s and marks the session DRY RUN; no number from it is reported. In an energy session
+it also shortens the idle reading to 10 s and the runs to 15 s.
 `plans/laptop-dry-run.json` is a two-cell plumbing check for the laptop. On 2026-10-22 it took 2 minutes, with a peak of
 0.85 GB.
 

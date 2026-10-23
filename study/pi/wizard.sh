@@ -201,6 +201,7 @@ finish() {
 # The Pi session wizard (#25): one platform plan on the Pi, from the laptop, with no agent in the loop.
 #
 #   bash pi/wizard.sh [plan]          plan: default plans/pi5-speedtest.json; next plans/pi5-fullcell.json
+#                                     an energy plan ("mode": "energy", #26) runs the same way; it has nothing to score
 #
 # Run it from Git Bash on the laptop. Every stage finds what is already done (the connection, the files on the Pi,
 # the install, a session that is running or complete), so run it again at any time: it picks up where things are.
@@ -230,6 +231,7 @@ LOST="lost the connection to the Pi (a session there keeps running): run the wiz
 lpy() { "$LPY" "$@" | tr -d '\r'; }
 PLATFORM=$(lpy -c 'import json, sys; print(json.load(open(sys.argv[1]))["platform"])' "$PLAN")
 NOTE=$(lpy -c 'import json, sys; print(json.load(open(sys.argv[1])).get("note") or "")' "$PLAN")
+MODE=$(lpy -c 'import json, sys; print(json.load(open(sys.argv[1])).get("mode") or "latency")' "$PLAN")
 OUT="bench/$PLATFORM/$(basename "$PLAN" .json)"   # the runner's default --out
 NEEDS=()
 while IFS= read -r p; do NEEDS+=("$p"); done < <(lpy scripts/studysession.py "$PLAN" --needs)
@@ -262,6 +264,7 @@ stage "What you need ready"
 say "Plan:    study/$PLAN"
 [[ -n "$NOTE" ]] && say "         $NOTE"
 say "Results: study/$OUT (on the Pi, then on this laptop)"
+[[ "$MODE" == energy ]] && note "An energy session (#26): per cell, a 1-minute idle reading, then 3 minutes with the PMIC read. No latency, nothing to score."
 printf '\n'
 say "Have these ready before you go on:"
 step "The Pi 5 on its official 27 W USB-C supply, with the Active Cooler fitted, on this laptop's network (or Tailscale)."
@@ -419,7 +422,14 @@ fi
 EOF
 }
 show_progress() { pi_sh <<'EOF'
-[ -f "$OUT/summary.csv" ] && awk -F, '{printf "  %-42s %-14s %-10s %s\n", $1, $6, $7, $9}' "$OUT/summary.csv"
+[ -f "$OUT/summary.csv" ] && "$PY" - "$OUT/summary.csv" <<'PROGRESS'
+import csv, sys
+with open(sys.argv[1], newline="", encoding="utf-8") as f:
+    rows = list(csv.DictReader(f))
+value = "rail_j_per_frame" if rows and "rail_j_per_frame" in rows[0] else "latency_ms"  # an energy summary, or a latency one
+for r in [{"cell": "cell", "outcome": "outcome", value: value, "throttle": "throttle"}, *rows]:
+    print(f"  {r['cell']:<42} {r['outcome']:<14} {r[value]:<16} {r['throttle']}")
+PROGRESS
 echo; tail -n 8 "$OUT/session.log" 2>/dev/null | cut -c1-160
 EOF
 }
@@ -471,11 +481,30 @@ next
 # ── 7 ─────────────────────────────────────────────────────────────────────
 stage "Copy the results home, and score them"
 mkdir -p "$RESULTS"
-confirm "Copy the results home and score them now?" || { say "Run the wizard again to do it later."; exit 0; }
+confirm "Copy the results home$([[ "$MODE" == energy ]] || printf ' and score them') now?" || { say "Run the wizard again to do it later."; exit 0; }
 pi "cd \"\$HOME/$PI_DIR\" && tar -cf - $(printf '%q' "$OUT")" | tar -xf - -C "$RESULTS" || die "$LOST"
 say "Copied to $RESULTS/$OUT"
 SUMMARY="$RESULTS/$OUT/summary.csv"
 command -v cygpath >/dev/null 2>&1 && SUMMARY=$(cygpath -m "$SUMMARY")
+if [[ "$MODE" == energy ]]; then
+  say "An energy session has nothing to score. Its summary, in W and J of the PMIC rail sum, not wall power:"
+  lpy - "$SUMMARY" <<'ENERGY' | column -t -s $'\t' | sed 's/^/    /'
+import csv, json, sys
+from pathlib import Path
+cols = ("cell", "outcome", "sampler", "fps", "rail_idle_w", "rail_run_w", "rail_j_per_frame", "rail_j_per_frame_net", "throttle")
+with open(sys.argv[1], newline="", encoding="utf-8") as f:
+    rows = list(csv.DictReader(f))
+for r in [dict(zip(cols, cols)), *rows]:
+    print("\t".join(r[k] or "-" for k in cols))
+c = json.loads((Path(sys.argv[1]).parent / "session.json").read_text(encoding="utf-8"))["sampler_cost"]
+print("\nthe sampler's cost on FPS:\t" + (f"{c['cost_pct']:+.1f}% ({c['fps_sampler_on']} FPS with it, {c['fps_sampler_off']} without)"
+                                         if c["cost_pct"] is not None else "unknown: a run of the pair failed"))
+ENERGY
+  note "J per frame is compared within the Pi 5 only, never across platforms (#8); the net figure subtracts the idle reading."
+  next
+  finish
+  return
+fi
 # The summary read by its column names, and the reference runs by studysession's own names
 INFO=$(lpy - "$SUMMARY" <<'PY'
 import csv, sys
