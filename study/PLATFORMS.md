@@ -102,8 +102,9 @@ start. Standard library only; it needs no more than the bench does.
   - Pi: `vcgencmd` throttle flags.
   - Jetson: over-current counters and the GPU clock.
   - The laptop and the phone give no signal, so their throttle state is "unknown".
-- **Latency:** the bench's `e2e_deploy` median (#22). Until the bench has `e2e_deploy`, the runner uses pre + net +
-  post at the evaluation threshold, and says so in the log.
+- **Latency:** the bench's `e2e_deploy` median: pre + net + post at the deployment threshold, 0.25 (#22,
+  INVARIANTS.md §4.5). A bench from before #22 gives no `e2e_deploy`. For one of those the runner uses pre + net + post
+  at the evaluation threshold, and says so in the log.
 
 ### The plan
 

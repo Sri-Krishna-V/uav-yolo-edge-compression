@@ -54,6 +54,7 @@ INVARIANTS = yaml.safe_load((ROOT / "cfg" / "invariants.yaml").read_text(encodin
 TRAIN_ARGS = {**INVARIANTS["shared"], **INVARIANTS["train"]}
 EVAL_ARGS = {**INVARIANTS["shared"], **{k: v for k, v in INVARIANTS["eval"].items() if k != "coco_max_dets"}}
 COCO_MAX_DETS = list(INVARIANTS["eval"]["coco_max_dets"])
+DEPLOY_CONF = INVARIANTS["platform"]["deploy_conf"]  # latency only; studybench.py holds its own copy
 AREA_KEYS = ["metrics/mAP_small(B)", "metrics/mAP_medium(B)", "metrics/mAP_large(B)"]
 
 

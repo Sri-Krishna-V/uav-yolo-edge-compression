@@ -12,7 +12,9 @@ evaluation at maxDets 500 needs about as much again:
                 cfg/invariants.yaml), in this process, which never imports torch or ultralytics
 The result carries the same stats keys evaluate() returns from coco_evaluate (every coco/* and metrics/mAP_*(B)).
 It also carries the cell's runtime and the precision the platform recorded (what the runtime really computed in),
-so the tables give precision a column of its own.
+so the tables give precision a column of its own, and its time at both confidence thresholds: latency_ms is the median
+of e2e_deploy, pre + net + post at the deployment threshold (0.25); at_evaluation_threshold is the same at 0.001, the
+threshold the scored detections come from.
 A --limit run is scored only on the images it ran and is marked partial: a plumbing check, never a reported number.
 """
 
@@ -100,6 +102,18 @@ def score(predictions, split, imgsz, images=None):
     }
 
 
+def latency(meta):
+    """A run's meta.json -> its latency (e2e_deploy's median, None for a run from before #22) and its time at both thresholds."""
+    t = meta["timing_ms"]
+
+    def at(conf, e2e, post):
+        return {"conf": conf, "e2e_median_ms": t[e2e]["median"], "e2e_p95_ms": t[e2e]["p95"], "post_median_ms": t[post]["median"]}
+
+    deploy = at(meta["deploy_conf"], "e2e_deploy", "post_deploy") if "e2e_deploy" in t else None
+    return {"latency_ms": deploy and deploy["e2e_median_ms"], "latency_is": "e2e_deploy" if deploy else None,
+            "at_deployment_threshold": deploy, "at_evaluation_threshold": at(meta["postprocess"]["conf"], "t_total_ms", "t_post_ms")}
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("runs", nargs="+", help="studybench.py --out directories")
@@ -110,6 +124,8 @@ def main():
         if meta.get("status") != "complete":
             raise SystemExit(f"{run}: the run is not complete (resume it with studybench.py --resume)")
         drift = {k: (meta["postprocess"].get(k), studyenv.EVAL_ARGS[k]) for k in ("conf", "iou", "max_det") if meta["postprocess"].get(k) != studyenv.EVAL_ARGS[k]}
+        if meta.get("deploy_conf", studyenv.DEPLOY_CONF) != studyenv.DEPLOY_CONF:
+            drift["deploy_conf"] = (meta["deploy_conf"], studyenv.DEPLOY_CONF)
         if drift:
             raise SystemExit(f"{run}: post-processing differs from the invariants (platform, invariant): {drift}")
         with open(run / "timings.csv", newline="", encoding="utf-8") as f:
@@ -119,12 +135,15 @@ def main():
             raise SystemExit(f"{run}: the platform ran {len(ran)} images, the {a.split} split has {len(split_files)}")
         result = score(run / "predictions.json", a.split, meta["imgsz"], images=None if ran == split_files else sorted(ran))
         result.update(run=str(run), platform_tag=meta.get("platform_tag"), runtime=meta["config"]["runtime"], precision=meta.get("precision"),
-                      head=meta.get("head"), manifest=meta.get("manifest"))
+                      head=meta.get("head"), manifest=meta.get("manifest"), **latency(meta))
         (run / "score.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
-        s = result["stats"]
+        s, ev, dep = result["stats"], result["at_evaluation_threshold"], result["at_deployment_threshold"]
         print(f"{run} ({result['runtime']} {result['precision'] or 'precision unrecorded'}): AP_all {s['coco/AP_all']:.4f}  AP_50 {s['coco/AP_50']:.4f}  AP_small {s['coco/AP_small']:.4f}  "
               f"AP_medium {s['coco/AP_medium']:.4f}  AP_large {s['coco/AP_large']:.4f}  AR_500 {s['coco/AR_500']:.4f}"
               + (f"  (PARTIAL: {result['images']} images)" if result["partial"] else ""))
+        print(f"    latency (e2e_deploy, conf {dep['conf']}) {dep['e2e_median_ms']} ms, post {dep['post_median_ms']} ms; " if dep else
+              "    no latency: this run is from before the deployment pass (#22); ",
+              f"at the evaluation threshold (conf {ev['conf']}): pre + net + post {ev['e2e_median_ms']} ms, post {ev['post_median_ms']} ms", sep="")
 
 
 if __name__ == "__main__":

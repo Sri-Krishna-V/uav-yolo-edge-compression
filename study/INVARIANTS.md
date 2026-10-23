@@ -83,7 +83,7 @@ VisDrone2019-DET, from the Ultralytics mirror `https://github.com/ultralytics/as
 |---|---|---|
 | `max_det` | **500** | The official VisDrone protocol uses 500. The default is worse than a low cap: left at 300, `DetectionValidator._check_max_det` **silently raises it to the observed maximum of whatever split is loaded**, so training validation would run at 902 (train), val at 317 and test-dev at 461. Three protocols in one paper. Pinned to 500 it only warns. It never binds on GT count at eval time (val max 317, test-dev max 461). |
 | `iou` | 0.7 | NMS IoU. Measurably moves VisDrone mAP (0.6 vs 0.7 was worth +0.9 val mAP50 in a published sweep), so it is held constant and NMS tuning is never confounded with compression. |
-| `conf` | 0.001 | Ultralytics' val default, made explicit. |
+| `conf` | 0.001 | Ultralytics' val default, made explicit: the **evaluation threshold**. Latency on a platform is timed at the deployment threshold, 0.25 (§4.5). |
 | `nms` | `null` | See §5. |
 | `save_json` | `true` | Without it the area splits are not computed. |
 | `rect` | `true` | What `model.val()` uses. |
@@ -116,6 +116,23 @@ Never put Ultralytics-pipeline numbers and official-toolkit numbers in one table
 `studyeval.evaluate()` accepts an exported artifact, but for any static (non-dynamic) export the validator **overrides two eval invariants**: it forces `rect=False` (square letterbox) and takes `batch` and `imgsz` from the export metadata, usually batch 1 (`engine/validator.py` L200-204, L222-223). The recorded `validator_args` show the override.
 
 So **never compare a quantized artifact against the `.pt` checkpoint**, because that confounds letterboxing with quantization. The reference for any quantized artifact is an **FP32 (or FP16 where FP32 is unavailable) export of the same format, at the same `imgsz`, evaluated the same way**. Accuracy damage is `artifact − reference-export`, never `artifact − .pt`.
+
+### 4.5 Platform runs: two confidence thresholds, and the scorer
+
+Decided 22 October 2026 by the map ticket *Measurement protocol* (#8); built by #22. The terms are defined in [`GLOSSARY.md`](../GLOSSARY.md).
+
+| Threshold | Value | Used for |
+|---|---|---|
+| **evaluation threshold** | **0.001** (`shared.conf`) | accuracy: every detection a platform saves, and so every accuracy number |
+| **deployment threshold** | **0.25** (`platform.deploy_conf`) | **latency**: what a deployed detector runs. At 0.001, NMS handles up to 30,000 candidates, so post-processing looks more costly than on a real drone |
+
+- **Two post-processing passes per image.** `studybench.py` runs post-processing twice on the same model output and times each pass on its own: at 0.001 (`t_post_ms`, detections saved) and at 0.25 (`t_post_deploy_ms` and `n_dets_deploy`, timed only, not saved). The 0.25 pass goes first on odd image indices, so a warm cache favours neither. The NMS-free head gets the same two passes. The 0.25 pass gives exactly the 0.001 pass's detections that score above 0.25, and it never changes the saved ones (`scripts/tests/test_deploy_threshold.py`).
+- **What the second pass costs** (laptop, 23 October 2026, median per image): on the one-to-many head (A1 at 640, full test-dev, 4 threads) the 0.25 pass takes 1.15 ms (ONNX Runtime FP32) and 1.16 ms (INT8), against 15.5 and 16.0 ms for the 0.001 pass, so it adds under 1% to a 170–260 ms image. On the NMS-free head (YOLO26s COCO weights, 50 images) it takes 0.11–0.16 ms. Adding it did not change the 0.001 pass's own time (100 images: 18.7 → 19.1 ms FP32, 19.5 → 19.4 ms INT8).
+- **Latency means `e2e_deploy`**: pre + net + the 0.25 pass, its median over the run. Every compression budget and every equal-latency comparison uses it. `meta.json` holds it in `timing_ms` beside `post_deploy`, and records `deploy_conf`. `t_total_ms` (pre + net + post at 0.001) stays in the record and is never called latency. A post-processing time is always stated with its threshold. Result B shows both.
+- **The scorer for platform runs is `scripts/studyscore.py`**: torch-free, with `studyeval.py`'s ground truth and COCO settings. It refuses a run whose `conf`, `iou`, `max_det` or `deploy_conf` disagrees with `cfg/invariants.yaml`. `score.json` reports latency at both thresholds and names `e2e_deploy` as the latency.
+- **On one condition: the parity check.** Whenever `studyscore.py` or `studyeval.py` changes, A1 (`yolo11s-640-s0`) at 640 runs through `studybench.py` on the laptop with ONNX Runtime FP32 and INT8 over the full test-dev, and `studyscore.py` must give exactly #9's numbers: **18.76 / 9.04** (FP32) and **16.84 / 7.74** (INT8), AP_all / AP-small. Until it does, no platform run is scored with the changed code.
+  - **Run the INT8 half at `--threads 8`.** #9 evaluated through Ultralytics, which leaves ONNX Runtime at one thread per physical core, 8 on the laptop, and ONNX Runtime's INT8 detections change with the thread count (FP32's did not move across 1–16 threads; `studybench.py`'s docstring). At the platform runs' 4 threads, the same INT8 artifact gives **16.86 / 7.65**: that is the laptop reference for a 4-thread INT8 cell, not a parity failure.
+  - Last passed: 23 October 2026, with #22's two passes in the bench. FP32 at 4 threads gave 18.76 / 9.04 and INT8 at 8 threads 16.84 / 7.74. Over the first 100 test-dev images, the bench before and after #22 wrote byte-identical `predictions.json` for both.
 
 ---
 

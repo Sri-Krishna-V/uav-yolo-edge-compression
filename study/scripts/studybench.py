@@ -18,6 +18,11 @@ Reading and decoding the file is not timed.
   post  box decode + NMS exactly as DetectionValidator calls utils/nms.py non_max_suppression (conf 0.001, iou 0.7,
         max_det 500, multi_label, class-offset NMS, max_nms 30000), or the end2end branch for an NMS-free head, then
         scale_boxes with the validator's ratio_pad. Converting to COCO json is not timed.
+        It runs twice per image, on the same model output, each pass timed on its own (#22): at the evaluation
+        threshold, 0.001 (t_post_ms; its detections are saved), and at the deployment threshold, 0.25 (t_post_deploy_ms
+        and n_dets_deploy; timed only). The 0.25 pass goes first on odd image indices, so a warm cache favours neither.
+Latency is e2e_deploy, pre + net + the 0.25 pass, in meta.json's timing_ms beside post_deploy; t_total_ms is pre + net
++ post at 0.001, which NMS over up to 30,000 candidates makes look slower than a deployed detector.
 The detections are written exactly as DetectionValidator.pred_to_json writes them (bbox rounded to 3 decimals, score
 to 5, category = class + 1). Score them on the laptop with `python studyscore.py <out>`.
 
@@ -59,11 +64,13 @@ import numpy as np
 # yaml and studyenv are not on the platform. studyscore.py refuses a run whose meta disagrees with the invariants.
 CONF, IOU, MAX_DET = 0.001, 0.7, 500
 MAX_NMS, MAX_WH = 30000, 7680
+DEPLOY_CONF = 0.25  # the deployment threshold (INVARIANTS.md section 4.5): latency only, its detections are not saved
 PAD_VALUE = 114
 IMG_SUFFIXES = (".jpg", ".jpeg", ".png", ".bmp")
 FSYNC_EVERY = THROTTLE_EVERY = 50
 COLUMNS = ["index", "file", "t_pre_ms", "t_net_ms", "t_post_ms", "n_cand", "n_dets", "temp_c", "cpu_mhz", "throttled", "img_crc32", "session",
-           "gpu_temp_c", "gpu_mhz"]  # the last two: Jetson only
+           "gpu_temp_c", "gpu_mhz",  # these two: Jetson only
+           "t_post_deploy_ms", "n_dets_deploy"]  # the post-processing pass at the deployment threshold
 
 
 # ---------------------------------------------------------------- pre-processing
@@ -121,9 +128,9 @@ def nms_greedy(boxes, scores, cls, iou, max_det):
     return np.array(keep, dtype=np.int64)
 
 
-def postprocess_raw(pred):
+def postprocess_raw(pred, conf):
     """Raw one-to-many head (4 + nc, anchors), xywh in input pixels -> boxes xyxy, scores, classes, candidate count."""
-    conf = np.float32(CONF)
+    conf = np.float32(conf)
     pred = pred[:, pred[4:].max(0) > conf].T  # candidates: best class above conf
     xy, wh = pred[:, :2], pred[:, 2:4] / 2
     box = np.concatenate((xy - wh, xy + wh), 1)
@@ -139,12 +146,34 @@ def postprocess_raw(pred):
     return box[keep], score[keep], cls[keep], n_cand
 
 
-def postprocess_e2e(pred):
+def postprocess_e2e(pred, conf):
     """NMS-free one-to-one head (max_det, 6): x1 y1 x2 y2 score class, already top-k sorted -> the validator's end2end branch."""
-    pred = pred[pred[:, 4] > np.float32(CONF)]
+    pred = pred[pred[:, 4] > np.float32(conf)]
     n_cand = int(pred.shape[0])
     pred = pred[:MAX_DET]
     return pred[:, :4], pred[:, 4], pred[:, 5].astype(np.int64), n_cand
+
+
+def postprocess(pred, head, conf, ratio_pad, shape0):
+    """One post-processing pass at one confidence threshold: decode and NMS (or the NMS-free head's branch), then scale_boxes."""
+    boxes, scores, cls, n_cand = (postprocess_e2e if head == "end2end" else postprocess_raw)(pred, conf)
+    return scale_boxes(boxes, ratio_pad, shape0), scores, cls, n_cand
+
+
+def two_passes(pred, head, ratio_pad, shape0, deploy_first):
+    """Both post-processing passes on one model output, each timed on its own, in the order given:
+    -> (result at the evaluation threshold, its ms, result at the deployment threshold, its ms).
+
+    Only the evaluation pass's detections are saved. The deployment pass is what a deployed detector runs, and its time
+    is the one latency uses. Neither pass writes to pred, so the order cannot change a detection, only which pass finds
+    the caches warm."""
+    passes = {"eval": CONF, "deploy": DEPLOY_CONF}
+    res, ms = {}, {}
+    for name in ("deploy", "eval") if deploy_first else ("eval", "deploy"):
+        t0 = time.perf_counter_ns()
+        res[name] = postprocess(pred, head, passes[name], ratio_pad, shape0)
+        ms[name] = (time.perf_counter_ns() - t0) / 1e6
+    return res["eval"], ms["eval"], res["deploy"], ms["deploy"]
 
 
 def scale_boxes(boxes, ratio_pad, shape0):
@@ -636,8 +665,10 @@ def load_progress(out):
 def stage_stats(out):
     with open(out / "timings.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
-    cols = {k: np.array([float(r[k]) for r in rows]) for k in ("t_pre_ms", "t_net_ms", "t_post_ms")}
-    cols["t_total_ms"] = cols["t_pre_ms"] + cols["t_net_ms"] + cols["t_post_ms"]
+    cols = {k: np.array([float(r[k]) for r in rows]) for k in ("t_pre_ms", "t_net_ms", "t_post_ms", "t_post_deploy_ms")}
+    cols["t_total_ms"] = cols["t_pre_ms"] + cols["t_net_ms"] + cols["t_post_ms"]  # at the evaluation threshold
+    cols["post_deploy"] = cols.pop("t_post_deploy_ms")
+    cols["e2e_deploy"] = cols["t_pre_ms"] + cols["t_net_ms"] + cols["post_deploy"]  # the latency
     stats = {k: {"median": round(float(np.median(v)), 3), "p95": round(float(np.percentile(v, 95)), 3),
                  "mean": round(float(v.mean()), 3), "min": round(float(v.min()), 3), "max": round(float(v.max()), 3)} for k, v in cols.items()}
 
@@ -719,7 +750,8 @@ def main():
     if manifest and (manifest.get("imgsz") != a.imgsz or manifest.get("runtime") != a.runtime):
         sys.exit(f"--runtime {a.runtime} --imgsz {a.imgsz}, but the manifest says {manifest.get('runtime')} at {manifest.get('imgsz')}")
     config = {"runtime": a.runtime, "imgsz": a.imgsz, "threads": a.threads, "artifact_sha256": digests,
-              "images": len(files), "images_sha1": hashlib.sha1("\n".join(files).encode()).hexdigest()}
+              "images": len(files), "images_sha1": hashlib.sha1("\n".join(files).encode()).hexdigest(),
+              "deploy_conf": DEPLOY_CONF}  # also keeps a run started before the deployment pass from resuming into this one
 
     meta_path = out / "meta.json"
     old = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else None
@@ -761,7 +793,11 @@ def main():
         "complete_testdev": a.limit is None,
         "preprocess": "validator rect=False batch 1: ceil long-side resize INTER_LINEAR, LetterBox pad 114 scaleup=False, BGR->RGB, CHW, /255",
         "postprocess": {"conf": CONF, "iou": IOU, "max_det": MAX_DET, "max_nms": MAX_NMS, "max_wh": MAX_WH, "multi_label": True, "agnostic": False},
+        "deploy_conf": DEPLOY_CONF,
+        "post_passes": f"two per image on the same model output, each timed: at conf {CONF} (t_post_ms, saved for accuracy) and at "
+                       f"{DEPLOY_CONF} (t_post_deploy_ms, timed only); the {DEPLOY_CONF} pass runs first on odd image indices",
         "timed": "pre + net + post per image; image read/decode and COCO conversion excluded",
+        "latency": f"e2e_deploy = pre + net + post at {DEPLOY_CONF}; t_total_ms is pre + net + post at {CONF}",
         "sessions": [],
     }
     meta["status"] = "running"
@@ -788,7 +824,8 @@ def main():
 
     head = None
 
-    def infer(im):
+    def infer(im, i):
+        """Image i through pre, net and both post-processing passes; the deployment pass goes first on odd i."""
         nonlocal head
         t0 = time.perf_counter_ns()
         x, ratio_pad = preprocess(im, a.imgsz)
@@ -797,13 +834,11 @@ def main():
         t2 = time.perf_counter_ns()
         if head is None:
             head = "end2end" if y.shape[-1] == 6 else "raw"
-        boxes, scores, cls, n_cand = (postprocess_e2e if head == "end2end" else postprocess_raw)(y)
-        boxes = scale_boxes(boxes, ratio_pad, im.shape[:2])
-        t3 = time.perf_counter_ns()
-        return boxes, scores, cls, n_cand, ((t1 - t0) / 1e6, (t2 - t1) / 1e6, (t3 - t2) / 1e6)
+        saved, t_post, deploy, t_post_deploy = two_passes(y, head, ratio_pad, im.shape[:2], deploy_first=i % 2 == 1)
+        return saved, len(deploy[1]), ((t1 - t0) / 1e6, (t2 - t1) / 1e6, t_post, t_post_deploy)
 
-    for f in all_files[: a.warmup]:
-        infer(imread(Path(a.images) / f))
+    for i, f in enumerate(all_files[: a.warmup]):
+        infer(imread(Path(a.images) / f), i)
     session["warmup_done"] = now()
 
     todo = [(i, f) for i, f in enumerate(files) if f not in done]
@@ -832,8 +867,9 @@ def main():
     write_json(meta_path, meta)
     (out / "predictions.jsonl").unlink()
     t = stats
-    print(f"done: {len(rows)} images, {a.runtime} {rt.precision}, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} "
-          f"post {t['t_post_ms']['median']} total {t['t_total_ms']['median']} ms (p95 {t['t_total_ms']['p95']})")
+    print(f"done: {len(rows)} images, {a.runtime} {rt.precision}, head {head}; median pre {t['t_pre_ms']['median']} net {t['t_net_ms']['median']} ms; "
+          f"latency (e2e_deploy, conf {DEPLOY_CONF}) {t['e2e_deploy']['median']} ms (p95 {t['e2e_deploy']['p95']}), post {t['post_deploy']['median']} ms; "
+          f"at conf {CONF}: total {t['t_total_ms']['median']}, post {t['t_post_ms']['median']} ms")
 
 
 def run_images(a, out, todo, infer, session, throttle_samples, meta):
@@ -847,7 +883,7 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
             im = imread(Path(a.images) / f)
             if im is None:
                 sys.exit(f"cannot read {f}")
-            boxes, scores, cls, n_cand, (t_pre, t_net, t_post) = infer(im)
+            (boxes, scores, cls, n_cand), n_dets_deploy, (t_pre, t_net, t_post, t_post_deploy) = infer(im, i)
             pj.write(json.dumps({"file": f, "dets": to_coco(boxes, scores, cls)}, separators=(",", ":")) + "\n")
             thr = throttled() if k % THROTTLE_EVERY == 0 else None
             if thr is not None:
@@ -858,7 +894,7 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
             writer.writerow({"index": i, "file": f, "t_pre_ms": f"{t_pre:.3f}", "t_net_ms": f"{t_net:.3f}", "t_post_ms": f"{t_post:.3f}",
                              "n_cand": n_cand, "n_dets": len(scores), "temp_c": cpu_temp_c(), "cpu_mhz": cpu_mhz(),
                              "throttled": hex(thr) if thr is not None else None, "img_crc32": f"{zlib.crc32(im):08x}", "session": session["index"],
-                             "gpu_temp_c": gpu_temp, "gpu_mhz": gpu_mhz})
+                             "gpu_temp_c": gpu_temp, "gpu_mhz": gpu_mhz, "t_post_deploy_ms": f"{t_post_deploy:.3f}", "n_dets_deploy": n_dets_deploy})
             pj.flush()
             tc.flush()
             if k % FSYNC_EVERY == 0:
@@ -867,7 +903,8 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
                 session["last_image"], session["last_update"] = i, now()
                 write_json(out / "meta.json", meta)
             if k % 100 == 0 or k == len(todo):
-                print(f"[{k}/{len(todo)}] {f} pre {t_pre:.1f} net {t_net:.1f} post {t_post:.1f} ms, {len(scores)} dets", flush=True)
+                print(f"[{k}/{len(todo)}] {f} pre {t_pre:.1f} net {t_net:.1f} post {t_post:.1f} (at {DEPLOY_CONF}: {t_post_deploy:.1f}) ms, "
+                      f"{len(scores)} dets ({n_dets_deploy} at {DEPLOY_CONF})", flush=True)
 
 
 if __name__ == "__main__":

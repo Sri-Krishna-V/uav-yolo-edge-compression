@@ -11,6 +11,9 @@ train: # merged into every training run
   seed: 0
   deterministic: true
 
+platform: # every studybench.py run on a platform (INVARIANTS.md section 4.5)
+  deploy_conf: 0.25 # the deployment threshold: latency is timed at it; accuracy stays at shared.conf, the evaluation threshold
+
 eval: # every accuracy evaluation, through scripts/studyeval.py only
   save_json: true # without it the area-split metrics do not exist
   rect: true # what model.val() uses
