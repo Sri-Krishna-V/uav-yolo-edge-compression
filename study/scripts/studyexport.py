@@ -32,6 +32,11 @@ FP16) and an IInt8Calibrator (MINMAX) over all 548 val images, batch 1, at the e
 kept in FP32 (utils/export/engine.py onnx2engine). The calibration cache and the ONNX stay beside the engine. The
 manifest adds what the engine is tied to: TensorRT, GPU, CUDA, L4T and power mode.
 
+On Windows every INT8 variant is exported in its own child process under studycap's memory cap and timeout (#20),
+because calibration is the heaviest step on the laptop: 4 GB and 60 minutes unless --mem-cap-gb or --timeout-min
+says otherwise (INT8 at 960 and 1280 needs 4-5 GB). A variant that goes over either is stopped and reported failed;
+the others go on. Elsewhere, and for FP32, nothing changes.
+
 INT8 needs datasets/VisDrone/images/val and labels/val. Without them Ultralytics would run VisDrone.yaml's download
 script (about 2 GB), so this script stops first. studyenv imports only the standard library, yaml and ultralytics'
 version, so it runs on the Jetson unchanged.
@@ -42,11 +47,13 @@ import hashlib
 import json
 import platform
 import shutil
+import sys
 import time
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
+import studycap
 import studyenv  # noqa: F401  must precede ultralytics
 
 from ultralytics import YOLO  # noqa: E402
@@ -187,7 +194,9 @@ def main():
     p.add_argument("--force", action="store_true", help="re-export variants that already have a manifest")
     p.add_argument("--workspace", type=float, default=None, help="TensorRT builder workspace in GiB (default: TensorRT decides); "
                    "lower it if an engine build runs out of memory. Recorded in the manifest")
+    studycap.add_arguments(p)
     a = p.parse_args()
+    studycap.use(a)
     if a.imgsz % 32:
         raise SystemExit(f"--imgsz {a.imgsz} is not a multiple of the stride 32: Ultralytics would round it and the folder would lie")
 
@@ -210,6 +219,15 @@ def main():
         dest = root / name
         if (dest / "manifest.json").exists() and not a.force:
             print(f"[{name}] exists, skipped: {dest}")
+            continue
+        if kwargs.get("quantize") == 8 and studycap.applies():  # calibration: this variant alone, in a capped process
+            argv = [str(Path(__file__).resolve()), *sys.argv[1:], "--only", name, "--force"]  # the last --only wins
+            try:
+                if studycap.run(argv, f"the {name} export"):
+                    failed.append(name)  # the child said why
+            except studycap.Stopped as e:
+                failed.append(name)
+                print(f"[{name}] FAILED: {e}")
             continue
         try:
             m = export_one(a.weights, a.imgsz, name, kwargs, dest, source_sha, calibration)

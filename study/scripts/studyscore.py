@@ -15,6 +15,9 @@ It also carries the cell's runtime and the precision the platform recorded (what
 so the tables give precision a column of its own, and its time at both confidence thresholds: latency_ms is the median
 of e2e_deploy, pre + net + post at the deployment threshold (0.25); at_evaluation_threshold is the same at 0.001, the
 threshold the scored detections come from.
+On Windows both halves run under studycap's memory cap and timeout (#20): each run is scored in its own capped child
+process, which holds the ground-truth build too. A step that goes over 4 GB or 60 minutes (--mem-cap-gb, --timeout-min)
+is stopped, and the scorer exits saying which run and which limit. Elsewhere nothing changes.
 A --limit run is scored only on the images it ran and is marked partial: a plumbing check, never a reported number.
 """
 
@@ -28,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 
+import studycap
 import studyenv
 
 GT_DIR = studyenv.ROOT / "runs" / "gt"
@@ -49,7 +53,10 @@ def ground_truth(split, imgsz):
             return rec
     GT_DIR.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
-    subprocess.run([sys.executable, str(Path(__file__).with_name("studyeval.py")), "ground-truth", "--split", split, "--imgsz", str(imgsz), "--out", str(tmp)], check=True)
+    argv = [str(Path(__file__).with_name("studyeval.py")), "ground-truth", "--split", split, "--imgsz", str(imgsz), "--out", str(tmp)]
+    code = studycap.run(argv, f"the {split} ground truth at {imgsz}")
+    if code:
+        raise subprocess.CalledProcessError(code, [sys.executable, *argv])
     rec = {**json.loads(tmp.read_text(encoding="utf-8")), **want, "label_cache_hash": label_cache_hash(split)}
     path.write_text(json.dumps(rec), encoding="utf-8")
     tmp.unlink()
@@ -118,7 +125,15 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("runs", nargs="+", help="studybench.py --out directories")
     p.add_argument("--split", default="test", help="the split the platform ran (test = test-dev)")
+    studycap.add_arguments(p)
     a = p.parse_args()
+    studycap.use(a)
+    if studycap.applies():  # each run is scored in its own capped process, its ground truth and its evaluation both
+        for run in a.runs:
+            code = studycap.run([str(Path(__file__).resolve()), run, "--split", a.split], f"scoring {run}")
+            if code:
+                sys.exit(code)
+        return
     for run in map(Path, a.runs):
         meta = json.loads((run / "meta.json").read_text(encoding="utf-8"))
         if meta.get("status") != "complete":

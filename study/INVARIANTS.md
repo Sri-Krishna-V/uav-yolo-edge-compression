@@ -2,7 +2,7 @@
 
 Frozen 2026-09-12 by the map ticket *Freeze the experimental invariants*. Every training run and every accuracy number in the study inherits these. **Changing any of them after the first baseline run invalidates every cell measured before the change**, so re-run those cells or leave the value alone.
 
-Machine-readable source: [`cfg/invariants.yaml`](cfg/invariants.yaml). Enforcement lives in [`scripts/studyenv.py`](scripts/studyenv.py) (environment, settings, version floor) and [`scripts/studyeval.py`](scripts/studyeval.py) (the only sanctioned evaluation).
+Machine-readable source: [`cfg/invariants.yaml`](cfg/invariants.yaml). Enforcement lives in [`scripts/studyenv.py`](scripts/studyenv.py) (environment, settings, version floor) and [`scripts/studyeval.py`](scripts/studyeval.py) (the only sanctioned evaluation); the laptop's memory cap in [`scripts/studycap.py`](scripts/studycap.py) (§1.4).
 
 ```python
 import studyenv   # always first: must precede any ultralytics import
@@ -44,6 +44,23 @@ NCNN, LiteRT/TFLite, TensorRT/JetPack and ONNX Runtime versions depend on *Preci
 | *(first export on each platform)* | | | |
 
 The Jetson's torch is not §1's 2.14.0: the board only exports and benchmarks, and NVIDIA's Jetson wheels exist only for older versions. Fill the TBDs from `scripts/jetson_probe.py` and the first engine's `manifest.json` (its `engine` block). The engines score the one-to-many head (`nms=None`) at both precisions; the one-to-one head this TensorRT would keep (§5) is the probe's "YOLO26 head" line.
+
+### 1.4 The laptop rule: heavy steps run under a memory cap
+
+Decided 22 October 2026 by the map ticket *Final matrix and schedule* (#10); built by #20. The laptop has 15 GB of RAM and often only 2–4 GB free. On 19 October an uncapped job grew to 25.8 GB and paged it for 3.5 h: on Windows a Python `MemoryError` arrives only at the system commit limit, after the page file has grown, so nothing inside a job fails fast.
+
+**The rule: on the laptop, every heavy step runs in a child process under a hard memory cap and a timeout, and a step that goes over either is stopped, never waited out.** The heavy steps are scoring's ground-truth build, its COCO evaluation, and the calibration of every INT8 export.
+
+**The code enforces it; nobody applies it by hand.** `scripts/studycap.py` starts the step suspended, puts it in a Windows Job Object whose memory limit covers it and every process it starts, then lets it run. The kernel refuses any commit past the cap, and the parent stops the whole job at once. The parent also stops it at the timeout, and when the laptop's free RAM falls below 1.5 GB (`STUDY_RAM_FLOOR_GB`), because a cap above what is free would still page. A stopped step exits 1 with a message that names the step and the limit it crossed. A step that stays inside its limits keeps its own output and exit code.
+
+| Script | What runs capped | Unit |
+|---|---|---|
+| `studyscore.py` | each run's scoring: its ground-truth build (`studyeval.py ground-truth`) and its COCO evaluation | one run |
+| `studyexport.py` | each INT8 variant's export, calibration included | one variant; a stopped variant is reported failed and the others go on |
+
+- **Limits**: 4 GB and 60 minutes per step. Change them with `--mem-cap-gb` / `--timeout-min` on either script, or `STUDY_MEM_CAP_GB` / `STUDY_TIMEOUT_MIN`. INT8 export at 960 and 1280 needs 4–5 GB: raise the cap for those, with the laptop otherwise idle.
+- **Off Windows the cap does nothing**: on the Pis, the Jetson and Kaggle the steps run as before, with no cap and no timeout. `scripts/tests/test_studycap.py` proves both sides: a step over its cap, its timeout or the free-RAM floor is stopped at once, and the same step off Windows runs to the end with its exit code.
+- **Checked on the laptop, 23 October 2026**: scoring a 50-image A1 ONNX Runtime FP32 run went through the cap, rebuilding the 640 test-dev ground truth byte-identical to the cached one and writing the same `score.json` as the uncapped path. At `--mem-cap-gb 0.3` and `--timeout-min 0.02` the scorer stopped with exit 1 and said why. A1's ONNX Runtime INT8 export at 640 went through the cap in 116 s, and its graph and weights are identical to the 21 October export behind #9's parity numbers (only the export date in the metadata differs). At `--mem-cap-gb 1` the export was stopped after 11 s and reported failed.
 
 ---
 
