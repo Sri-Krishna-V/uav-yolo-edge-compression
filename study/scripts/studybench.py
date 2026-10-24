@@ -34,6 +34,11 @@ the frames and the window on the monotonic clock that the session's PMIC sampler
 (measured on the laptop: 1, 2 and 4 threads agree, 8 and 16 each differ, by up to 49 px on a box; FP32 does not move).
 Ultralytics leaves ONNX Runtime at its default, one thread per physical core.
 
+The CPU clock in timings.csv's cpu_mhz (#28) is, on a Raspberry Pi, the one the firmware runs the cores at, from
+`vcgencmd measure_clock arm`, read after every image's timing: Linux's scaling_cur_freq, used elsewhere, does not see a
+firmware throttle. meta.json's cpu_clock names the source and what a vcgencmd call cost, and device_state.cpu_mhz gives
+the clock's min, median and max. An energy run reads it with the throttle flags, every 50 frames.
+
 On a Jetson (/etc/nv_tegra_release exists) the run also records the GPU temperature and clock per image, and the
 board's power mode, jetson_clocks state, clocks, temperatures and over-current counters at the start, every 50
 images and the end, with jetson_probe.py's readers (that file must sit beside this one; only a Jetson imports it).
@@ -72,6 +77,8 @@ DEPLOY_CONF = 0.25  # the deployment threshold (INVARIANTS.md section 4.5): late
 PAD_VALUE = 114
 IMG_SUFFIXES = (".jpg", ".jpeg", ".png", ".bmp")
 FSYNC_EVERY = THROTTLE_EVERY = 50
+CLOCK_READ = "every image, after its timing"
+ENERGY_CLOCK_READ = f"at the start of the timed run, every {THROTTLE_EVERY} frames and at its end"
 COLUMNS = ["index", "file", "t_pre_ms", "t_net_ms", "t_post_ms", "n_cand", "n_dets", "temp_c", "cpu_mhz", "throttled", "img_crc32", "session",
            "gpu_temp_c", "gpu_mhz",  # these two: Jetson only
            "t_post_deploy_ms", "n_dets_deploy"]  # the post-processing pass at the deployment threshold
@@ -511,6 +518,35 @@ def cpu_mhz():
     return round(int(v) / 1000) if v and v.isdigit() else None
 
 
+class CpuClock:
+    """The CPU clock in MHz that the cpu_mhz column logs (#28). On a Raspberry Pi (vcgencmd is there), the clock the
+    firmware runs the cores at, from `vcgencmd measure_clock arm`: Linux's scaling_cur_freq does not see a firmware
+    throttle, and under the performance governor it says 2400 MHz on a Pi 5 the firmware has cut to 1500. Elsewhere
+    cpu0's scaling_cur_freq. None when unreadable. Every vcgencmd call is timed, for what reading it costs."""
+
+    def __init__(self):
+        self.vcgencmd = shutil.which("vcgencmd")
+        self.source = "vcgencmd measure_clock arm" if self.vcgencmd else "scaling_cur_freq (cpu0)"
+        self.call_ms, self.failed = [], 0
+
+    def __call__(self):
+        if not self.vcgencmd:
+            return cpu_mhz()
+        t0 = time.perf_counter_ns()
+        out = _try(lambda: subprocess.run([self.vcgencmd, "measure_clock", "arm"], capture_output=True, text=True, timeout=5).stdout)
+        self.call_ms.append((time.perf_counter_ns() - t0) / 1e6)
+        mhz = _try(lambda: round(int(out.strip().split("=")[1]) / 1e6))  # frequency(0)=1500000000 on a Pi 5, (48) on a Pi 4, in Hz
+        self.failed += mhz is None
+        return mhz
+
+    def record(self, read):
+        """meta.json's cpu_clock: the source, when it is read, what a vcgencmd call cost (None off a Pi) and how many of
+        its reads failed. It covers this process's calls: a resumed run's, its last session's."""
+        ms = self.call_ms
+        return {"source": self.source, "read": read, "failed_reads": self.failed,
+                "call_ms": {"n": len(ms), "median": round(float(np.median(ms)), 3), "max": round(max(ms), 3)} if ms else None}
+
+
 def throttled():
     """vcgencmd get_throttled as an int (Raspberry Pi only), else None."""
     if not shutil.which("vcgencmd"):
@@ -666,6 +702,12 @@ def load_progress(out):
     return set(done)
 
 
+def spread(v):
+    """Readings (None for one that failed) -> their min, max and median, or None when none worked."""
+    v = [float(x) for x in v if x is not None]
+    return {"min": min(v), "max": max(v), "median": float(np.median(v))} if v else None
+
+
 def stage_stats(out):
     with open(out / "timings.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -676,16 +718,15 @@ def stage_stats(out):
     stats = {k: {"median": round(float(np.median(v)), 3), "p95": round(float(np.percentile(v, 95)), 3),
                  "mean": round(float(v.mean()), 3), "min": round(float(v.min()), 3), "max": round(float(v.max()), 3)} for k, v in cols.items()}
 
-    def spread(col):
-        v = [float(r[col]) for r in rows if r.get(col)]
-        return {"min": min(v), "max": max(v), "median": float(np.median(v))} if v else None
+    def column(col):
+        return spread([float(r[col]) for r in rows if r.get(col)])
 
     n_cand = [int(r["n_cand"]) for r in rows]
     return rows, stats, {
-        "temp_c": spread("temp_c"),
-        "cpu_mhz": spread("cpu_mhz"),
-        "gpu_temp_c": spread("gpu_temp_c"),
-        "gpu_mhz": spread("gpu_mhz"),
+        "temp_c": column("temp_c"),
+        "cpu_mhz": column("cpu_mhz"),
+        "gpu_temp_c": column("gpu_temp_c"),
+        "gpu_mhz": column("gpu_mhz"),
         "n_cand_max": max(n_cand) if n_cand else None,
         "images_over_max_nms": sum(n > MAX_NMS for n in n_cand),
     }
@@ -823,6 +864,8 @@ def main():
     meta["sessions"].append(session)
     throttle_samples = meta.setdefault("throttle_samples", [])
     throttle_samples.append([len(done), throttled()])
+    clock = CpuClock()
+    meta["cpu_clock"] = clock.record(CLOCK_READ)
     board = meta["platform"]["jetson"]
     if board:
         meta.setdefault("jetson_samples", []).append([len(done), _jetson().sample()])
@@ -853,9 +896,10 @@ def main():
 
     todo = [(i, f) for i, f in enumerate(files) if f not in done]
     try:
-        run_images(a, out, todo, infer, session, throttle_samples, meta)
+        run_images(a, out, todo, infer, session, throttle_samples, meta, clock)
     except BaseException as e:  # Ctrl-C, a dropped SSH session, a runtime error: leave the reason where the next session looks
         session["end"], meta["status"], meta["error"] = now(), "interrupted", f"{type(e).__name__}: {e}"
+        meta["cpu_clock"] = clock.record(CLOCK_READ)
         write_json(meta_path, meta)
         raise
     finally:
@@ -871,7 +915,8 @@ def main():
     meta.pop("throttle_samples")
     meta.pop("error", None)
     meta.update(status="complete", head=head, start=meta["sessions"][0]["start"], end=session["end"], images_timed=len(rows),
-                detections=finalize_predictions(out), timing_ms=stats, device_state=extra, throttle=throttle_summary(throttle_samples),
+                detections=finalize_predictions(out), timing_ms=stats, device_state=extra, cpu_clock=clock.record(CLOCK_READ),
+                throttle=throttle_summary(throttle_samples),
                 jetson=jetson_summary(meta.pop("jetson_samples", []), rows, meta.get("jetson_state_at_start")),
                 max_rss_mb=_try(max_rss_mb), resumed=len(meta["sessions"]) > 1)
     write_json(meta_path, meta)
@@ -882,20 +927,23 @@ def main():
           f"at conf {CONF}: total {t['t_total_ms']['median']}, post {t['t_post_ms']['median']} ms")
 
 
-def energy_loop(images, infer, seconds, clock=time.monotonic, throttle=throttled):
+def energy_loop(images, infer, seconds, clock=time.monotonic, throttle=throttled, mhz=cpu_mhz):
     """An energy run's timed part: infer(image) over the images, cycled in order, until `seconds` have passed on `clock`; the
-    frame running then finishes and counts. -> {frames, window [start, end] on clock, throttle_samples [[frame, value], ...]}
-    (read at the start, every 50 frames and at the end, as in a latency run)."""
-    samples = [[0, throttle()]]
+    frame running then finishes and counts. -> {frames, window [start, end] on clock, throttle_samples and mhz_samples
+    [[frame, value], ...]}: the throttle flags as in a latency run, and the CPU clock with them, at the start, every 50
+    frames and at the end (not every frame: a vcgencmd call is a process of its own, and its power would be the run's)."""
+    samples, clocks = [[0, throttle()]], [[0, mhz()]]
     frames, t0 = 0, clock()
     while clock() - t0 < seconds:
         infer(images[frames % len(images)])
         frames += 1
         if frames % THROTTLE_EVERY == 0:
             samples.append([frames, throttle()])
+            clocks.append([frames, mhz()])
     t1 = clock()
     samples.append([frames, throttle()])
-    return {"frames": frames, "window": [t0, t1], "throttle_samples": samples}
+    clocks.append([frames, mhz()])
+    return {"frames": frames, "window": [t0, t1], "throttle_samples": samples, "mhz_samples": clocks}
 
 
 def energy_run(a, out, files, model_file, digests, manifest):
@@ -924,6 +972,8 @@ def energy_run(a, out, files, model_file, digests, manifest):
             "start": now(), "model_load_s": round(load_s, 3), "platform": platform_info(),
             "versions": {"python": platform.python_version(), "numpy": np.__version__, "cv2": cv2.__version__, a.runtime: rt.version},
             "runtime_info": rt.info, "precision": rt.precision, "cv2_threads": cv2.getNumThreads()}
+    cpu_clock = CpuClock()
+    meta["cpu_clock"] = cpu_clock.record(ENERGY_CLOCK_READ)
     write_json(meta_path, meta)
     head = None
 
@@ -939,15 +989,18 @@ def energy_run(a, out, files, model_file, digests, manifest):
         for i in range(a.warmup):
             infer(images[i % len(images)])
         meta["warmup_done"] = now()
-        e = energy_loop(images, infer, a.seconds)
+        e = energy_loop(images, infer, a.seconds, mhz=cpu_clock)
     except BaseException as ex:
-        meta.update(status="interrupted", error=f"{type(ex).__name__}: {ex}", end=now())
+        meta.update(status="interrupted", error=f"{type(ex).__name__}: {ex}", end=now(), cpu_clock=cpu_clock.record(ENERGY_CLOCK_READ))
         write_json(meta_path, meta)
         raise
     finally:
         getattr(rt, "close", lambda: None)()
     seconds = e["window"][1] - e["window"][0]
+    clock_samples = e.pop("mhz_samples")
     meta.update(status="complete", end=now(), head=head, throttle=throttle_summary(e.pop("throttle_samples")), max_rss_mb=_try(max_rss_mb),
+                cpu_clock={**cpu_clock.record(ENERGY_CLOCK_READ), "samples": clock_samples},
+                device_state={"cpu_mhz": spread([v for _, v in clock_samples])},
                 energy={"seconds_asked": a.seconds, "frames": e["frames"], "window": e["window"], "seconds": round(seconds, 3),
                         "fps": round(e["frames"] / seconds, 3), "clock": "time.monotonic, the clock studysession's PMIC sampler stamps readings with"})
     write_json(meta_path, meta)
@@ -955,8 +1008,9 @@ def energy_run(a, out, files, model_file, digests, manifest):
           f"{len(files)} images cycled, post at conf {DEPLOY_CONF}")
 
 
-def run_images(a, out, todo, infer, session, throttle_samples, meta):
-    """The timed pass: one line in predictions.jsonl and one row in timings.csv per image, flushed as it finishes."""
+def run_images(a, out, todo, infer, session, throttle_samples, meta, clock):
+    """The timed pass: one line in predictions.jsonl and one row in timings.csv per image, flushed as it finishes. The
+    platform's state (temperature, clock, throttle flags) is read after the image's timing, never inside it."""
     new_csv = not (out / "timings.csv").exists()
     with open(out / "predictions.jsonl", "a", encoding="utf-8") as pj, open(out / "timings.csv", "a", newline="", encoding="utf-8") as tc:
         writer = csv.DictWriter(tc, COLUMNS)
@@ -975,7 +1029,7 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
                 meta["jetson_samples"].append([i, _jetson().sample()])
             gpu_temp, gpu_mhz = gpu_state()
             writer.writerow({"index": i, "file": f, "t_pre_ms": f"{t_pre:.3f}", "t_net_ms": f"{t_net:.3f}", "t_post_ms": f"{t_post:.3f}",
-                             "n_cand": n_cand, "n_dets": len(scores), "temp_c": cpu_temp_c(), "cpu_mhz": cpu_mhz(),
+                             "n_cand": n_cand, "n_dets": len(scores), "temp_c": cpu_temp_c(), "cpu_mhz": clock(),
                              "throttled": hex(thr) if thr is not None else None, "img_crc32": f"{zlib.crc32(im):08x}", "session": session["index"],
                              "gpu_temp_c": gpu_temp, "gpu_mhz": gpu_mhz, "t_post_deploy_ms": f"{t_post_deploy:.3f}", "n_dets_deploy": n_dets_deploy})
             pj.flush()
@@ -983,7 +1037,7 @@ def run_images(a, out, todo, infer, session, throttle_samples, meta):
             if k % FSYNC_EVERY == 0:
                 os.fsync(pj.fileno())
                 os.fsync(tc.fileno())
-                session["last_image"], session["last_update"] = i, now()
+                session["last_image"], session["last_update"], meta["cpu_clock"] = i, now(), clock.record(CLOCK_READ)
                 write_json(out / "meta.json", meta)
             if k % 100 == 0 or k == len(todo):
                 print(f"[{k}/{len(todo)}] {f} pre {t_pre:.1f} net {t_net:.1f} post {t_post:.1f} (at {DEPLOY_CONF}: {t_post_deploy:.1f}) ms, "

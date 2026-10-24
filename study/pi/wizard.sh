@@ -433,9 +433,20 @@ PROGRESS
 echo; tail -n 8 "$OUT/session.log" 2>/dev/null | cut -c1-160
 EOF
 }
-start_session() { pi_sh "$DRY" "$PI_OVERRIDE" <<'EOF'
+# ask_room asks a Pi sitting for the room's temperature, which the session records for this invocation (#28)
+PI_ROOM_C=""
+ask_room() {
+  [[ "$PLATFORM" == pi* ]] || return 0
+  note "The session records the room's temperature: read it off a thermometer near the Pi."
+  while :; do
+    ask PI_ROOM_C "The room's temperature now, in C (e.g. 24 or 24.5):" || die "no room temperature given: run the wizard again"
+    [[ "$PI_ROOM_C" =~ ^-?[0-9]+([.][0-9]+)?$ ]] && break
+    warn "a number in C, please: \"$PI_ROOM_C\" is not one."
+  done
+}
+start_session() { pi_sh "$DRY" "$PI_OVERRIDE" "$PI_ROOM_C" <<'EOF'
 mkdir -p "$OUT"
-args=(); [ -n "$1" ] && args+=(--dry-run); [ -n "$2" ] && args+=(--override-checks "$2")
+args=(); [ -n "$1" ] && args+=(--dry-run); [ -n "$2" ] && args+=(--override-checks "$2"); [ -n "$3" ] && args+=(--ambient-c "$3")
 S=; command -v setsid >/dev/null && S=setsid
 nohup $S "$PY" -u scripts/studysession.py "$PLAN" --out "$OUT" "${args[@]}" >> "$OUT/runner.out" 2>&1 < /dev/null &
 echo $! > "$OUT/runner.pid"
@@ -447,11 +458,11 @@ case "$ST" in
   running)  say "This session is running on the Pi." ;;
   new)      say "No session of this plan on the Pi yet."
             confirm "Start it now?" || exit 0
-            start_session; sleep 3 ;;
+            ask_room; start_session; sleep 3 ;;
   *)        say "The session on the Pi is $ST: starting it again resumes it (finished runs are kept)."
             [[ "$ST" == refused ]] && note "A setup check refused it; stage 5 has just run the checks again."
             confirm "Resume it now?" || exit 0
-            start_session; sleep 3 ;;
+            ask_room; start_session; sleep 3 ;;
 esac
 while :; do
   ST=$(session_status) || die "$LOST"

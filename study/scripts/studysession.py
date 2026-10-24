@@ -10,6 +10,11 @@ The rules it applies, so that nobody applies them by hand:
             every CPU, no desktop session runs, the automatic-update timers are off, and the packages the plan needs are
             at PLATFORMS.md's versions. It refuses to start on a failed check, unless --override-checks gives a reason,
             which is recorded. A check it cannot read is recorded as unreadable and does not refuse.
+            A Pi also needs vcgencmd to read the CPU clock, which the bench logs (#28).
+  record    every invocation records the platform's facts, and --ambient-c, the room's temperature (the Pi wizard asks
+            for it). On a Pi the facts include the cooling (#28): the fan's rpm ("none" on a Pi 5 with nothing on its
+            fan connector), the firmware's arm_freq, arm_freq_min and temp_soft_limit, and the CPU's temperature before
+            the invocation's first run.
   threads   4 runtime threads and 20 untimed warm-up images per run, recorded.
   order     the plan's cells are shuffled once with the plan's seed (default 0), and the order is logged.
   gate      a run starts only when the CPU is below 50 C, or after 3 minutes (polled every 5 s). The phone (m34) shows no
@@ -83,6 +88,7 @@ PI_PINS = {"numpy": "2.4.6", "opencv-python-headless": "5.0.0.93", "onnxruntime"
 # What starts an automatic update. Not unattended-upgrades.service: it is "active" whenever the package is installed, and
 # only finishes an upgrade at shutdown; with these two timers off, nothing starts one.
 UPDATE_UNITS = ("apt-daily.timer", "apt-daily-upgrade.timer")
+VC_CONFIG = ("arm_freq", "arm_freq_min", "temp_soft_limit")  # the firmware's clock and throttle settings each Pi invocation records
 DESKTOP = {"Xorg", "Xwayland", "labwc", "wayfire", "lxsession", "lxpanel", "pcmanfm", "lightdm", "gnome-shell", "xfce4-session"}
 DRIFT_MAX = 0.03
 DRIFT_UNITS = ("drift-start", "drift-end")
@@ -185,8 +191,9 @@ def unit_specs(plan, dry_run=False):
 
 
 def pi_checks(facts, runtimes, energy=False):
-    """What the platform's setup_facts() could read -> [{check, status (pass, fail or unreadable), value, fix}]. An energy
-    session also needs the PMIC's rails: a rail sum it cannot read fails, since the session would measure nothing."""
+    """What the platform's setup_facts() could read -> [{check, status (pass, fail or unreadable), value, fix}]. vcgencmd
+    must read the CPU clock, which the bench logs (#28): a clock it cannot read fails. An energy session also needs the
+    PMIC's rails: a rail sum it cannot read fails, since the session would measure nothing."""
     def check(name, value, ok, fix):
         return {"check": name, "status": "unreadable" if value is None else "pass" if ok else "fail", "value": value, "fix": fix}
 
@@ -201,6 +208,10 @@ def pi_checks(facts, runtimes, energy=False):
         have = packages.get(name)
         out.append({"check": name, "status": "pass" if have == PI_PINS[name] else "fail", "value": have,
                     "fix": f"pip install {'--no-deps ' if name == 'ncnn' else ''}{name}=={PI_PINS[name]}"})
+    clock = facts.get("arm_mhz")
+    out.append({"check": "vcgencmd clock", "status": "pass" if clock else "fail", "value": clock,
+                # without it the bench logs no CPU clock (#28): vcgencmd needs the video group
+                "fix": 'vcgencmd measure_clock arm; sudo usermod -aG video "$USER"'})
     if energy:
         w = facts.get("pmic_w")
         out.append({"check": "PMIC rails", "status": "pass" if w else "fail", "value": w,
@@ -344,8 +355,8 @@ def write_json(path, obj):
 
 
 class Session:
-    def __init__(self, plan, out, env, dry_run, override):
-        self.plan, self.out, self.env, self.dry_run, self.override = plan, Path(out), env, dry_run, override
+    def __init__(self, plan, out, env, dry_run, override, ambient_c=None):
+        self.plan, self.out, self.env, self.dry_run, self.override, self.ambient_c = plan, Path(out), env, dry_run, override, ambient_c
         self.energy = is_energy(plan)
         self.specs = unit_specs(plan, dry_run)
         # the runs either side of the cells: a latency session's drift check; an energy session has none
@@ -416,10 +427,13 @@ class Session:
         return ("failed" if pass_state(attempts) == "failed" else "pending"), None
 
     def setup_checks(self):
-        """Record this invocation's platform facts and, on a Pi, refuse a failed setup check unless overridden."""
+        """Record this invocation's platform facts and room temperature and, on a Pi, refuse a failed setup check unless overridden."""
         facts = self.env.setup_facts()
         checks = platform_checks(self.plan, facts)
-        self.state.setdefault("invocations", []).append({"start": now_iso(), "facts": facts, "checks": checks, "override": self.override})
+        self.state.setdefault("invocations", []).append({"start": now_iso(), "facts": facts, "checks": checks, "override": self.override,
+                                                         "ambient_c": self.ambient_c})
+        self.log("room " + ("not given" if self.ambient_c is None else f"{self.ambient_c:g} C")
+                 + ("" if facts.get("cooling") is None else f"; cooling: {describe_cooling(facts['cooling'])}"))
         for c in checks:
             self.log(f"setup check {c['check']}: {c['status']} ({c['value']})" + (f"; fix: {c['fix']}" if c["status"] == "fail" else ""))
         failed = [c for c in checks if c["status"] == "fail"]
@@ -617,9 +631,16 @@ class Session:
             w.writerows(self.summary_rows())
 
 
-def run_session(plan, out, env, dry_run=False, override=None):
-    """Run (or resume) the session of `plan` in `out` on the platform `env`. Returns the session state."""
-    return Session(load_plan(plan), out, env, dry_run, override).run()
+def describe_cooling(cool):
+    """A Pi's cooling facts (Platform.cooling) -> one line for the log."""
+    fan = {"none": "none", None: "unknown"}.get(cool["fan_rpm"], f"{cool['fan_rpm']} rpm")
+    return f"fan {fan}" + "".join(f", {k} {cool[k]}" for k in VC_CONFIG) + f", idle CPU {cool['idle_temp_c']} C"
+
+
+def run_session(plan, out, env, dry_run=False, override=None, ambient_c=None):
+    """Run (or resume) the session of `plan` in `out` on the platform `env`; ambient_c is the room's temperature, as
+    the person at the platform read it for this invocation (None if nobody did). Returns the session state."""
+    return Session(load_plan(plan), out, env, dry_run, override, ambient_c).run()
 
 
 # ---------------------------------------------------------------- the real platform (the tests use a fake one)
@@ -772,10 +793,37 @@ class Platform:
                  "device_model": (_read(self.root / "proc/device-tree/model") or "").rstrip("\x00") or None}
         if self.platform == "jetson":
             facts["jetson"] = self._jetson().board_state()
+        if self.platform in PIS:
+            facts["cooling"] = self.cooling()
+            hz = self.vcgencmd_value("measure_clock", "arm")
+            facts["arm_mhz"] = round(hz / 1e6) if isinstance(hz, int) and hz > 0 else None
         if self.platform == "pi5":
             w = self.read_power()
             facts["pmic_w"] = None if w is None else round(w, 3)
         return facts
+
+    def cooling(self):
+        """A Pi's cooling setup, read at the start of each invocation (#28): the fan's rpm; the firmware's clock and
+        temperature settings from vcgencmd get_config; and the CPU's temperature before any run of this invocation. The
+        fan is the Pi 5's fan connector (the Active Cooler's): none there means "none"; a fan file that does not read,
+        or a Pi 4B, whose fans the Pi cannot see, is None (unknown)."""
+        fan = sorted((self.root / "sys/devices/platform/cooling_fan/hwmon").glob("hwmon*/fan1_input"))
+        rpm = _int(fan[0]) if fan else "none" if self.platform == "pi5" else None
+        return {"fan_rpm": rpm, **{k: self.vcgencmd_value("get_config", k) for k in VC_CONFIG}, "idle_temp_c": self.cpu_temp_c()}
+
+    def vcgencmd_value(self, *args):
+        """`vcgencmd <args>` -> the value after its "=" (an int when it is one); None where vcgencmd cannot say. get_config
+        prints "arm_freq=2400"; measure_clock prints "frequency(0)=1500000000", in Hz."""
+        if not shutil.which("vcgencmd"):
+            return None
+        try:
+            out = subprocess.run(["vcgencmd", *args], capture_output=True, text=True, timeout=5).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return None
+        key, sep, value = out.partition("=")
+        if not sep or key == "error":
+            return None
+        return int(value) if value.lstrip("-").isdigit() else value
 
     def bench(self, spec, out_dir):
         """One studybench.py run into out_dir, its output shown and kept in bench.log: {exit, meta (its meta.json), tail}. An
@@ -822,6 +870,7 @@ def main():
     p.add_argument("--out", help="the session directory (default bench/<platform>/<plan file name>); the same --out resumes")
     p.add_argument("--dry-run", action="store_true", help="a plumbing check: the gate waits 5 s at most; nothing from it is reported")
     p.add_argument("--override-checks", metavar="REASON", help="run although a Pi setup check failed; the reason is recorded")
+    p.add_argument("--ambient-c", type=float, metavar="C", help="the room's temperature now, in C, recorded for this invocation (the Pi wizard asks)")
     only = p.add_mutually_exclusive_group()
     only.add_argument("--needs", action="store_true", help="only print the paths the plan needs on the platform, one per line")
     only.add_argument("--check", action="store_true", help="only run the setup checks and print them; exit 1 if one fails")
@@ -845,7 +894,7 @@ def main():
             f"every session: copy {REFERENCE} here, and install onnxruntime" if REFERENCE in missing else ""))
     out = Path(a.out) if a.out else Path("bench") / checked["platform"] / Path(a.plan).stem
     try:
-        run_session(plan, out, Platform(plan.get("platform")), a.dry_run, a.override_checks)
+        run_session(plan, out, Platform(plan.get("platform")), a.dry_run, a.override_checks, a.ambient_c)
     except KeyboardInterrupt:
         sys.exit(f"interrupted: run the same command again to resume the session in {out}")
 

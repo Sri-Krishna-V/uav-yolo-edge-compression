@@ -36,7 +36,7 @@ def bench_meta(ms=100.0, throttled=False, e2e_deploy=None, jetson=None):
 GOOD_PI = {"governors": ["performance"] * 4, "desktop": [], "update_units": {"apt-daily.timer": "inactive", "apt-daily-upgrade.timer": "inactive"},
            "packages": {"numpy": "2.4.6", "opencv-python-headless": "5.0.0.93", "onnxruntime": "1.31.0", "openvino": "2026.4.1",
                         "ncnn": "1.0.20260526"},
-           "python": "3.11.2", "os": "Debian GNU/Linux 12 (bookworm)", "pmic_w": 2.9}
+           "python": "3.11.2", "os": "Debian GNU/Linux 12 (bookworm)", "pmic_w": 2.9, "arm_mhz": 2400}
 
 
 class FakeEnv:
@@ -420,7 +420,7 @@ out, state = run(PI, env)
 check("8 a Pi set up as the protocol asks: every check passes, and the session runs",
       state["status"] == "complete" and all(c["status"] == "pass" for c in checks(state).values()), checks(state))
 check("8 the checks cover the governor, the desktop, automatic updates and the packages the plan needs",
-      {"governor", "desktop", "automatic updates", "numpy", "opencv-python-headless", "onnxruntime", "openvino"} <= set(checks(state))
+      {"governor", "desktop", "automatic updates", "numpy", "opencv-python-headless", "onnxruntime", "openvino", "vcgencmd clock"} <= set(checks(state))
       and "ncnn" not in checks(state), list(checks(state)))
 check("8 the facts the checks read are recorded", state["invocations"][-1]["facts"]["os"] == "Debian GNU/Linux 12 (bookworm)")
 
@@ -429,7 +429,8 @@ for label, bad, fix in (("a CPU governor that is not performance", {"governors":
                         ("an automatic-update timer on", {"update_units": {"apt-daily.timer": "active", "apt-daily-upgrade.timer": "inactive"}},
                          "systemctl disable"),
                         ("onnxruntime at another version", {"packages": {**GOOD_PI["packages"], "onnxruntime": "1.30.0"}}, "onnxruntime==1.31.0"),
-                        ("a runtime the plan needs, missing", {"packages": {**GOOD_PI["packages"], "openvino": None}}, "openvino==2026.4.1")):
+                        ("a runtime the plan needs, missing", {"packages": {**GOOD_PI["packages"], "openvino": None}}, "openvino==2026.4.1"),
+                        ("vcgencmd unable to read the CPU clock (#28)", {"arm_mhz": None}, "usermod -aG video")):
     env = FakeEnv(facts={**GOOD_PI, **bad})
     out = Path(tempfile.mkdtemp())
     try:
@@ -447,7 +448,7 @@ check("8 an explicit override runs the session anyway", state["status"] == "comp
 check("8 ... and the override and the failed check are recorded", state["invocations"][-1]["override"] == "the borrowed Pi's desktop cannot be stopped"
       and checks(state)["desktop"]["status"] == "fail" and "OVERRIDE" in (out / "session.log").read_text(encoding="utf-8"))
 
-env = FakeEnv(facts={"governors": None, "desktop": None, "update_units": None, "packages": GOOD_PI["packages"]})
+env = FakeEnv(facts={"governors": None, "desktop": None, "update_units": None, "packages": GOOD_PI["packages"], "arm_mhz": 2400})
 out, state = run(PI, env)
 check("8 a check it cannot read is recorded as unreadable, and does not refuse", state["status"] == "complete"
       and checks(state)["governor"]["status"] == "unreadable", checks(state))
@@ -686,6 +687,66 @@ sampler = ss.PowerSampler(lambda: 1 / 0, 0.01)
 sampler.start()
 ss.time.sleep(0.1)
 check("17 a reader that raises: the sampler keeps going and gives no readings", sampler.stop() == [] and sampler.failed > 3, sampler.failed)
+
+# ---------------------------------------------------------------- 18: the room and the cooling, for every invocation (#28)
+COOLING = {"fan_rpm": "none", "arm_freq": 2400, "arm_freq_min": 1500, "temp_soft_limit": 60, "idle_temp_c": 52.3}
+out, env = interrupted(PI, {name(A): [{"interrupt": True}]}, ambient_c=24.5)
+state = ss.run_session(PI, out, FakeEnv(facts={**GOOD_PI, "cooling": COOLING}), ambient_c=27.0)
+check("18 every invocation records the room temperature it was given", [i["ambient_c"] for i in state["invocations"]] == [24.5, 27.0],
+      state["invocations"])
+check("18 ... and the cooling its platform reads", state["invocations"][-1]["facts"]["cooling"] == COOLING)
+log = (out / "session.log").read_text(encoding="utf-8")
+check("18 the log gives the room and the cooling", "room 27 C" in log and "fan none" in log and "arm_freq 2400" in log, log[-1500:])
+out, state = run(plan(A), FakeEnv())
+check("18 a session given no room temperature records none", state["invocations"][-1]["ambient_c"] is None)
+
+
+class FakeVcgencmd:
+    """subprocess.run for `vcgencmd get_config <name>` and `vcgencmd measure_clock arm`, printing what a throttled Pi 5
+    prints; anything else gets vcgencmd's error line."""
+
+    CONFIG = {"arm_freq": "2400", "arm_freq_min": "1500", "temp_soft_limit": "60"}
+
+    def __call__(self, cmd, **kw):
+        if cmd[0] != "vcgencmd":
+            raise FileNotFoundError(cmd[0])
+        out = (f"{cmd[2]}={self.CONFIG[cmd[2]]}\n" if cmd[1:2] == ["get_config"] and cmd[2] in self.CONFIG
+               else "frequency(0)=1500004992\n" if cmd[1:] == ["measure_clock", "arm"] else 'error=1 error_msg="Command not registered"\n')
+        return ss.subprocess.CompletedProcess(cmd, 0, out, "")
+
+
+def pi_root(fan_rpm=None, temp_mc=52300):
+    root = Path(tempfile.mkdtemp())
+    zone = root / "sys/class/thermal/thermal_zone0"
+    zone.mkdir(parents=True)
+    (zone / "type").write_text("cpu-thermal\n")
+    (zone / "temp").write_text(f"{temp_mc}\n")
+    if fan_rpm is not None:
+        hw = root / "sys/devices/platform/cooling_fan/hwmon/hwmon3"
+        hw.mkdir(parents=True)
+        (hw / "fan1_input").write_text(f"{fan_rpm}\n")
+    return root
+
+
+saved = ss.shutil.which, ss.subprocess.run
+ss.shutil.which = lambda n, *a, **kw: "vcgencmd" if n == "vcgencmd" else None
+ss.subprocess.run = FakeVcgencmd()
+try:
+    bare = ss.Platform("pi5", root=pi_root()).setup_facts()
+    fanned = ss.Platform("pi5", root=pi_root(fan_rpm=3200, temp_mc=41000)).setup_facts()
+    pi4 = ss.Platform("pi4b", root=pi_root()).setup_facts()
+    laptop = ss.Platform("laptop", root=pi_root()).setup_facts()
+finally:
+    ss.shutil.which, ss.subprocess.run = saved
+check("18 a Pi with no fan: the cooling says none, with the firmware's clock and temperature settings and the idle temperature",
+      bare.get("cooling") == COOLING, bare.get("cooling"))
+check("18 a Pi with a fan: its rpm", (fanned.get("cooling") or {}).get("fan_rpm") == 3200
+      and fanned["cooling"]["idle_temp_c"] == 41.0, fanned.get("cooling"))
+check("18 the Pi 4B records its cooling too, its fan unknown (it cannot see one); the laptop records none",
+      (pi4.get("cooling") or {}).get("fan_rpm", "missing") is None and pi4["cooling"]["arm_freq"] == 2400 and "cooling" not in laptop,
+      (pi4.get("cooling"), laptop.get("cooling")))
+check("18 the setup check reads the firmware's clock through vcgencmd", bare.get("arm_mhz") == 1500 and "arm_mhz" not in laptop,
+      (bare.get("arm_mhz"), laptop.get("arm_mhz")))
 
 if FAILED:
     sys.exit(f"{len(FAILED)} failed: {FAILED}")

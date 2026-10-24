@@ -36,7 +36,8 @@ sudo fixes); internet on the Pi if the install is not done yet.
 Its 7 stages: what to have ready; connect (it sets up an SSH key if there is none); fan, power and SD card; copy the
 scripts, the plan, the exports and the test-dev images (a path already on the Pi with the same content is not copied
 again); the install and the setup checks (it offers to run the fixes); start the session under `nohup`, or follow or
-resume one; copy the results home to `study/bench/` and score them. Every stage finds what is already done, so run it
+resume one (starting or resuming, it asks for the room's temperature, which the session records); copy the results
+home to `study/bench/` and score them. Every stage finds what is already done, so run it
 again at any time: after closing it, after a dropped connection, or when a session finishes. Your host and user are kept
 in `pi/.env` (not in git).
 
@@ -87,7 +88,9 @@ start. Standard library only; it needs no more than the bench does.
   - the CPU governor is `performance` on every CPU;
   - no desktop session is running;
   - `apt-daily.timer` and `apt-daily-upgrade.timer` are off;
-  - the packages the plan needs are at this guide's versions.
+  - the packages the plan needs are at this guide's versions;
+  - `vcgencmd measure_clock arm` reads the CPU clock, which the bench logs (#28). Its fix adds the user to the `video`
+    group.
 
   A failed check stops it and prints the fix. `--override-checks "<why>"` runs anyway and records the reason.
 - **Start gate**, before every run:
@@ -138,11 +141,31 @@ A misspelt key, or a missing artifact or image directory, stops the runner befor
 In `--out`:
 
 - `session.log`: every decision.
-- `session.json`: the state it resumes from.
+- `session.json`: the state it resumes from. Each invocation's record holds the platform's facts and `ambient_c`, the
+  room's temperature given with `--ambient-c` (the Pi wizard asks for it each time it starts or resumes a session;
+  `null` when none was given). On a Pi, the facts include `cooling` (#28):
+  - `fan_rpm`: the fan on the Pi 5's fan connector. `"none"` when nothing is there. `null` (unknown) on a Pi 4B, which
+    cannot see a fan, or when the fan's reading fails;
+  - `arm_freq`, `arm_freq_min` and `temp_soft_limit`, from `vcgencmd get_config`. Raspberry Pi's docs list
+    `temp_soft_limit` for the 3A+ and 3B+ only, so on a Pi 5 its value may mean nothing;
+  - `idle_temp_c`: the CPU temperature before the invocation's first run. On a resume right after a run, the CPU may
+    still be warm.
 - `summary.csv`: one row per cell and per reference run, with attempts, outcome, median latency, throttle state, the
   drift verdict, and `run_dir`, the attempt to score with `studyscore.py`.
 
 Each attempt gets its own `runs/<cell>/attempt-<n>/`, holding the bench's files and its output in `bench.log`.
+
+**The CPU clock** (#28). On a Pi, the bench's `cpu_mhz` column is the clock the firmware runs the cores at, from
+`vcgencmd measure_clock arm`, read after each image's timing. Linux's `scaling_cur_freq` does not see a firmware
+throttle: under the `performance` governor it says 2400 MHz on a Pi 5 the firmware has cut to 1.5 GHz. Other platforms
+keep `scaling_cur_freq`. `meta.json`'s `cpu_clock` names the source, gives what one `vcgencmd` call cost (`call_ms`:
+median and max over this process's calls, written every 50 images and when a run stops), and counts the reads that
+failed. `device_state.cpu_mhz` gives the clock's min, median and max. An energy run reads the clock every 50 frames,
+with the throttle flags.
+
+- **Cost of one `measure_clock` call on the Pi 5: not measured yet (#28 stays open for it).** The first Pi 5 session
+  gives it, in every run's `meta.json` (`cpu_clock.call_ms`). Write it here. If it is more than a few ms, read the clock
+  every N images instead.
 
 `--needs` prints the paths a plan needs on the platform, and `--check` runs only the setup checks (exit 1 if one
 fails). Neither runs a cell or writes anything; the Pi wizard uses both.
