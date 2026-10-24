@@ -24,7 +24,11 @@ s.STOP_FILE = T / "stop.txt"
 s.SESSION_ID_FILE = T / "sid"
 s.SEED_DIR = T / "seed-unpacked"
 s.WORKING.mkdir(parents=True)
-shutil.copytree(REPO / "study" / "verification" / "runs", s.RECORD_DIR)  # the GitHub clone's records
+# The records the checks below assume: the teammate's baselines finished; T2, and every run built on another run, not
+# yet. Fixed here, not copied from the clone, whose records move on as runs finish (T2's landed on 23 Oct).
+s.RECORD_DIR.mkdir(parents=True)
+for name in ("yolo26s-640-s0", "yolo26s-640-s1", "yolo26s-640-s2", "yolo26s-960-s0", "yolo26s-1280-s0"):
+    (s.RECORD_DIR / f"{name}.json").write_text("{}")
 cfg = s.load_runs()
 MAKE_PRUNED, RUN, LAUNCH = s.make_pruned, s.run, s.launch
 
