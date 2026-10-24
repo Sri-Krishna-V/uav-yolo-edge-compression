@@ -24,12 +24,12 @@ s.STOP_FILE = T / "stop.txt"
 s.SESSION_ID_FILE = T / "sid"
 s.SEED_DIR = T / "seed-unpacked"
 s.WORKING.mkdir(parents=True)
-# The records the checks below assume: the teammate's baselines finished; T2, and every run built on another run, not
-# yet. Fixed here, not copied from the clone, whose records move on as runs finish (T2's landed on 23 Oct).
-s.RECORD_DIR.mkdir(parents=True)
-for name in ("yolo26s-640-s0", "yolo26s-640-s1", "yolo26s-640-s2", "yolo26s-960-s0", "yolo26s-1280-s0"):
-    (s.RECORD_DIR / f"{name}.json").write_text("{}")
 cfg = s.load_runs()
+# The records the checks below assume: the teammate's baselines finished; T2, and every run built on another run, not
+# yet. Fixed here, not copied from the clone, whose records move on as runs finish (T2's landed on 23 October 2026).
+s.RECORD_DIR.mkdir(parents=True)
+for rid in ("A2", "A5", "A6", "B2", "B4"):
+    (s.RECORD_DIR / f"{s.run_name(cfg['runs'][rid])}.json").write_text("{}")
 MAKE_PRUNED, RUN, LAUNCH = s.make_pruned, s.run, s.launch
 
 
@@ -188,6 +188,23 @@ fake_run(src, "yolo26s-960-s0")
 shutil.make_archive(str(s.INPUTS / "uav-vidhyarth-seed" / "uav"), "zip", src / "uav")
 rc, out = call(s.preflight, ["train", "T2", "P4", "--new", "T2", "P4", "--input-from", "S-new"])
 check("11 zipped seed dataset unblocks P4", rc == 0 and "BLOCKED" not in out and "unpacked the seed" in out, out)
+
+# 11b. The layout Kaggle really gave the teammate's notebook (24 October 2026): inputs sorted into notebooks/<owner>/ and
+# datasets/<owner>/, and the seed archive unpacked into the dataset's root, so the name uav is gone: B2's best.pt is
+# at <seed dataset>/study/runs/..., not under any uav/. P4 can start.
+reset()
+nb_kaggle = s.INPUTS / "notebooks" / "vidhyarthse" / "uav-vidhyarth-b"
+fake_run(nb_kaggle, "yolo26s-640-s0")
+stamp(nb_kaggle, "S-new")
+shutil.copytree(src / "uav", s.INPUTS / "datasets" / "vidhyarthse" / "uav-vidhyarth-seed")
+rc, out = call(s.preflight, ["train", "T2", "P4", "--new", "T2", "P4", "--input-from", "S-new"])
+check("11b seed dataset unpacked by Kaggle (no uav/ level) unblocks P4", rc == 0 and "BLOCKED" not in out and "T2, P4" in out, out)
+
+# 11c. The same tree at the root of any other input (not uav/, not a uav-*-seed dataset) is never read: P4 stays blocked.
+shutil.rmtree(s.INPUTS / "datasets")
+shutil.copytree(src / "uav", s.INPUTS / "datasets" / "someone" / "yolo-weights")
+rc, out = call(s.preflight, ["train", "T2", "P4", "--new", "T2", "P4", "--input-from", "S-new"])
+check("11c a study/ tree at another input's root is not read", rc == 0 and "P4 BLOCKED" in out, out)
 
 # 12. train, not preflight, is the gate: a run must not be pruned from a source that has no record, even when the
 # source's best.pt is there (a paused run has one). B2 paused after epoch 6 and no record: P4 BLOCKED, T2 trains.

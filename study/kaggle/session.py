@@ -128,8 +128,8 @@ def sources(r):
     return [r[k] for k in ("prune_from", "distill_from") if r.get(k)]
 
 
-MISSING_HINT = ("It is in neither input. Likely fix: under Input, update the other notebook to its newest version. "
-                "If that does not help, run on your computer: bash study/kaggle/wizard.sh repair")
+MISSING_HINT = ("It is in none of the attached inputs. Likely fix: under Input, update the other notebook to its newest "
+                "version. If that does not help, run on your computer: bash study/kaggle/wizard.sh repair")
 
 
 def source_blockers(cfg, r, has_best, has_record):
@@ -299,23 +299,31 @@ def checkpoint_epoch(path):
     import torch
 
     # Unpickles (Ultralytics checkpoints hold model objects, so weights_only=True cannot load them), which can run
-    # code from the file. Only checkpoints this study wrote reach here: find_in_inputs() reads nothing but the
-    # uav/study tree our own notebook cell creates, and Ultralytics unpickles the same last.pt again to resume.
+    # code from the file. Only checkpoints this study wrote reach here (find_in_inputs() reads nothing else), and
+    # Ultralytics unpickles the same last.pt again to resume.
     return torch.load(path, map_location="cpu", weights_only=False).get("epoch", -1)
 
 
 def find_in_inputs(pattern):
-    """Files under an attached input's uav/study/ tree: only the output of our own notebook cell, or the seed dataset
-    `wizard.sh repair` uploads from the person's own checkpoints, is ever read."""
+    """Files under an attached input's uav/study/ tree (the output of our own notebook cell), or under the study/ tree
+    of the seed dataset uav-<who>-seed that `wizard.sh repair` uploads from the person's own checkpoints. Nothing
+    else is ever read: a study/ tree at the root of any other input is not.
+
+    Kaggle puts a seed's files at <seed dataset>/study/ (it unpacks the archive into the dataset's root; seen on
+    24 October 2026), or leaves the archive zipped, and then unpack_seeds() puts them at SEED_DIR/<n>/uav/study/.
+    """
     unpack_seeds()
-    return sorted(f for root in (INPUTS, SEED_DIR) if root.is_dir() for f in root.glob(f"**/uav/study/{pattern}"))
+    trees = ((INPUTS, "uav"), (SEED_DIR, "uav"), (INPUTS, "uav-*-seed"))
+    return sorted(f for root, tree in trees if root.is_dir() for f in root.glob(f"**/{tree}/study/{pattern}"))
 
 
 def unpack_seeds():
-    """A seed dataset arrives as uav.zip (or uav.tar) if Kaggle does not unpack it: unpack it once, outside /kaggle/input.
+    """A seed dataset that Kaggle left zipped: unpack it once, outside /kaggle/input.
 
-    The Kaggle CLI archives the uav/ folder from inside it (its entries start at study/), so it is unpacked into a
-    folder named uav, which puts its files at .../uav/study/ like every other input.
+    The Kaggle CLI archives the uav/ folder from inside it (its entries start at study/). Kaggle either unpacks that
+    archive into the dataset's root, dropping the name uav, so its files are at <seed dataset>/study/ (seen on
+    24 October 2026; find_in_inputs reads them there), or leaves it as uav.zip (or uav.tar). This unpacks the latter
+    into a folder named uav, which puts its files at .../uav/study/ like every other input.
     """
     import tarfile
     import zipfile
