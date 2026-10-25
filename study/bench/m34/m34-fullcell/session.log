@@ -1,0 +1,17 @@
+2026-10-25T12:25:37+00:00 session on m34 (one full cell after the phone's speed test (#27): A1 at 640, ONNX Runtime FP32, all 1,610 test-dev images, to learn the real time of a full cell on the phone): 1 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-25T12:25:37+00:00 room not given
+2026-10-25T12:25:37+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/onnxruntime-fp32
+2026-10-25T12:28:39+00:00 drift-start: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 31.7 C
+2026-10-25T12:28:39+00:00 drift-start: attempt 1 starts
+2026-10-25T12:31:14+00:00 drift-start: attempt 1 complete, median latency 613.729 ms, throttle unknown
+2026-10-25T12:34:15+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 31.7 C
+2026-10-25T12:34:15+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+2026-10-25T12:53:41+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 636.56 ms, throttle unknown
+2026-10-25T12:56:42+00:00 drift-end: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 35.8 C
+2026-10-25T12:56:42+00:00 drift-end: attempt 1 starts
+2026-10-25T12:59:19+00:00 drift-end: attempt 1 complete, median latency 631.095 ms, throttle unknown
+2026-10-25T12:59:19+00:00 drift check: reference median 613.729 -> 631.095 ms (+2.8%): ok
+2026-10-25T12:59:19+00:00   drift-start: FP32, ok, 1 attempt(s), median 613.729 ms (e2e_deploy), throttle unknown, drift ok, runs/drift-start/attempt-1
+2026-10-25T12:59:19+00:00   drift-end: FP32, ok, 1 attempt(s), median 631.095 ms (e2e_deploy), throttle unknown, drift ok, runs/drift-end/attempt-1
+2026-10-25T12:59:19+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 636.56 ms (e2e_deploy), throttle unknown, drift ok, runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-10-25T12:59:19+00:00 session complete: bench/m34/m34-fullcell/summary.csv

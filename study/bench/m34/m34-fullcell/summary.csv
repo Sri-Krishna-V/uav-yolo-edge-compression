@@ -1,0 +1,4 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,ok,613.729,e2e_deploy,unknown,ok,runs/drift-start/attempt-1,a1 complete throttle unknown
+drift-end,onnxruntime,FP32,640,200,1,ok,631.095,e2e_deploy,unknown,ok,runs/drift-end/attempt-1,a1 complete throttle unknown
+yolo11s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,all,1,ok,636.56,e2e_deploy,unknown,ok,runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1,a1 complete throttle unknown
