@@ -1,0 +1,8 @@
+{
+  "platform": "m34",
+  "note": "the quantized full cell after the FP32 one (#27): A1 at 640, ONNX Runtime INT8, all 1,610 test-dev images; about 22 min with the fixed 3-minute start waits",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}
