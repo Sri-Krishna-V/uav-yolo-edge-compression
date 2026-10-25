@@ -1,0 +1,47 @@
+date: 2026-10-25T15:36:58+05:30
+termux: 0.118.3
+model: SM-M346B / android 16 / sdk 36
+build: BP4A.251205.006.M346BXXSEFZH9
+one_ui: 80500
+soc: s5e8825 s5e8825
+--- cores
+cpu0 part=0xd05 max=2002000 cur=1536000 gov=energy_aware
+cpu1 part=0xd05 max=2002000 cur=2002000 gov=energy_aware
+cpu2 part=0xd05 max=2002000 cur=2002000 gov=energy_aware
+cpu3 part=0xd05 max=2002000 cur=1440000 gov=energy_aware
+cpu4 part=0xd05 max=2002000 cur=2002000 gov=energy_aware
+cpu5 part=0xd05 max=2002000 cur=1536000 gov=energy_aware
+cpu6 part=0xd41 max=2400000 cur=1440000 gov=energy_aware
+cpu7 part=0xd41 max=2400000 cur=1344000 gov=energy_aware
+policy0 related=0 1 2 3 4 5
+policy6 related=6 7
+asimddp: asimddp
+--- placement
+cpuset: /top-app
+Cpus_allowed_list:	0-7
+--- thermal
+cat: /sys/class/thermal/thermal_zone0/temp: Permission denied
+--- battery
+{
+  "present": true,
+  "technology": "Li-ion",
+  "health": "GOOD",
+  "plugged": "PLUGGED_AC",
+  "status": "CHARGING",
+  "temperature": 33.2,
+  "voltage": 4117,
+  "current": 1201,
+  "current_average": 1069,
+  "percentage": 67,
+  "level": 67,
+  "scale": 100,
+  "charge_counter": 4038000,
+  "cycle": 0
+}
+--- python
+  warnings.warn(
+3.14.8 numpy 2.5.4 cv2 4.14.0 ort 1.31.0 ['NnapiExecutionProvider', 'XnnpackExecutionProvider', 'CPUExecutionProvider']
+--- tools
+bash=ok tar=ok find=ok sort=ok xargs=ok sha256sum=ok sed=ok awk=ok cut=ok df=ok nohup=ok setsid=ok paste=ok 
+storage: 23.0 GB free
+mem: MemTotal:        5517824 kB

@@ -1,0 +1,8 @@
+{
+  "platform": "m34",
+  "note": "one full cell after the phone's speed test (#27): A1 at 640, ONNX Runtime FP32, all 1,610 test-dev images, to learn the real time of a full cell on the phone",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}
