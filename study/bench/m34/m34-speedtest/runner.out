@@ -1,0 +1,41 @@
+2026-10-25T10:20:35+00:00 session on m34 (the phone's speed test (#27): is ONNX Runtime INT8 faster than FP32 on the Galaxy M34 under Termux? A1 at 640, 200 images per cell; about 25-40 min with the fixed 3-minute start waits): 2 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-25T10:20:35+00:00 room not given
+2026-10-25T10:20:35+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/onnxruntime-fp32, yolo11s-640-s0/640/onnxruntime-int8
+2026-10-25T10:23:38+00:00 drift-start: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.4 C
+2026-10-25T10:23:38+00:00 drift-start: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 9.1 net 656.3 post 78.7 (at 0.25: 5.3) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 9.5 net 720.8 post 44.2 (at 0.25: 9.4) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 9.533 net 688.894 ms; latency (e2e_deploy, conf 0.25) 703.667 ms (p95 1221.76), post 4.542 ms; at conf 0.001: total 742.623, post 40.633 ms
+2026-10-25T10:26:51+00:00 drift-start: attempt 1 complete, median latency 703.667 ms, throttle unknown
+2026-10-25T10:29:53+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.6 C
+2026-10-25T10:29:53+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 9.1 net 612.8 post 50.5 (at 0.25: 5.3) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 9.3 net 669.7 post 29.3 (at 0.25: 3.2) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 9.311 net 670.359 ms; latency (e2e_deploy, conf 0.25) 684.644 ms (p95 818.653), post 3.966 ms; at conf 0.001: total 714.436, post 37.16 ms
+2026-10-25T10:32:44+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 684.644 ms, throttle unknown
+2026-10-25T10:35:46+00:00 yolo11s-640-s0/640/onnxruntime-int8: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 36.0 C
+2026-10-25T10:35:46+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 9.3 net 283.8 post 56.7 (at 0.25: 5.4) ms, 500 dets (93 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 9.4 net 302.5 post 30.5 (at 0.25: 3.1) ms, 500 dets (41 at 0.25)
+    done: 200 images, onnxruntime INT8, head raw; median pre 9.053 net 285.517 ms; latency (e2e_deploy, conf 0.25) 298.564 ms (p95 378.363), post 3.504 ms; at conf 0.001: total 330.533, post 35.626 ms
+2026-10-25T10:37:08+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 complete, median latency 298.564 ms, throttle unknown
+2026-10-25T10:40:10+00:00 drift-end: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 36.2 C
+2026-10-25T10:40:10+00:00 drift-end: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 9.3 net 672.5 post 52.1 (at 0.25: 5.3) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 9.0 net 656.8 post 29.1 (at 0.25: 3.2) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 9.171 net 625.88 ms; latency (e2e_deploy, conf 0.25) 638.864 ms (p95 725.849), post 3.56 ms; at conf 0.001: total 669.909, post 34.275 ms
+2026-10-25T10:42:45+00:00 drift-end: attempt 1 complete, median latency 638.864 ms, throttle unknown
+2026-10-25T10:42:45+00:00 drift check: reference median 703.667 -> 638.864 ms (-9.2%): moved more than 3%: every cell of this session is flagged for a re-run
+2026-10-25T10:42:45+00:00   drift-start: FP32, ok, 1 attempt(s), median 703.667 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-start/attempt-1
+2026-10-25T10:42:45+00:00   drift-end: FP32, ok, 1 attempt(s), median 638.864 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-end/attempt-1
+2026-10-25T10:42:45+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 684.644 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-10-25T10:42:45+00:00   yolo11s-640-s0/640/onnxruntime-int8: INT8, ok, 1 attempt(s), median 298.564 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1
+2026-10-25T10:42:45+00:00 session complete: bench/m34/m34-speedtest/summary.csv

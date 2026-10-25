@@ -1,0 +1,6 @@
+/data/data/com.termux/files/home/sb/bin/python -u /data/data/com.termux/files/home/uav/study/scripts/studybench.py --artifact exports/yolo11s-640-s0/640/onnxruntime-int8 --runtime onnxruntime --imgsz 640 --images datasets/VisDrone/images/test --out bench/m34/m34-speedtest/runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1 --threads 4 --warmup 20 --platform-tag m34 --limit 200
+/data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+  warnings.warn(
+[100/200] 0000118_02632_d_0000077.jpg pre 9.3 net 283.8 post 56.7 (at 0.25: 5.4) ms, 500 dets (93 at 0.25)
+[200/200] 0000320_00750_d_0000007.jpg pre 9.4 net 302.5 post 30.5 (at 0.25: 3.1) ms, 500 dets (41 at 0.25)
+done: 200 images, onnxruntime INT8, head raw; median pre 9.053 net 285.517 ms; latency (e2e_deploy, conf 0.25) 298.564 ms (p95 378.363), post 3.504 ms; at conf 0.001: total 330.533, post 35.626 ms

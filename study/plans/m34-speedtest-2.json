@@ -1,0 +1,9 @@
+{
+  "platform": "m34",
+  "note": "re-run of plans/m34-speedtest.json (#27), whose drift check moved -9.2% on 2026-10-25: the same two cells, A1 at 640, 200 images per cell",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640, "limit": 200},
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640, "limit": 200}
+  ]
+}
