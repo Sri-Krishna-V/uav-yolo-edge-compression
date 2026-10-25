@@ -1,0 +1,17 @@
+2026-10-25T13:13:38+00:00 session on m34 (the quantized full cell after the FP32 one (#27): A1 at 640, ONNX Runtime INT8, all 1,610 test-dev images; about 22 min with the fixed 3-minute start waits): 1 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-25T13:13:38+00:00 room not given
+2026-10-25T13:13:38+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/onnxruntime-int8
+2026-10-25T13:16:39+00:00 drift-start: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 35.0 C
+2026-10-25T13:16:39+00:00 drift-start: attempt 1 starts
+2026-10-25T13:19:12+00:00 drift-start: attempt 1 complete, median latency 618.053 ms, throttle unknown
+2026-10-25T13:22:14+00:00 yolo11s-640-s0/640/onnxruntime-int8: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.3 C
+2026-10-25T13:22:14+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 starts
+2026-10-25T13:32:49+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 complete, median latency 304.779 ms, throttle unknown
+2026-10-25T13:35:50+00:00 drift-end: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 35.6 C
+2026-10-25T13:35:50+00:00 drift-end: attempt 1 starts
+2026-10-25T13:38:27+00:00 drift-end: attempt 1 complete, median latency 636.295 ms, throttle unknown
+2026-10-25T13:38:27+00:00 drift check: reference median 618.053 -> 636.295 ms (+3.0%): ok
+2026-10-25T13:38:27+00:00   drift-start: FP32, ok, 1 attempt(s), median 618.053 ms (e2e_deploy), throttle unknown, drift ok, runs/drift-start/attempt-1
+2026-10-25T13:38:27+00:00   drift-end: FP32, ok, 1 attempt(s), median 636.295 ms (e2e_deploy), throttle unknown, drift ok, runs/drift-end/attempt-1
+2026-10-25T13:38:27+00:00   yolo11s-640-s0/640/onnxruntime-int8: INT8, ok, 1 attempt(s), median 304.779 ms (e2e_deploy), throttle unknown, drift ok, runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1
+2026-10-25T13:38:27+00:00 session complete: bench/m34/m34-fullcell-int8/summary.csv

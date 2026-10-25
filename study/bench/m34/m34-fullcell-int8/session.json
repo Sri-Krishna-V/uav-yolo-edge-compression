@@ -1,0 +1,135 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "m34",
+    "note": "the quantized full cell after the FP32 one (#27): A1 at 640, ONNX Runtime INT8, all 1,610 test-dev images; about 22 min with the fixed 3-minute start waits",
+    "seed": 0,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-int8",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "6a5e94557f16ff63d325a9525e8cc32d405adec560f7416cfac58abe59428b95",
+  "dry_run": false,
+  "seed": 0,
+  "order": [
+    "yolo11s-640-s0/640/onnxruntime-int8"
+  ],
+  "units": {
+    "drift-start": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-start/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 35.0
+          },
+          "start": "2026-10-25T13:16:39+00:00",
+          "result": "complete",
+          "latency_ms": 618.053,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-10-25T13:19:12+00:00"
+        }
+      ]
+    },
+    "drift-end": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-end/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 35.6
+          },
+          "start": "2026-10-25T13:35:50+00:00",
+          "result": "complete",
+          "latency_ms": 636.295,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-10-25T13:38:27+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.3
+          },
+          "start": "2026-10-25T13:22:14+00:00",
+          "result": "complete",
+          "latency_ms": 304.779,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-10-25T13:32:49+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-10-25T13:13:38+00:00",
+      "facts": {
+        "governors": [
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware"
+        ],
+        "desktop": [],
+        "update_units": null,
+        "packages": {
+          "numpy": "2.5.4",
+          "opencv-python-headless": "4.14.0.93",
+          "onnxruntime": "1.31.0",
+          "openvino": null,
+          "ncnn": null,
+          "opencv-python": "4.14.0.93"
+        },
+        "python": "3.14.8",
+        "os": "Android-16-aarch64-64bit-ELF",
+        "kernel": "16",
+        "rpi_issue": null,
+        "device_model": null
+      },
+      "checks": [],
+      "override": null,
+      "ambient_c": null
+    }
+  ],
+  "status": "complete",
+  "drift": {
+    "start_ms": 618.053,
+    "end_ms": 636.295,
+    "change_pct": 3.0,
+    "throttled": [],
+    "verdict": "ok"
+  }
+}
