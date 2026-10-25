@@ -55,6 +55,11 @@ desktop.ini
 *.csv.gz
 wandb/
 
+# Platform sessions: the raw detections (15 MB per 200 images, 116 MB per full cell: over GitHub's 100 MB limit) and
+# the runner's process id. The run folders keep timings, meta, logs and scores; the detections stay on the laptop.
+study/bench/**/predictions.json
+study/bench/**/runner.pid
+
 # Kaggle wizard: per-person answers and the scratch cell it copies to the clipboard
 study/kaggle/.cell-to-paste.txt
 study/kaggle/.kaggle-cli/
