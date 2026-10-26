@@ -29,6 +29,14 @@ bash pi/wizard.sh plans/pi5-fullcell.json     # then: the real time of one full 
 bash pi/wizard.sh plans/pi5-energy-check.json # the energy mode's first real run (#26; "Energy sessions" below)
 ```
 
+**A blank SD card first:** `bash pi/provision.sh` (9 stages, about 30 minutes) has Raspberry Pi Imager write
+Raspberry Pi OS (Legacy, 64-bit) Lite. That is Bookworm with Python 3.11, the OS these pins are for. Imager's first
+entry, Raspberry Pi OS (64-bit), is Trixie with Python 3.13. The wizard also writes this laptop's SSH key onto the card,
+and the network to join is the laptop's Mobile Hotspot or a home Wi-Fi, because the campus Wi-Fi cannot be joined by
+the Pi. After the first boot, the wizard connects to the Pi and checks the board, the OS, the fan, the power, the SD
+card and the internet. It records them in `verification/pi5_facts.txt`, writes the host and user to `pi/.env`, and
+hands over to `pi/wizard.sh`.
+
 **Have ready:** the Pi 5 on its official 27 W supply with the Active Cooler fitted, on the laptop's network; its host
 name or IP and user; SSH on (`raspi-config` → Interface Options → SSH); the Pi's password (for the SSH key and the
 sudo fixes); internet on the Pi if the install is not done yet.
