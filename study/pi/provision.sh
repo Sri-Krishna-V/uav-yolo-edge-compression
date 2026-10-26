@@ -247,6 +247,35 @@ forget_key() {
     note "removed the old host key for $1 from ~/.ssh/known_hosts (the new card has new ones)"
   fi
 }
+# find_pi prints the IPs, on this laptop's hotspot or home network, whose network card is a Raspberry Pi's (Raspberry
+# Pi Ltd's MAC prefixes): it pings every address of each /24 once, so the ARP table learns who is there. The VPNs'
+# addresses (Tailscale 100.x, WARP 172.16.x) are not swept; on the laptop's hotspot only its own 192.168.137.x is.
+PI_OUIS='2c-cf-67|d8-3a-dd|dc-a6-32|e4-5f-01|b8-27-eb|28-cd-c1|88-a2-9e'
+find_pi() {
+  local nets s i
+  if [[ "$PI_NET" == 1 ]]; then
+    nets="192.168.137"
+  else
+    nets=$(ipconfig 2>/dev/null | tr -d '\r' | sed -n 's/.*IPv4 Address[. ]*: *\([0-9.]*\).*/\1/p' \
+           | grep -E '^(192\.168\.|10\.|172\.20\.10\.)' | cut -d. -f1-3 | sort -u || true)
+  fi
+  for s in $nets; do
+    for i in $(seq 254); do ping -n 1 -w 400 "$s.$i" >/dev/null 2>&1 & done
+    wait
+  done
+  arp -a 2>/dev/null | tr -d '\r' | grep -iE "$PI_OUIS" | awk '{print $1}' | sort -u || true
+}
+# search_pi: find_pi, then SSH to each Pi found; HOST is the one that takes this laptop's key.
+search_pi() {
+  local ip
+  say "Looking for a Raspberry Pi on the network (about 15 s)..."
+  while IFS= read -r ip; do
+    if [[ -n "$FRESH" ]]; then forget_key "$ip"; fi
+    if reach "$ip"; then HOST="$ip"; good "found it at $ip"; return 0; fi
+    note "a Raspberry Pi at $ip does not answer SSH with this laptop's key: $(printf '%s\n' "${SSH_ERR:-}" | tail -n1)"
+  done < <(find_pi)
+  return 1
+}
 find_imager() {
   local p
   for p in "/c/Program Files/Raspberry Pi Imager/rpi-imager.exe" "/c/Program Files (x86)/Raspberry Pi Imager/rpi-imager.exe"; do
@@ -391,6 +420,7 @@ for _ in $(seq 18); do
   sleep 10
 done
 printf '\n'
+if [[ -z "$HOST" ]]; then search_pi || true; fi
 while [[ -z "$HOST" ]]; do
   warn "no SSH yet: $(printf '%s\n' "${SSH_ERR:-no answer}" | tail -n1)"
   if [[ "$SSH_ERR" == *"IDENTIFICATION HAS CHANGED"* ]] \
@@ -408,8 +438,9 @@ while [[ -z "$HOST" ]]; do
     step "Find the Pi's IP address in your router's list of devices."
   fi
   note "Not listed after 5 minutes? The Wi-Fi name or password on the card is wrong: run the wizard again and write the card."
-  ask PI_IP "The Pi's IP address (Enter stops here):" || PI_IP=""
-  [[ -n "$PI_IP" ]] || die "no connection yet: run bash pi/provision.sh again (yes in stage 1 skips to here)"
+  ask PI_IP "The Pi's IP address (Enter searches the network again; q stops here):" || PI_IP=q
+  [[ "$PI_IP" != q ]] || die "no connection yet: run bash pi/provision.sh again (yes in stage 1 skips to here)"
+  if [[ -z "$PI_IP" ]]; then search_pi || true; continue; fi
   if [[ -n "$FRESH" ]]; then forget_key "$PI_IP"; fi
   if reach "$PI_IP"; then HOST="$PI_IP"; fi
 done
