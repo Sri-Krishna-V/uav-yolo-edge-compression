@@ -1,0 +1,73 @@
+2026-10-26T19:33:55+00:00 session on pi5 (the speed test (#25): is INT8 slower than FP32 on the Pi 5, for ONNX Runtime and OpenVINO? A1 at 640, 200 images per cell, and NCNN (FP16 on the Pi 5) beside them; about 15-35 min with the start gates): 5 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-26T19:33:55+00:00 room 26 C; cooling: fan 1875 rpm, arm_freq 2000, arm_freq_min 1500, temp_soft_limit 0, idle CPU 50.7 C
+2026-10-26T19:33:55+00:00 setup check governor: pass (['performance', 'performance', 'performance', 'performance'])
+2026-10-26T19:33:55+00:00 setup check desktop: pass ([])
+2026-10-26T19:33:55+00:00 setup check automatic updates: pass ({'apt-daily.timer': 'inactive', 'apt-daily-upgrade.timer': 'inactive'})
+2026-10-26T19:33:55+00:00 setup check numpy: pass (2.4.6)
+2026-10-26T19:33:55+00:00 setup check opencv-python-headless: pass (5.0.0.93)
+2026-10-26T19:33:55+00:00 setup check ncnn: pass (1.0.20260526)
+2026-10-26T19:33:55+00:00 setup check onnxruntime: pass (1.31.0)
+2026-10-26T19:33:55+00:00 setup check openvino: pass (2026.4.1)
+2026-10-26T19:33:55+00:00 setup check vcgencmd clock: pass (2000)
+2026-10-26T19:33:55+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/openvino-fp32, yolo11s-640-s0/640/onnxruntime-int8, yolo11s-640-s0/640/onnxruntime-fp32, yolo11s-640-s0/640/ncnn-fp32, yolo11s-640-s0/640/openvino-int8
+2026-10-26T19:34:20+00:00 drift-start: gate opened after 25 s: CPU below 50 C
+2026-10-26T19:34:20+00:00 drift-start: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 384.7 post 23.3 (at 0.25: 2.6) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 384.5 post 13.5 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 3.255 net 384.809 ms; latency (e2e_deploy, conf 0.25) 389.87 ms (p95 405.988), post 1.656 ms; at conf 0.001: total 404.221, post 15.813 ms
+2026-10-26T19:35:57+00:00 drift-start: attempt 1 complete, median latency 389.87 ms, throttle none
+2026-10-26T19:38:27+00:00 yolo11s-640-s0/640/openvino-fp32: gate opened after 150 s: CPU below 50 C
+2026-10-26T19:38:27+00:00 yolo11s-640-s0/640/openvino-fp32: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 290.1 post 23.6 (at 0.25: 2.5) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 289.5 post 13.8 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+    done: 200 images, openvino FP32, head raw; median pre 3.224 net 289.556 ms; latency (e2e_deploy, conf 0.25) 294.471 ms (p95 298.31), post 1.675 ms; at conf 0.001: total 309.117, post 16.161 ms
+2026-10-26T19:39:42+00:00 yolo11s-640-s0/640/openvino-fp32: attempt 1 complete, median latency 294.471 ms, throttle none
+2026-10-26T19:42:02+00:00 yolo11s-640-s0/640/onnxruntime-int8: gate opened after 140 s: CPU below 50 C
+2026-10-26T19:42:02+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 265.3 post 25.3 (at 0.25: 2.7) ms, 500 dets (93 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 268.3 post 13.8 (at 0.25: 1.6) ms, 500 dets (41 at 0.25)
+    done: 200 images, onnxruntime INT8, head raw; median pre 3.216 net 266.079 ms; latency (e2e_deploy, conf 0.25) 271.615 ms (p95 282.29), post 1.72 ms; at conf 0.001: total 286.507, post 16.556 ms
+2026-10-26T19:43:13+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 complete, median latency 271.615 ms, throttle none
+2026-10-26T19:46:13+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 51.8 C
+2026-10-26T19:46:13+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.1 net 384.9 post 23.5 (at 0.25: 2.6) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 382.9 post 13.7 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 3.213 net 385.147 ms; latency (e2e_deploy, conf 0.25) 390.226 ms (p95 397.296), post 1.698 ms; at conf 0.001: total 404.513, post 16.008 ms
+2026-10-26T19:47:49+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 390.226 ms, throttle none
+2026-10-26T19:50:49+00:00 yolo11s-640-s0/640/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 50.7 C
+2026-10-26T19:50:49+00:00 yolo11s-640-s0/640/ncnn-fp32: attempt 1 starts
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    load vulkan driver failed
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.1 net 167.5 post 23.3 (at 0.25: 2.4) ms, 500 dets (83 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 166.8 post 13.5 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+    done: 200 images, ncnn FP16, head raw; median pre 3.218 net 166.537 ms; latency (e2e_deploy, conf 0.25) 171.448 ms (p95 173.355), post 1.623 ms; at conf 0.001: total 185.529, post 15.738 ms
+2026-10-26T19:51:37+00:00 yolo11s-640-s0/640/ncnn-fp32: attempt 1 complete, median latency 171.448 ms, throttle none
+2026-10-26T19:54:37+00:00 yolo11s-640-s0/640/openvino-int8: gate opened after 180 s: 3 min passed, CPU still at 51.8 C
+2026-10-26T19:54:37+00:00 yolo11s-640-s0/640/openvino-int8: attempt 1 starts
+    OpenVINO 2026.4.1-22982-e213a147257-releases/2026/4 compiled exports/yolo11s-640-s0/640/openvino-int8/model_int8_openvino_model/model.xml in FP16 despite INFERENCE_PRECISION_HINT=f32: not a cell (INVARIANTS.md §8). Layers: {'Convolution f16': 45, 'Convolution f32': 43, 'MatMul f32': 2}
+2026-10-26T19:54:39+00:00 yolo11s-640-s0/640/openvino-int8: attempt 1 CRASHED (exit 1): OpenVINO 2026.4.1-22982-e213a147257-releases/2026/4 compiled exports/yolo11s-640-s0/640/openvino-int8/model_int8_openvino_model/model.xml in FP16 despite INFERENCE_PRECISION_HINT=f32: not a cell (INVARIANTS.md §8). Layers: {'Convolution f16': 45, 'Convolution f32': 43, 'MatMul f32': 2}; it runs again from the start
+2026-10-26T19:57:39+00:00 yolo11s-640-s0/640/openvino-int8: gate opened after 180 s: 3 min passed, CPU still at 50.7 C
+2026-10-26T19:57:39+00:00 yolo11s-640-s0/640/openvino-int8: attempt 2 starts
+    OpenVINO 2026.4.1-22982-e213a147257-releases/2026/4 compiled exports/yolo11s-640-s0/640/openvino-int8/model_int8_openvino_model/model.xml in FP16 despite INFERENCE_PRECISION_HINT=f32: not a cell (INVARIANTS.md §8). Layers: {'Convolution f16': 45, 'Convolution f32': 43, 'MatMul f32': 2}
+2026-10-26T19:57:41+00:00 yolo11s-640-s0/640/openvino-int8: attempt 2 CRASHED (exit 1): OpenVINO 2026.4.1-22982-e213a147257-releases/2026/4 compiled exports/yolo11s-640-s0/640/openvino-int8/model_int8_openvino_model/model.xml in FP16 despite INFERENCE_PRECISION_HINT=f32: not a cell (INVARIANTS.md §8). Layers: {'Convolution f16': 45, 'Convolution f32': 43, 'MatMul f32': 2}; a second crash: the cell is failed
+2026-10-26T19:57:51+00:00 drift-end: gate opened after 10 s: CPU below 50 C
+2026-10-26T19:57:51+00:00 drift-end: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 381.3 post 23.1 (at 0.25: 2.5) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 383.1 post 13.5 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 3.229 net 383.169 ms; latency (e2e_deploy, conf 0.25) 388.113 ms (p95 396.336), post 1.643 ms; at conf 0.001: total 402.317, post 15.827 ms
+2026-10-26T19:59:26+00:00 drift-end: attempt 1 complete, median latency 388.113 ms, throttle none
+2026-10-26T19:59:26+00:00 drift check: reference median 389.87 -> 388.113 ms (-0.5%): ok
+2026-10-26T19:59:26+00:00   drift-start: FP32, ok, 1 attempt(s), median 389.87 ms (e2e_deploy), throttle none, drift ok, runs/drift-start/attempt-1
+2026-10-26T19:59:26+00:00   drift-end: FP32, ok, 1 attempt(s), median 388.113 ms (e2e_deploy), throttle none, drift ok, runs/drift-end/attempt-1
+2026-10-26T19:59:26+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 390.226 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-10-26T19:59:26+00:00   yolo11s-640-s0/640/onnxruntime-int8: INT8, ok, 1 attempt(s), median 271.615 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1
+2026-10-26T19:59:26+00:00   yolo11s-640-s0/640/openvino-fp32: FP32, ok, 1 attempt(s), median 294.471 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-640-s0/640/openvino-fp32/attempt-1
+2026-10-26T19:59:26+00:00   yolo11s-640-s0/640/openvino-int8: -, failed, 2 attempt(s), median - ms (-), throttle -, drift ok, no run to score
+2026-10-26T19:59:26+00:00   yolo11s-640-s0/640/ncnn-fp32: FP16, ok, 1 attempt(s), median 171.448 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-640-s0/640/ncnn-fp32/attempt-1
+2026-10-26T19:59:26+00:00 session complete: bench/pi5/pi5-speedtest/summary.csv

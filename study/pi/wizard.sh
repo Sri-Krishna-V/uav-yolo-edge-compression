@@ -308,7 +308,7 @@ HW=$(pi_sh <<'EOF'
 echo "fan_rpm=$(cat /sys/devices/platform/cooling_fan/hwmon/hwmon*/fan1_input 2>/dev/null | head -n1)"
 echo "temp=$(vcgencmd measure_temp 2>/dev/null | cut -d= -f2)"
 echo "throttled=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)"
-echo "free_bytes=$(df -Pk "$HOME" | awk 'NR == 2 {print $4 * 1024}')"
+echo "free_bytes=$(df -Pk "$HOME" | awk 'NR == 2 {printf "%.0f\n", $4 * 1024}')"
 EOF
 ) || die "$LOST"
 hw() { printf '%s\n' "$HW" | sed -n "s/^$1=//p"; }

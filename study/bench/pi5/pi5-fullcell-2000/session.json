@@ -1,0 +1,194 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "pi5",
+    "note": "one full cell after the speed test (#25): A1 at 640, ONNX Runtime FP32, all 1,610 test-dev images, to learn the real time of a full cell; about 20-30 min",
+    "seed": 0,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "e954723d943ffa14e1700e374120a6157da5d28663a248436cd1c156ba860b65",
+  "dry_run": false,
+  "seed": 0,
+  "order": [
+    "yolo11s-640-s0/640/onnxruntime-fp32"
+  ],
+  "units": {
+    "drift-start": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-start/attempt-1",
+          "gate": {
+            "waited_s": 30.0,
+            "opened": "CPU below 50 C",
+            "cpu_temp_c": 49.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-26T18:05:18+00:00",
+          "result": "complete",
+          "latency_ms": 388.214,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-26T18:06:55+00:00"
+        }
+      ]
+    },
+    "drift-end": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-end/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 52.4 C",
+            "cpu_temp_c": 52.4,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-26T18:24:43+00:00",
+          "result": "complete",
+          "latency_ms": 392.394,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-26T18:26:19+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 51.2 C",
+            "cpu_temp_c": 51.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-26T18:09:55+00:00",
+          "result": "complete",
+          "latency_ms": 388.548,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-26T18:21:43+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-10-26T18:04:48+00:00",
+      "facts": {
+        "governors": [
+          "performance",
+          "performance",
+          "performance",
+          "performance"
+        ],
+        "desktop": [],
+        "update_units": {
+          "apt-daily.timer": "inactive",
+          "apt-daily-upgrade.timer": "inactive"
+        },
+        "packages": {
+          "numpy": "2.4.6",
+          "opencv-python-headless": "5.0.0.93",
+          "onnxruntime": "1.31.0",
+          "openvino": "2026.4.1",
+          "ncnn": "1.0.20260526",
+          "opencv-python": null
+        },
+        "python": "3.11.2",
+        "os": "Debian GNU/Linux 12 (bookworm)",
+        "kernel": "6.12.109+rpt-rpi-2712",
+        "rpi_issue": "Raspberry Pi reference 2026-10-06",
+        "device_model": "Raspberry Pi 5 Model B Rev 1.0",
+        "cooling": {
+          "fan_rpm": 1770,
+          "arm_freq": 2000,
+          "arm_freq_min": 1500,
+          "temp_soft_limit": 0,
+          "idle_temp_c": 50.1
+        },
+        "arm_mhz": 2000,
+        "pmic_w": 2.407
+      },
+      "checks": [
+        {
+          "check": "governor",
+          "status": "pass",
+          "value": [
+            "performance",
+            "performance",
+            "performance",
+            "performance"
+          ],
+          "fix": "echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+        },
+        {
+          "check": "desktop",
+          "status": "pass",
+          "value": [],
+          "fix": "sudo systemctl isolate multi-user.target (this boot), and sudo systemctl set-default multi-user.target (every boot)"
+        },
+        {
+          "check": "automatic updates",
+          "status": "pass",
+          "value": {
+            "apt-daily.timer": "inactive",
+            "apt-daily-upgrade.timer": "inactive"
+          },
+          "fix": "sudo systemctl disable --now apt-daily.timer apt-daily-upgrade.timer"
+        },
+        {
+          "check": "numpy",
+          "status": "pass",
+          "value": "2.4.6",
+          "fix": "pip install numpy==2.4.6"
+        },
+        {
+          "check": "opencv-python-headless",
+          "status": "pass",
+          "value": "5.0.0.93",
+          "fix": "pip install opencv-python-headless==5.0.0.93"
+        },
+        {
+          "check": "onnxruntime",
+          "status": "pass",
+          "value": "1.31.0",
+          "fix": "pip install onnxruntime==1.31.0"
+        },
+        {
+          "check": "vcgencmd clock",
+          "status": "pass",
+          "value": 2000,
+          "fix": "vcgencmd measure_clock arm; sudo usermod -aG video \"$USER\""
+        }
+      ],
+      "override": null,
+      "ambient_c": 26.0
+    }
+  ],
+  "status": "complete",
+  "drift": {
+    "start_ms": 388.214,
+    "end_ms": 392.394,
+    "change_pct": 1.1,
+    "throttled": [],
+    "verdict": "ok"
+  }
+}

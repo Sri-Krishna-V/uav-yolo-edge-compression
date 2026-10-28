@@ -1,0 +1,21 @@
+# The Pi 5 after a fresh card (pi/provision.sh)
+date=2026-10-26T22:25:43+05:30
+model=Raspberry Pi 5 Model B Rev 1.0
+os=Debian GNU/Linux 12 (bookworm)
+codename=bookworm
+image=Raspberry Pi reference 2026-10-06
+arch=aarch64
+kernel=6.12.109+rpt-rpi-2712
+python=3.11.2
+firmware=2025/05/08 15:13:17  Copyright (c) 2012 Broadcom version 69471177 (release) (embedded)
+bootloader=2025/05/08 15:13:17
+ram_mb=4049
+fan_rpm=0
+temp=48.3'C
+throttled=0x0
+sd_gb=29
+sd_free_gb=26
+clock_synced=yes
+internet=200
+venv=ok
+sudo_nopasswd=yes

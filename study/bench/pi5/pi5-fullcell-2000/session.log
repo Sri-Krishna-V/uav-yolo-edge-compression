@@ -1,0 +1,24 @@
+2026-10-26T18:04:48+00:00 session on pi5 (one full cell after the speed test (#25): A1 at 640, ONNX Runtime FP32, all 1,610 test-dev images, to learn the real time of a full cell; about 20-30 min): 1 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-26T18:04:48+00:00 room 26 C; cooling: fan 1770 rpm, arm_freq 2000, arm_freq_min 1500, temp_soft_limit 0, idle CPU 50.1 C
+2026-10-26T18:04:48+00:00 setup check governor: pass (['performance', 'performance', 'performance', 'performance'])
+2026-10-26T18:04:48+00:00 setup check desktop: pass ([])
+2026-10-26T18:04:48+00:00 setup check automatic updates: pass ({'apt-daily.timer': 'inactive', 'apt-daily-upgrade.timer': 'inactive'})
+2026-10-26T18:04:48+00:00 setup check numpy: pass (2.4.6)
+2026-10-26T18:04:48+00:00 setup check opencv-python-headless: pass (5.0.0.93)
+2026-10-26T18:04:48+00:00 setup check onnxruntime: pass (1.31.0)
+2026-10-26T18:04:48+00:00 setup check vcgencmd clock: pass (2000)
+2026-10-26T18:04:48+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/onnxruntime-fp32
+2026-10-26T18:05:18+00:00 drift-start: gate opened after 30 s: CPU below 50 C
+2026-10-26T18:05:18+00:00 drift-start: attempt 1 starts
+2026-10-26T18:06:55+00:00 drift-start: attempt 1 complete, median latency 388.214 ms, throttle none
+2026-10-26T18:09:55+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 51.2 C
+2026-10-26T18:09:55+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+2026-10-26T18:21:43+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 388.548 ms, throttle none
+2026-10-26T18:24:43+00:00 drift-end: gate opened after 180 s: 3 min passed, CPU still at 52.4 C
+2026-10-26T18:24:43+00:00 drift-end: attempt 1 starts
+2026-10-26T18:26:19+00:00 drift-end: attempt 1 complete, median latency 392.394 ms, throttle none
+2026-10-26T18:26:19+00:00 drift check: reference median 388.214 -> 392.394 ms (+1.1%): ok
+2026-10-26T18:26:19+00:00   drift-start: FP32, ok, 1 attempt(s), median 388.214 ms (e2e_deploy), throttle none, drift ok, runs/drift-start/attempt-1
+2026-10-26T18:26:19+00:00   drift-end: FP32, ok, 1 attempt(s), median 392.394 ms (e2e_deploy), throttle none, drift ok, runs/drift-end/attempt-1
+2026-10-26T18:26:19+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 388.548 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-10-26T18:26:19+00:00 session complete: bench/pi5/pi5-fullcell-2000/summary.csv
