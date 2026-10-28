@@ -1,0 +1,15 @@
+{
+  "platform": "pi5",
+  "note": "the Pi 5 matrix, session 6 of 6 (#37): B3 and B4 (trained at 1280) run at 1120, baseline and quantized; 8 cells, about 3.7 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo11s-1280-s0/1120/openvino-fp32", "runtime": "openvino", "imgsz": 1120},
+    {"artifact": "exports/yolo11s-1280-s0/1120/ncnn-fp32", "runtime": "ncnn", "imgsz": 1120},
+    {"artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-1280-s0/1120/openvino-fp32", "runtime": "openvino", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-1280-s0/1120/ncnn-fp32", "runtime": "ncnn", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 1120}
+  ]
+}

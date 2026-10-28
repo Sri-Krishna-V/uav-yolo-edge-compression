@@ -1,0 +1,17 @@
+{
+  "platform": "pi5",
+  "note": "the Pi 5 matrix, session 3 of 6 (#37): YOLO26s P3, P4, D2 and C2 (the teammate's checkpoints); 10 cells, about 2.2 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo26s-640-s0-prune30/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30/640/openvino-fp32", "runtime": "openvino", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30/640/ncnn-fp32", "runtime": "ncnn", "imgsz": 640},
+    {"artifact": "exports/yolo26s-960-s0-prune30/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0-prune30/960/openvino-fp32", "runtime": "openvino", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0-prune30/960/ncnn-fp32", "runtime": "ncnn", "imgsz": 960},
+    {"artifact": "exports/yolo26s-640-s0-distill/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-distill/640/openvino-fp32", "runtime": "openvino", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-distill/640/ncnn-fp32", "runtime": "ncnn", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}

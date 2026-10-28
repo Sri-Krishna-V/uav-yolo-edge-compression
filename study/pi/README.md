@@ -1,6 +1,7 @@
 # Running the Pi 5 sessions
 
-This is a guide for running the Pi 5 from your own laptop, starting from a blank SD card. It has three parts:
+This is a guide for running the Pi 5 from your own laptop, starting from a blank SD card. Parts 1–5 are done; the
+matrix sessions are [part 6](#6-the-matrix-sessions-37). The first parts:
 
 1. **Set up the Pi** from a blank SD card. About 30 minutes, and done once.
 2. **The fan pilot** (#29). One full cell on all 1,610 test-dev images, about 30–40 minutes. It shows whether the fan
@@ -184,6 +185,49 @@ When you are done, shut the Pi down before you unplug it:
 ```
 
 Then wait 10 seconds before unplugging.
+
+---
+
+## 6. The matrix sessions (#37)
+
+Parts 1–5 are done. This part runs the study's 63 cells in 6 sessions, about 20 hours of Pi time in all. The Pi keeps
+`arm_freq=2000`: do not change `config.txt` again. Stage 3 of the wizard stops if the lock is missing.
+
+**Before each batch of sessions,** Krishna sends a tar of exports by Google Drive. From the repo's top folder:
+
+```bash
+git pull                                       # the plans and the wizard
+tar -xf ~/Downloads/pi5-matrix-exports-1.tar   # use its real name; it unpacks into study/exports/
+cd study
+```
+
+**Run the sessions in this order,** one at a time. The wizard copies each session's exports to the Pi in stage 4.
+
+| Order | Command | Pi time |
+|---|---|---|
+| 1 | `bash pi/wizard.sh plans/pi5-matrix-1-yolo11s.json` | about 4.8 h |
+| 2 | `bash pi/wizard.sh plans/pi5-matrix-2-yolo26s.json` | about 3.3 h |
+| 3 | `bash pi/wizard.sh plans/pi5-matrix-3-yolo26s-compressed.json` (needs your 4 checkpoints, in a later tar) | about 2.2 h |
+| 4 | `bash pi/wizard.sh plans/pi5-matrix-4-1280-baselines.json` | about 3.5 h |
+| 5 | `bash pi/wizard.sh plans/pi5-matrix-5-800.json` | about 2.1 h |
+| 6 | `bash pi/wizard.sh plans/pi5-matrix-6-1120.json` | about 3.7 h |
+
+- A session needs you only to start it and to bring its results home. Type `l` in stage 6 to leave it running, and run
+  the same command again when it is done. Start the next session right after.
+- If a session's exports are not on your laptop yet ("missing on this laptop"), its tar has not come yet: run the next
+  one whose exports you have.
+- If time runs out, the sessions at the end of the table are the ones dropped. Do not skip ahead.
+- "scoring failed" in stage 7 is still expected.
+
+**After each session,** from `study/`, push the small files as last time and send the detections, which git leaves out:
+
+```bash
+git add bench/pi5/pi5-matrix-1-yolo11s && git commit -m "Pi 5 matrix session 1" && git push
+tar -czf ~/pi5-matrix-1-yolo11s.tgz bench/pi5/pi5-matrix-1-yolo11s   # about 250 MB; upload it to Google Drive
+```
+
+Change the session's name in both lines. If a session says `re-run` in its drift column, tell Krishna before starting
+the next one.
 
 ---
 

@@ -1,0 +1,19 @@
+{
+  "platform": "pi5",
+  "note": "the Pi 5 matrix, session 2 of 6 (#37): YOLO26s core: A2 and B2 baseline and quantized at 640 and 960, B4 quantized at 1280, and result B's NMS-free head (A2, -e2e); 12 cells, about 3.3 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/openvino-fp32", "runtime": "openvino", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/ncnn-fp32", "runtime": "ncnn", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-fp32-e2e", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8-e2e", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/openvino-fp32-e2e", "runtime": "openvino", "imgsz": 640},
+    {"artifact": "exports/yolo26s-960-s0/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/openvino-fp32", "runtime": "openvino", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/ncnn-fp32", "runtime": "ncnn", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-1280-s0/1280/onnxruntime-int8", "runtime": "onnxruntime", "imgsz": 1280}
+  ]
+}
