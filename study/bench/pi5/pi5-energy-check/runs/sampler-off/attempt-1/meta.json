@@ -1,0 +1,264 @@
+{
+  "tool": "studybench.py",
+  "mode": "energy",
+  "status": "complete",
+  "platform_tag": "pi5",
+  "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32",
+  "model_file": "exports/yolo11s-640-s0/640/onnxruntime-fp32/model.onnx",
+  "artifact_sha256": {
+    "model.onnx": "22e9560f863f845e021879a2287f9e43aeef2efc4112948e909acf84ac872adf"
+  },
+  "manifest": {
+    "run": "yolo11s-640-s0",
+    "variant": "onnxruntime-fp32",
+    "runtime": "onnxruntime",
+    "precision": "fp32",
+    "head": "raw",
+    "imgsz": 640,
+    "batch": 1,
+    "artifact": "model.onnx",
+    "files": {
+      "model.onnx": "22e9560f863f845e021879a2287f9e43aeef2efc4112948e909acf84ac872adf"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-640-s0\\best.pt",
+    "source_sha256": "6498bde0289db4ae3fbeb59ff1b50df6c19f8789bfdcf34925483b7fe2fbf213",
+    "export_args": {
+      "imgsz": 640,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx"
+    },
+    "calibration": null,
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-21T12:10:31.638055+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[640, 640]",
+      "end2end": "False",
+      "args": "{'data': None, 'batch': 1, 'fraction': 1.0, 'quantize': None, 'nms': None, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": null,
+      "pnnx": null
+    },
+    "export_seconds": 9.1,
+    "exported_utc": "2026-10-21T06:40:37+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "0918f6010342d487af946b9916e19911005673c7"
+  },
+  "runtime": "onnxruntime",
+  "imgsz": 640,
+  "threads": 4,
+  "warmup": 20,
+  "images_dir": "datasets/VisDrone/images/test",
+  "images": 100,
+  "images_sha1": "eb8b4882e7997b8d937874029c8bada72bb6a734",
+  "deploy_conf": 0.25,
+  "frame": "pre + net + post at conf 0.25 (the deployment threshold); images decoded before the timed run, cycled in order",
+  "start": "2026-10-28T11:42:04+00:00",
+  "model_load_s": 0.129,
+  "platform": {
+    "uname": {
+      "system": "Linux",
+      "node": "raspberrypi",
+      "release": "6.12.109+rpt-rpi-2712",
+      "version": "#1 SMP PREEMPT Debian 1:6.12.109-1+rpt1 (2026-09-11)",
+      "machine": "aarch64",
+      "processor": ""
+    },
+    "cpu_model": "Raspberry Pi 5 Model B Rev 1.0",
+    "cpu_part": "0xd0b",
+    "device_model": "Raspberry Pi 5 Model B Rev 1.0",
+    "android": null,
+    "cpu_count": 4,
+    "cpu_affinity": 4,
+    "cpu_max_mhz": [
+      2000,
+      2000,
+      2000,
+      2000
+    ],
+    "governor": "performance",
+    "mem_total_kb": 4146944,
+    "jetson": null
+  },
+  "versions": {
+    "python": "3.11.2",
+    "numpy": "2.4.6",
+    "cv2": "5.0.0",
+    "onnxruntime": "1.31.0"
+  },
+  "runtime_info": {
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "intra_op_num_threads": 4,
+    "inter_op_num_threads": 1,
+    "input_type": "tensor(float)",
+    "outputs": [
+      [
+        "output0",
+        [
+          1,
+          14,
+          8400
+        ]
+      ]
+    ],
+    "precision_from": "the graph's operators: quantize/dequantize or integer operators mean INT8"
+  },
+  "precision": "FP32",
+  "cv2_threads": 4,
+  "cpu_clock": {
+    "source": "vcgencmd measure_clock arm",
+    "read": "at the start of the timed run, every 50 frames and at its end",
+    "failed_reads": 0,
+    "call_ms": {
+      "n": 11,
+      "median": 12.623,
+      "max": 15.036
+    },
+    "samples": [
+      [
+        0,
+        2000
+      ],
+      [
+        50,
+        2000
+      ],
+      [
+        100,
+        2000
+      ],
+      [
+        150,
+        1966
+      ],
+      [
+        200,
+        1966
+      ],
+      [
+        250,
+        1911
+      ],
+      [
+        300,
+        1966
+      ],
+      [
+        350,
+        1911
+      ],
+      [
+        400,
+        1911
+      ],
+      [
+        450,
+        2000
+      ],
+      [
+        452,
+        1966
+      ]
+    ]
+  },
+  "warmup_done": "2026-10-28T11:42:11+00:00",
+  "end": "2026-10-28T11:45:12+00:00",
+  "head": "raw",
+  "throttle": {
+    "start": "0x80000",
+    "end": "0x80008",
+    "or_of_samples": "0x80008",
+    "during_run": {
+      "under_voltage": false,
+      "freq_capped": false,
+      "throttled": false,
+      "soft_temp_limit": true
+    },
+    "since_boot": {
+      "under_voltage": false,
+      "freq_capped": false,
+      "throttled": false,
+      "soft_temp_limit": true
+    },
+    "samples": [
+      [
+        0,
+        "0x80000"
+      ],
+      [
+        50,
+        "0x80000"
+      ],
+      [
+        100,
+        "0x80000"
+      ],
+      [
+        150,
+        "0x80000"
+      ],
+      [
+        200,
+        "0x80008"
+      ],
+      [
+        250,
+        "0x80008"
+      ],
+      [
+        300,
+        "0x80008"
+      ],
+      [
+        350,
+        "0x80008"
+      ],
+      [
+        400,
+        "0x80008"
+      ],
+      [
+        450,
+        "0x80008"
+      ],
+      [
+        452,
+        "0x80008"
+      ]
+    ]
+  },
+  "max_rss_mb": 605.0,
+  "device_state": {
+    "cpu_mhz": {
+      "min": 1911.0,
+      "max": 2000.0,
+      "median": 1966.0
+    }
+  },
+  "energy": {
+    "seconds_asked": 180.0,
+    "frames": 452,
+    "window": [
+      919.543086568,
+      1099.66598324
+    ],
+    "seconds": 180.123,
+    "fps": 2.509,
+    "clock": "time.monotonic, the clock studysession's PMIC sampler stamps readings with"
+  }
+}

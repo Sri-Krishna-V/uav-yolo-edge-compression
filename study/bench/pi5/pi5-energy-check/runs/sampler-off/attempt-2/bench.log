@@ -1,0 +1,2 @@
+/home/rpi/sb/bin/python -u /home/rpi/uav/study/scripts/studybench.py --artifact exports/yolo11s-640-s0/640/onnxruntime-fp32 --runtime onnxruntime --imgsz 640 --images datasets/VisDrone/images/test --out bench/pi5/pi5-energy-check/runs/sampler-off/attempt-2 --threads 4 --warmup 20 --platform-tag pi5 --limit 100 --seconds 180
+done: energy run, 449 frames in 180.2 s (2.492 FPS), onnxruntime FP32, head raw; 100 images cycled, post at conf 0.25

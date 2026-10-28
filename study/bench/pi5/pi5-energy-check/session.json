@@ -1,0 +1,303 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "pi5",
+    "mode": "energy",
+    "note": "the first real energy session (#26): A1 at 640, ONNX Runtime FP32 and INT8, the speed test's exports; per cell a 1-minute idle reading and a 3-minute run with the PMIC read, and right after FP32's, FP32 once more with the sampler off, for its cost on FPS; about 15-25 min with the start gates. A check of the energy mode, not the equal-latency pairs",
+    "seed": 0,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-int8",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "f7a6b0f3e1d076433ef5cd103b17eb21e0b2f5c293b62b221ea395e5e36510c9",
+  "dry_run": false,
+  "seed": 0,
+  "order": [
+    "yolo11s-640-s0/640/onnxruntime-fp32",
+    "yolo11s-640-s0/640/onnxruntime-int8"
+  ],
+  "units": {
+    "yolo11s-640-s0/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 54.0 C",
+            "cpu_temp_c": 54.0,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T11:33:52+00:00",
+          "result": "complete",
+          "sampler": "on",
+          "frames": 450,
+          "seconds": 180.137,
+          "fps": 2.498,
+          "throttle": "throttled",
+          "precision": "FP32",
+          "idle": {
+            "seconds": 60,
+            "samples": 120,
+            "mean_w": 2.49,
+            "sd_w": 0.044
+          },
+          "run": {
+            "seconds": 180.137,
+            "samples": 360,
+            "mean_w": 7.6,
+            "sd_w": 1.079
+          },
+          "measures": "rail sum, not wall power",
+          "rail_j_per_frame": 3.0423,
+          "rail_j_per_frame_net": 2.0456,
+          "end": "2026-10-28T11:38:02+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T11:55:19+00:00",
+          "result": "complete",
+          "sampler": "on",
+          "frames": 451,
+          "seconds": 180.201,
+          "fps": 2.503,
+          "throttle": "throttled",
+          "precision": "FP32",
+          "idle": {
+            "seconds": 60,
+            "samples": 120,
+            "mean_w": 2.525,
+            "sd_w": 0.08
+          },
+          "run": {
+            "seconds": 180.201,
+            "samples": 360,
+            "mean_w": 7.623,
+            "sd_w": 1.075
+          },
+          "measures": "rail sum, not wall power",
+          "rail_j_per_frame": 3.0458,
+          "rail_j_per_frame_net": 2.037,
+          "end": "2026-10-28T11:59:28+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T11:48:12+00:00",
+          "result": "complete",
+          "sampler": "on",
+          "frames": 652,
+          "seconds": 180.089,
+          "fps": 3.62,
+          "throttle": "none",
+          "precision": "INT8",
+          "idle": {
+            "seconds": 60,
+            "samples": 120,
+            "mean_w": 2.52,
+            "sd_w": 0.066
+          },
+          "run": {
+            "seconds": 180.089,
+            "samples": 360,
+            "mean_w": 6.645,
+            "sd_w": 1.091
+          },
+          "measures": "rail sum, not wall power",
+          "rail_j_per_frame": 1.8354,
+          "rail_j_per_frame_net": 1.1394,
+          "end": "2026-10-28T11:52:19+00:00"
+        }
+      ]
+    },
+    "sampler-off": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/sampler-off/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T11:41:02+00:00",
+          "result": "complete",
+          "sampler": "off",
+          "frames": 452,
+          "seconds": 180.123,
+          "fps": 2.509,
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T11:45:12+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/sampler-off/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T12:02:28+00:00",
+          "result": "complete",
+          "sampler": "off",
+          "frames": 449,
+          "seconds": 180.154,
+          "fps": 2.492,
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T12:06:37+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-10-28T11:30:52+00:00",
+      "facts": {
+        "governors": [
+          "performance",
+          "performance",
+          "performance",
+          "performance"
+        ],
+        "desktop": [],
+        "update_units": {
+          "apt-daily.timer": "inactive",
+          "apt-daily-upgrade.timer": "inactive"
+        },
+        "packages": {
+          "numpy": "2.4.6",
+          "opencv-python-headless": "5.0.0.93",
+          "onnxruntime": "1.31.0",
+          "openvino": "2026.4.1",
+          "ncnn": "1.0.20260526",
+          "opencv-python": null
+        },
+        "python": "3.11.2",
+        "os": "Debian GNU/Linux 12 (bookworm)",
+        "kernel": "6.12.109+rpt-rpi-2712",
+        "rpi_issue": "Raspberry Pi reference 2026-10-06",
+        "device_model": "Raspberry Pi 5 Model B Rev 1.0",
+        "cooling": {
+          "fan_rpm": 1909,
+          "arm_freq": 2000,
+          "arm_freq_min": 1500,
+          "temp_soft_limit": 0,
+          "idle_temp_c": 52.9
+        },
+        "arm_mhz": 2000,
+        "pmic_w": 2.442
+      },
+      "checks": [
+        {
+          "check": "governor",
+          "status": "pass",
+          "value": [
+            "performance",
+            "performance",
+            "performance",
+            "performance"
+          ],
+          "fix": "echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+        },
+        {
+          "check": "desktop",
+          "status": "pass",
+          "value": [],
+          "fix": "sudo systemctl isolate multi-user.target (this boot), and sudo systemctl set-default multi-user.target (every boot)"
+        },
+        {
+          "check": "automatic updates",
+          "status": "pass",
+          "value": {
+            "apt-daily.timer": "inactive",
+            "apt-daily-upgrade.timer": "inactive"
+          },
+          "fix": "sudo systemctl disable --now apt-daily.timer apt-daily-upgrade.timer"
+        },
+        {
+          "check": "numpy",
+          "status": "pass",
+          "value": "2.4.6",
+          "fix": "pip install numpy==2.4.6"
+        },
+        {
+          "check": "opencv-python-headless",
+          "status": "pass",
+          "value": "5.0.0.93",
+          "fix": "pip install opencv-python-headless==5.0.0.93"
+        },
+        {
+          "check": "onnxruntime",
+          "status": "pass",
+          "value": "1.31.0",
+          "fix": "pip install onnxruntime==1.31.0"
+        },
+        {
+          "check": "vcgencmd clock",
+          "status": "pass",
+          "value": 2000,
+          "fix": "vcgencmd measure_clock arm; sudo usermod -aG video \"$USER\""
+        },
+        {
+          "check": "PMIC rails",
+          "status": "pass",
+          "value": 2.442,
+          "fix": "vcgencmd pmic_read_adc | head -n 3; sudo usermod -aG video \"$USER\""
+        }
+      ],
+      "override": null,
+      "ambient_c": 28.0
+    }
+  ],
+  "status": "complete",
+  "sampler_cost": {
+    "cell": "yolo11s-640-s0/640/onnxruntime-fp32",
+    "fps_sampler_on": 2.503,
+    "fps_sampler_off": 2.492,
+    "cost_pct": -0.4,
+    "throttled": [
+      "yolo11s-640-s0/640/onnxruntime-fp32",
+      "sampler-off"
+    ]
+  }
+}

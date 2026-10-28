@@ -1,0 +1,4 @@
+cell,runtime,precision,imgsz,attempts,outcome,sampler,fps,rail_idle_w,rail_run_w,rail_j_per_frame,rail_j_per_frame_net,measures,throttle,run_dir,attempt_log
+yolo11s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,2,throttled,on,2.503,2.525,7.623,3.0458,2.037,"rail sum, not wall power",throttled,runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-640-s0/640/onnxruntime-int8,onnxruntime,INT8,640,1,ok,on,3.62,2.52,6.645,1.8354,1.1394,"rail sum, not wall power",none,runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1,a1 complete not throttled
+sampler-off,onnxruntime,FP32,640,2,throttled,off,2.492,,,,,,throttled,runs/sampler-off/attempt-2,a1 complete throttled; a2 re-run complete throttled

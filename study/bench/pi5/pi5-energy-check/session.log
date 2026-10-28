@@ -1,0 +1,37 @@
+2026-10-28T11:30:52+00:00 energy session on pi5 (the first real energy session (#26): A1 at 640, ONNX Runtime FP32 and INT8, the speed test's exports; per cell a 1-minute idle reading and a 3-minute run with the PMIC read, and right after FP32's, FP32 once more with the sampler off, for its cost on FPS; about 15-25 min with the start gates. A check of the energy mode, not the equal-latency pairs): 2 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-28T11:30:52+00:00 energy runs: after the start gate, a 1 min idle reading, then 3 min of the cell over the first 100 images, with the PMIC read every 0.5 s throughout. Energy is the PMIC rail sum, not wall power. No latency comes from this session. Right after yolo11s-640-s0/640/onnxruntime-fp32, sampler-off: the same cell once more without the sampler, for its cost on FPS
+2026-10-28T11:30:52+00:00 room 28 C; cooling: fan 1909 rpm, arm_freq 2000, arm_freq_min 1500, temp_soft_limit 0, idle CPU 52.9 C
+2026-10-28T11:30:52+00:00 setup check governor: pass (['performance', 'performance', 'performance', 'performance'])
+2026-10-28T11:30:52+00:00 setup check desktop: pass ([])
+2026-10-28T11:30:52+00:00 setup check automatic updates: pass ({'apt-daily.timer': 'inactive', 'apt-daily-upgrade.timer': 'inactive'})
+2026-10-28T11:30:52+00:00 setup check numpy: pass (2.4.6)
+2026-10-28T11:30:52+00:00 setup check opencv-python-headless: pass (5.0.0.93)
+2026-10-28T11:30:52+00:00 setup check onnxruntime: pass (1.31.0)
+2026-10-28T11:30:52+00:00 setup check vcgencmd clock: pass (2000)
+2026-10-28T11:30:52+00:00 setup check PMIC rails: pass (2.442)
+2026-10-28T11:30:52+00:00 cell order, shuffled with seed 0: yolo11s-640-s0/640/onnxruntime-fp32, yolo11s-640-s0/640/onnxruntime-int8
+2026-10-28T11:33:52+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 54.0 C
+2026-10-28T11:33:52+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+2026-10-28T11:33:52+00:00 yolo11s-640-s0/640/onnxruntime-fp32: the 1 min idle reading
+2026-10-28T11:38:02+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, 450 frames in 180.137 s, 2.498 FPS; rail sum idle 2.49 W (120 readings), run 7.6 W (360 readings): 3.0423 J/frame, 2.0456 net of idle (rail sum, not wall power), throttle throttled; it runs again at the end of the session
+2026-10-28T11:41:02+00:00 sampler-off: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-28T11:41:02+00:00 sampler-off: attempt 1 starts
+2026-10-28T11:41:02+00:00 sampler-off: 1 min at rest before the run, with the sampler off
+2026-10-28T11:45:12+00:00 sampler-off: attempt 1 complete, 452 frames in 180.123 s, 2.509 FPS, throttle throttled; it runs again at the end of the session
+2026-10-28T11:48:12+00:00 yolo11s-640-s0/640/onnxruntime-int8: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-28T11:48:12+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 starts
+2026-10-28T11:48:12+00:00 yolo11s-640-s0/640/onnxruntime-int8: the 1 min idle reading
+2026-10-28T11:52:19+00:00 yolo11s-640-s0/640/onnxruntime-int8: attempt 1 complete, 652 frames in 180.089 s, 3.62 FPS; rail sum idle 2.52 W (120 readings), run 6.645 W (360 readings): 1.8354 J/frame, 1.1394 net of idle (rail sum, not wall power), throttle none
+2026-10-28T11:55:19+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-28T11:55:19+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+2026-10-28T11:55:19+00:00 yolo11s-640-s0/640/onnxruntime-fp32: the 1 min idle reading
+2026-10-28T11:59:28+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 2 complete, 451 frames in 180.201 s, 2.503 FPS; rail sum idle 2.525 W (120 readings), run 7.623 W (360 readings): 3.0458 J/frame, 2.037 net of idle (rail sum, not wall power), throttle throttled
+2026-10-28T12:02:28+00:00 sampler-off: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-28T12:02:28+00:00 sampler-off: attempt 2 starts (the throttle re-run)
+2026-10-28T12:02:28+00:00 sampler-off: 1 min at rest before the run, with the sampler off
+2026-10-28T12:06:37+00:00 sampler-off: attempt 2 complete, 449 frames in 180.154 s, 2.492 FPS, throttle throttled
+2026-10-28T12:06:37+00:00 the sampler's cost on FPS (yolo11s-640-s0/640/onnxruntime-fp32): 2.503 FPS with it, 2.492 without: -0.4% (yolo11s-640-s0/640/onnxruntime-fp32 throttled, twice) (sampler-off throttled, twice)
+2026-10-28T12:06:37+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, throttled, 2 attempt(s), sampler on, 2.503 FPS, rail idle 2.525 W, run 7.623 W: 3.0458 J/frame (2.037 net of idle; rail sum, not wall power), throttle throttled
+2026-10-28T12:06:37+00:00   yolo11s-640-s0/640/onnxruntime-int8: INT8, ok, 1 attempt(s), sampler on, 3.62 FPS, rail idle 2.52 W, run 6.645 W: 1.8354 J/frame (1.1394 net of idle; rail sum, not wall power), throttle none
+2026-10-28T12:06:37+00:00   sampler-off: FP32, throttled, 2 attempt(s), sampler off, 2.492 FPS, throttle throttled
+2026-10-28T12:06:37+00:00 session complete: bench/pi5/pi5-energy-check/summary.csv
