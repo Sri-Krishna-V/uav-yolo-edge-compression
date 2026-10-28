@@ -267,7 +267,8 @@ say "Results: study/$OUT (on the Pi, then on this laptop)"
 [[ "$MODE" == energy ]] && note "An energy session (#26): per cell, a 1-minute idle reading, then 3 minutes with the PMIC read. No latency, nothing to score."
 printf '\n'
 say "Have these ready before you go on:"
-step "The Pi 5 on its official 27 W USB-C supply, with the Active Cooler fitted, on this laptop's network (or Tailscale)."
+step "The Pi 5 on its official 27 W USB-C supply, its fan in the FAN socket, on this laptop's network (or Tailscale)."
+step "The Pi 5's clock locked at 2000 MHz: arm_freq=2000 in /boot/firmware/config.txt (INVARIANTS.md §4.7). Stage 3 checks it."
 step "Its host name or IP address, and the user you log in as."
 step "SSH on (raspi-config → Interface Options → SSH). Stage 2 sets up a key from this laptop if there is none."
 step "The Pi's password, for the key and for sudo (the one-time setup fixes in stage 5)."
@@ -308,6 +309,7 @@ HW=$(pi_sh <<'EOF'
 echo "fan_rpm=$(cat /sys/devices/platform/cooling_fan/hwmon/hwmon*/fan1_input 2>/dev/null | head -n1)"
 echo "temp=$(vcgencmd measure_temp 2>/dev/null | cut -d= -f2)"
 echo "throttled=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)"
+echo "arm_freq=$(vcgencmd get_config arm_freq 2>/dev/null | cut -d= -f2)"
 echo "free_bytes=$(df -Pk "$HOME" | awk 'NR == 2 {printf "%.0f\n", $4 * 1024}')"
 EOF
 ) || die "$LOST"
@@ -315,7 +317,7 @@ hw() { printf '%s\n' "$HW" | sed -n "s/^$1=//p"; }
 if [[ "$PLATFORM" == pi* ]]; then
   FAN=$(hw fan_rpm)
   if [[ -z "$FAN" ]]; then
-    warn "no fan found. The firmware turns the fan on only if it spins at boot: check that the Active Cooler's cable is in the FAN"
+    warn "no fan found. The firmware turns the fan on only if it spins at boot: check that the fan's cable is in the FAN"
     warn "socket, then reboot the Pi. Without the fan the Pi throttles, and its cells are re-run."
     confirm "Go on without a fan?" || exit 1
   else
@@ -332,6 +334,18 @@ if [[ "$PLATFORM" == pi* ]]; then
     (( T & 0xE000E )) && warn "throttling or a frequency cap seen ($T)."
     note "Bits 16-19 stay set until a reboot. The runner checks every cell, so a clean reboot is the simplest fix."
     confirm "Go on anyway?" || exit 1
+  fi
+  # Every Pi 5 run is at the 2000 MHz lock that #29's pilot passed (INVARIANTS.md §4.7)
+  if [[ "$PLATFORM" == pi5 ]]; then
+    F=$(hw arm_freq)
+    if [[ "$F" == 2000 ]]; then
+      say "Clock lock: arm_freq $F MHz."
+    else
+      warn "the clock lock is ${F:-unreadable}, and every Pi 5 run is at 2000 MHz (INVARIANTS.md §4.7). To set it, which reboots the Pi:"
+      printf "    ssh %s@%s \"sudo sed -i '/^arm_freq=/d' /boot/firmware/config.txt; printf '[all]\\\\narm_freq=2000\\\\n' | sudo tee -a /boot/firmware/config.txt; sudo reboot\"\n" "$PI_USER" "$PI_HOST"
+      note "Then wait a minute and run the wizard again. A session at another clock is not used."
+      confirm "Go on anyway?" || exit 1
+    fi
   fi
 fi
 FREE=$(hw free_bytes); FREE=${FREE:-0}

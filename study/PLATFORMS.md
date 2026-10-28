@@ -37,8 +37,9 @@ the Pi. After the first boot, the wizard connects to the Pi and checks the board
 card and the internet. It records them in `verification/pi5_facts.txt`, writes the host and user to `pi/.env`, and
 hands over to `pi/wizard.sh`.
 
-**Have ready:** the Pi 5 on its official 27 W supply with the Active Cooler fitted, on the laptop's network; its host
-name or IP and user; SSH on (`raspi-config` → Interface Options → SSH); the Pi's password (for the SSH key and the
+**Have ready:** the Pi 5 on its official 27 W supply, with its fan's 4-pin plug in the FAN socket and `arm_freq=2000`
+in `/boot/firmware/config.txt` (the clock lock, INVARIANTS.md §4.7), on the laptop's network; its host name or IP and
+user; SSH on (`raspi-config` → Interface Options → SSH); the Pi's password (for the SSH key and the
 sudo fixes); internet on the Pi if the install is not done yet.
 
 Its 7 stages: what to have ready; connect (it sets up an SSH key if there is none); fan, power and SD card; copy the
@@ -49,16 +50,16 @@ home to `study/bench/` and score them. Every stage finds what is already done, s
 again at any time: after closing it, after a dropped connection, or when a session finishes. Your host and user are kept
 in `pi/.env` (not in git).
 
-**Time.** From Ultralytics' Pi 5 table for YOLO11s at 640 (ONNX 450, OpenVINO 182, NCNN 224 ms per image, inference
-only; `ultralytics@532459b59c`, docs/en/guides/raspberry-pi.md), plus our pre and post at the evaluation threshold, and
-a start gate of up to 3 minutes per run:
+**Time,** measured at the 2000 MHz lock on 26–27 October ([pi5_pilot_record.md](verification/pi5_pilot_record.md),
+[pi5_speedtest_record.md](verification/pi5_speedtest_record.md)). YOLO11s A1 at 640, median latency per image:
+ONNX Runtime FP32 390 ms, ONNX Runtime INT8 272 ms, OpenVINO FP32 294 ms, NCNN (FP16) 171 ms.
 
-- the speed test: 5 cells of 200 images and the two reference runs, about 10 minutes of inference, so about 15–35
-  minutes with the gates. INT8 has no published Pi 5 number for YOLO, and the speed test is there to measure it;
-- the full cell: ONNX Runtime FP32 on all 1,610 images, about 14 minutes, so about 20–30 minutes with the reference
-  runs and the gates;
-- both, one after the other: about 35–65 minutes. The full cell is a plan of its own, so the speed test's answer comes
-  first.
+- the speed test: 26 minutes, gates included;
+- the full cell (ONNX Runtime FP32, all 1,610 images): 11 min 48 s for the cell with its warm-up, and 21.5 minutes for
+  the session with the reference runs and the gates;
+- a new plan: each full cell takes about 1,630 × its latency, plus a start gate of up to 3 minutes; each session adds
+  about 8 minutes for its two reference runs and their gates. At 960 and 1280, expect about 2.25× and 4× the 640
+  latency (Ultralytics' scaling, not yet measured here).
 
 The speed test's NCNN cell runs the `ncnn-fp32` export, but NCNN computes in FP16 on the Pi 5 (#13): its row is NCNN
 FP16, the Pi 5's NCNN baseline, and not an FP32 against INT8 pair.
@@ -171,9 +172,9 @@ median and max over this process's calls, written every 50 images and when a run
 failed. `device_state.cpu_mhz` gives the clock's min, median and max. An energy run reads the clock every 50 frames,
 with the throttle flags.
 
-- **Cost of one `measure_clock` call on the Pi 5: not measured yet (#28 stays open for it).** The first Pi 5 session
-  gives it, in every run's `meta.json` (`cpu_clock.call_ms`). Write it here. If it is more than a few ms, read the clock
-  every N images instead.
+- **Cost of one `measure_clock` call on the Pi 5:** a median of 11.6–12.8 ms in each of the 13 runs of 26–27 October,
+  and at most 116 ms (`cpu_clock.call_ms`). The call runs after the image's timing, so no latency includes it; it adds
+  about 20 s to a full cell. The clock is still read on every image.
 
 `--needs` prints the paths a plan needs on the platform, and `--check` runs only the setup checks (exit 1 if one
 fails). Neither runs a cell or writes anything; the Pi wizard uses both.
