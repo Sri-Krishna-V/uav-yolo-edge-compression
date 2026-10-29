@@ -171,6 +171,7 @@ Decided by #29: the cooling on 25 October 2026 (recorded on #8), the clock lock 
 
 - **Cooling:** a fan with a 4-pin plug in the Pi 5's FAN socket, on the firmware's default fan curve. Each session records the fan's rpm (#28).
 - **The clock lock: `arm_freq=2000` in `/boot/firmware/config.txt`, for every Pi 5 run.** At the stock 2400 MHz, the pilot's full cell settled at 81 °C and hit the soft temperature limit (`get_throttled` bit 3), with the clock dipping to 2256–2366 MHz. At 2000 MHz it held 75–77 °C (peak 79.3 °C) with no throttle bit. The lock costs about 9 % of latency (ONNX Runtime FP32, A1 at 640: 355.7 → 388.5 ms).
+- **A soft throttle at the lock is accepted and reported** (decided 29 October 2026, #40). In a 28 °C room, #26's energy check hit the soft temperature limit at 2000 MHz in every FP32 run (clock 1856–1966 MHz; INT8 did not throttle). Such a cell keeps its `throttled` flag and is used. Every Pi 5 session record gives each cell's throttle flag and the min and median clock from its `meta.json`, and the paper says which cells throttled.
 - **Every Pi 5 number is at 2000 MHz,** and the paper says so. A Pi 5 session whose `session.json` records another `cooling.arm_freq` is not used.
 - **The start gate is unchanged** (below 50 °C, or 3 minutes). With the fan, the Pi idles at about 50 °C, so 9 of the first 15 gates opened at the timeout. Whether the rule changes is open on #8.
 
