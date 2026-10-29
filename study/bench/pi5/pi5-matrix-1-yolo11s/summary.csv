@@ -1,0 +1,22 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,ok,390.02,e2e_deploy,none,ok,runs/drift-start/attempt-1,a1 complete not throttled
+drift-end,onnxruntime,FP32,640,200,1,ok,390.765,e2e_deploy,none,ok,runs/drift-end/attempt-1,a1 complete not throttled
+yolo11s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,all,2,throttled,389.752,e2e_deploy,throttled,ok,runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-640-s0/640/openvino-fp32,openvino,FP32,640,all,1,ok,294.008,e2e_deploy,none,ok,runs/yolo11s-640-s0/640/openvino-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0/640/ncnn-fp32,ncnn,FP16,640,all,1,ok,171.51,e2e_deploy,none,ok,runs/yolo11s-640-s0/640/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0/640/onnxruntime-int8,onnxruntime,INT8,640,all,1,ok,272.486,e2e_deploy,none,ok,runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1,a1 complete not throttled
+yolo11s-960-s0/960/onnxruntime-fp32,onnxruntime,FP32,960,all,2,throttled,909.664,e2e_deploy,throttled,ok,runs/yolo11s-960-s0/960/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-960-s0/960/openvino-fp32,openvino,FP32,960,all,2,throttled,712.608,e2e_deploy,throttled,ok,runs/yolo11s-960-s0/960/openvino-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-960-s0/960/ncnn-fp32,ncnn,FP16,960,all,1,ok,411.293,e2e_deploy,none,ok,runs/yolo11s-960-s0/960/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0/960/onnxruntime-int8,onnxruntime,INT8,960,all,1,ok,614.003,e2e_deploy,none,ok,runs/yolo11s-960-s0/960/onnxruntime-int8/attempt-1,a1 complete not throttled
+yolo11s-1280-s0/1280/onnxruntime-int8,onnxruntime,INT8,1280,all,1,ok,1152.284,e2e_deploy,none,ok,runs/yolo11s-1280-s0/1280/onnxruntime-int8/attempt-1,a1 complete not throttled
+yolo11s-640-s0-prune30/640/onnxruntime-fp32,onnxruntime,FP32,640,all,1,ok,239.66,e2e_deploy,none,ok,runs/yolo11s-640-s0-prune30/640/onnxruntime-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0-prune30/640/openvino-fp32,openvino,FP32,640,all,1,ok,193.113,e2e_deploy,none,ok,runs/yolo11s-640-s0-prune30/640/openvino-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0-prune30/640/ncnn-fp32,ncnn,FP16,640,all,1,ok,112.176,e2e_deploy,none,ok,runs/yolo11s-640-s0-prune30/640/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0-prune30/960/onnxruntime-fp32,onnxruntime,FP32,960,all,1,ok,574.632,e2e_deploy,none,ok,runs/yolo11s-960-s0-prune30/960/onnxruntime-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0-prune30/960/openvino-fp32,openvino,FP32,960,all,1,ok,474.726,e2e_deploy,none,ok,runs/yolo11s-960-s0-prune30/960/openvino-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0-prune30/960/ncnn-fp32,ncnn,FP16,960,all,1,ok,271.043,e2e_deploy,none,ok,runs/yolo11s-960-s0-prune30/960/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0-distill/640/onnxruntime-fp32,onnxruntime,FP32,640,all,2,throttled,388.082,e2e_deploy,throttled,ok,runs/yolo11s-640-s0-distill/640/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-640-s0-distill/640/openvino-fp32,openvino,FP32,640,all,2,ok,293.748,e2e_deploy,none,ok,runs/yolo11s-640-s0-distill/640/openvino-fp32/attempt-2,a1 complete throttled; a2 re-run complete not throttled
+yolo11s-640-s0-distill/640/ncnn-fp32,ncnn,FP16,640,all,1,ok,171.603,e2e_deploy,none,ok,runs/yolo11s-640-s0-distill/640/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-640-s0-prune30-distill/640/onnxruntime-int8,onnxruntime,INT8,640,all,1,ok,192.763,e2e_deploy,none,ok,runs/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8/attempt-1,a1 complete not throttled

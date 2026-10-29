@@ -1,0 +1,836 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "pi5",
+    "note": "the Pi 5 matrix, session 1 of 6 (#37): YOLO11s core: A1 and B1 baseline and quantized at 640 and 960, B3 quantized at 1280, P1, P2, D1 and C1; 19 cells, about 4.8 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).",
+    "seed": 0,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0/640/openvino-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/openvino-fp32",
+        "runtime": "openvino",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0/640/ncnn-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/ncnn-fp32",
+        "runtime": "ncnn",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-int8",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-960-s0/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/openvino-fp32",
+        "artifact": "exports/yolo11s-960-s0/960/openvino-fp32",
+        "runtime": "openvino",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/ncnn-fp32",
+        "artifact": "exports/yolo11s-960-s0/960/ncnn-fp32",
+        "runtime": "ncnn",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/onnxruntime-int8",
+        "artifact": "exports/yolo11s-960-s0/960/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-1280-s0/1280/onnxruntime-int8",
+        "artifact": "exports/yolo11s-1280-s0/1280/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 1280,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-prune30/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0-prune30/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-prune30/640/openvino-fp32",
+        "artifact": "exports/yolo11s-640-s0-prune30/640/openvino-fp32",
+        "runtime": "openvino",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-prune30/640/ncnn-fp32",
+        "artifact": "exports/yolo11s-640-s0-prune30/640/ncnn-fp32",
+        "runtime": "ncnn",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0-prune30/960/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-960-s0-prune30/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0-prune30/960/openvino-fp32",
+        "artifact": "exports/yolo11s-960-s0-prune30/960/openvino-fp32",
+        "runtime": "openvino",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0-prune30/960/ncnn-fp32",
+        "artifact": "exports/yolo11s-960-s0-prune30/960/ncnn-fp32",
+        "runtime": "ncnn",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-distill/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0-distill/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-distill/640/openvino-fp32",
+        "artifact": "exports/yolo11s-640-s0-distill/640/openvino-fp32",
+        "runtime": "openvino",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-distill/640/ncnn-fp32",
+        "artifact": "exports/yolo11s-640-s0-distill/640/ncnn-fp32",
+        "runtime": "ncnn",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0-prune30-distill/640/onnxruntime-int8",
+        "artifact": "exports/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "f6172b88c620a75cab81b6b9339c3ce94334cbc37762e57fafdadb79f4919eae",
+  "dry_run": false,
+  "seed": 0,
+  "order": [
+    "yolo11s-640-s0-prune30/640/onnxruntime-fp32",
+    "yolo11s-640-s0-prune30/640/ncnn-fp32",
+    "yolo11s-960-s0-prune30/960/ncnn-fp32",
+    "yolo11s-640-s0-prune30-distill/640/onnxruntime-int8",
+    "yolo11s-640-s0/640/onnxruntime-fp32",
+    "yolo11s-640-s0-distill/640/openvino-fp32",
+    "yolo11s-640-s0-prune30/640/openvino-fp32",
+    "yolo11s-640-s0/640/ncnn-fp32",
+    "yolo11s-640-s0/640/onnxruntime-int8",
+    "yolo11s-960-s0/960/openvino-fp32",
+    "yolo11s-640-s0-distill/640/ncnn-fp32",
+    "yolo11s-960-s0/960/onnxruntime-fp32",
+    "yolo11s-960-s0/960/ncnn-fp32",
+    "yolo11s-960-s0/960/onnxruntime-int8",
+    "yolo11s-640-s0-distill/640/onnxruntime-fp32",
+    "yolo11s-1280-s0/1280/onnxruntime-int8",
+    "yolo11s-640-s0/640/openvino-fp32",
+    "yolo11s-960-s0-prune30/960/openvino-fp32",
+    "yolo11s-960-s0-prune30/960/onnxruntime-fp32"
+  ],
+  "units": {
+    "drift-start": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-start/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T12:34:31+00:00",
+          "result": "complete",
+          "latency_ms": 390.02,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T12:36:07+00:00"
+        }
+      ]
+    },
+    "drift-end": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-end/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T19:08:15+00:00",
+          "result": "complete",
+          "latency_ms": 390.765,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T19:09:51+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T13:18:19+00:00",
+          "result": "complete",
+          "latency_ms": 404.416,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T13:30:35+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T17:33:45+00:00",
+          "result": "complete",
+          "latency_ms": 389.752,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T17:45:33+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/openvino-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/openvino-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T16:44:15+00:00",
+          "result": "complete",
+          "latency_ms": 294.008,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T16:53:26+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/ncnn-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/ncnn-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T13:55:16+00:00",
+          "result": "complete",
+          "latency_ms": 171.51,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP16",
+          "end": "2026-10-28T14:01:15+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T14:04:15+00:00",
+          "result": "complete",
+          "latency_ms": 272.486,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "INT8",
+          "end": "2026-10-28T14:13:05+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T14:48:17+00:00",
+          "result": "complete",
+          "latency_ms": 918.751,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T15:14:33+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-960-s0/960/onnxruntime-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T18:24:22+00:00",
+          "result": "complete",
+          "latency_ms": 909.664,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T18:50:24+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/openvino-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/openvino-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T14:16:05+00:00",
+          "result": "complete",
+          "latency_ms": 699.774,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T14:36:16+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-960-s0/960/openvino-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T18:00:45+00:00",
+          "result": "complete",
+          "latency_ms": 712.608,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T18:21:22+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/ncnn-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/ncnn-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.8 C",
+            "cpu_temp_c": 56.8,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T15:17:33+00:00",
+          "result": "complete",
+          "latency_ms": 411.293,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP16",
+          "end": "2026-10-28T15:29:51+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T15:32:51+00:00",
+          "result": "complete",
+          "latency_ms": 614.003,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "INT8",
+          "end": "2026-10-28T15:50:47+00:00"
+        }
+      ]
+    },
+    "yolo11s-1280-s0/1280/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-1280-s0/1280/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T16:08:46+00:00",
+          "result": "complete",
+          "latency_ms": 1152.284,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "INT8",
+          "end": "2026-10-28T16:41:15+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-prune30/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-prune30/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T12:39:07+00:00",
+          "result": "complete",
+          "latency_ms": 239.66,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T12:46:53+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-prune30/640/openvino-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-prune30/640/openvino-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.8 C",
+            "cpu_temp_c": 56.8,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T13:45:49+00:00",
+          "result": "complete",
+          "latency_ms": 193.113,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T13:52:16+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-prune30/640/ncnn-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-prune30/640/ncnn-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T12:49:53+00:00",
+          "result": "complete",
+          "latency_ms": 112.176,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP16",
+          "end": "2026-10-28T12:54:08+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0-prune30/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0-prune30/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 54.0 C",
+            "cpu_temp_c": 54.0,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T17:13:45+00:00",
+          "result": "complete",
+          "latency_ms": 574.632,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T17:30:45+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0-prune30/960/openvino-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0-prune30/960/openvino-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T16:56:26+00:00",
+          "result": "complete",
+          "latency_ms": 474.726,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T17:10:45+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0-prune30/960/ncnn-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0-prune30/960/ncnn-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 58.4 C",
+            "cpu_temp_c": 58.4,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T12:57:08+00:00",
+          "result": "complete",
+          "latency_ms": 271.043,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP16",
+          "end": "2026-10-28T13:05:48+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-distill/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-distill/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T15:53:47+00:00",
+          "result": "complete",
+          "latency_ms": 394.135,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T16:05:46+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-640-s0-distill/640/onnxruntime-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.6 C",
+            "cpu_temp_c": 55.6,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T18:53:24+00:00",
+          "result": "complete",
+          "latency_ms": 388.082,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T19:05:15+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-distill/640/openvino-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-distill/640/openvino-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.8 C",
+            "cpu_temp_c": 56.8,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T13:33:35+00:00",
+          "result": "complete",
+          "latency_ms": 294.112,
+          "latency_source": "e2e_deploy",
+          "throttle": "throttled",
+          "precision": "FP32",
+          "end": "2026-10-28T13:42:49+00:00"
+        },
+        {
+          "n": 2,
+          "pass": "rerun",
+          "dir": "runs/yolo11s-640-s0-distill/640/openvino-fp32/attempt-2",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.2 C",
+            "cpu_temp_c": 56.2,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T17:48:33+00:00",
+          "result": "complete",
+          "latency_ms": 293.748,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP32",
+          "end": "2026-10-28T17:57:45+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-distill/640/ncnn-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-distill/640/ncnn-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 55.1 C",
+            "cpu_temp_c": 55.1,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T14:39:16+00:00",
+          "result": "complete",
+          "latency_ms": 171.603,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "FP16",
+          "end": "2026-10-28T14:45:17+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0-prune30-distill/640/onnxruntime-int8": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "3 min passed, CPU still at 56.8 C",
+            "cpu_temp_c": 56.8,
+            "battery_temp_c": null
+          },
+          "start": "2026-10-28T13:08:48+00:00",
+          "result": "complete",
+          "latency_ms": 192.763,
+          "latency_source": "e2e_deploy",
+          "throttle": "none",
+          "precision": "INT8",
+          "end": "2026-10-28T13:15:19+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-10-28T12:31:31+00:00",
+      "facts": {
+        "governors": [
+          "performance",
+          "performance",
+          "performance",
+          "performance"
+        ],
+        "desktop": [],
+        "update_units": {
+          "apt-daily.timer": "inactive",
+          "apt-daily-upgrade.timer": "inactive"
+        },
+        "packages": {
+          "numpy": "2.4.6",
+          "opencv-python-headless": "5.0.0.93",
+          "onnxruntime": "1.31.0",
+          "openvino": "2026.4.1",
+          "ncnn": "1.0.20260526",
+          "opencv-python": null
+        },
+        "python": "3.11.2",
+        "os": "Debian GNU/Linux 12 (bookworm)",
+        "kernel": "6.12.109+rpt-rpi-2712",
+        "rpi_issue": "Raspberry Pi reference 2026-10-06",
+        "device_model": "Raspberry Pi 5 Model B Rev 1.0",
+        "cooling": {
+          "fan_rpm": 2035,
+          "arm_freq": 2000,
+          "arm_freq_min": 1500,
+          "temp_soft_limit": 0,
+          "idle_temp_c": 56.8
+        },
+        "arm_mhz": 2000,
+        "pmic_w": 2.938
+      },
+      "checks": [
+        {
+          "check": "governor",
+          "status": "pass",
+          "value": [
+            "performance",
+            "performance",
+            "performance",
+            "performance"
+          ],
+          "fix": "echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+        },
+        {
+          "check": "desktop",
+          "status": "pass",
+          "value": [],
+          "fix": "sudo systemctl isolate multi-user.target (this boot), and sudo systemctl set-default multi-user.target (every boot)"
+        },
+        {
+          "check": "automatic updates",
+          "status": "pass",
+          "value": {
+            "apt-daily.timer": "inactive",
+            "apt-daily-upgrade.timer": "inactive"
+          },
+          "fix": "sudo systemctl disable --now apt-daily.timer apt-daily-upgrade.timer"
+        },
+        {
+          "check": "numpy",
+          "status": "pass",
+          "value": "2.4.6",
+          "fix": "pip install numpy==2.4.6"
+        },
+        {
+          "check": "opencv-python-headless",
+          "status": "pass",
+          "value": "5.0.0.93",
+          "fix": "pip install opencv-python-headless==5.0.0.93"
+        },
+        {
+          "check": "ncnn",
+          "status": "pass",
+          "value": "1.0.20260526",
+          "fix": "pip install --no-deps ncnn==1.0.20260526"
+        },
+        {
+          "check": "onnxruntime",
+          "status": "pass",
+          "value": "1.31.0",
+          "fix": "pip install onnxruntime==1.31.0"
+        },
+        {
+          "check": "openvino",
+          "status": "pass",
+          "value": "2026.4.1",
+          "fix": "pip install openvino==2026.4.1"
+        },
+        {
+          "check": "vcgencmd clock",
+          "status": "pass",
+          "value": 2000,
+          "fix": "vcgencmd measure_clock arm; sudo usermod -aG video \"$USER\""
+        }
+      ],
+      "override": null,
+      "ambient_c": 28.0
+    }
+  ],
+  "status": "complete",
+  "drift": {
+    "start_ms": 390.02,
+    "end_ms": 390.765,
+    "change_pct": 0.2,
+    "throttled": [],
+    "verdict": "ok"
+  }
+}
