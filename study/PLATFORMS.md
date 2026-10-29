@@ -212,6 +212,10 @@ it also shortens the idle reading to 10 s and the runs to 15 s.
 
 ## Jetson Orin Nano (JetPack 6 only)
 
+**Cut on 29 October 2026 (the dev): the Jetson is future work, and the paper has no Jetson column.** The last two
+days go to the Pi 5 and the paper. The wizards and this section stay as they are for that future work. They are
+checked against NVIDIA's sources, but they have never run on a board.
+
 The rule (2026-10-21, narrowed 2026-10-22): an Orin Nano on JetPack 6 whose software installs in one day gets a
 small column. Both study models; the baseline configuration as a TensorRT FP16 engine and the quantized configuration
 as a TensorRT INT8 engine; input resolutions 640 and 960; latency only. Anything else, JetPack 5 included, is cut and

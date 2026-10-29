@@ -40,10 +40,12 @@ NCNN, LiteRT/TFLite, TensorRT/JetPack and ONNX Runtime versions depend on *Preci
 | Platform | Runtime | Toolchain versions | Pinned on |
 |---|---|---|---|
 | Laptop CPU (accuracy only, *Confirm the small-object effect*) | ONNX Runtime static INT8; OpenVINO + NNCF INT8 | onnx 1.23.2, onnxruntime 1.31.0, onnxslim 0.1.98; openvino 2026.4.1, nncf 3.4.0 | 2026-10-15 |
-| Jetson Orin Nano, JetPack 6 only (latency only; RAM TBD) | TensorRT FP16 and INT8 engines, built on the board by `studyexport.py` | JetPack TBD (L4T R36.TBD), TensorRT TBD (10.3.x expected), CUDA TBD, cuDNN TBD; torch 2.10.0 / torchvision 0.25.0 (Jetson wheels), numpy 1.26.4, ultralytics 8.4.149, onnx 1.23.2, onnxslim 0.1.98; power mode TBD (highest nvpmodel mode, `jetson_clocks` on) | TBD (first export) |
+| Jetson Orin Nano, JetPack 6 only (latency only; RAM TBD). **Cut on 2026-10-29: future work, no number recorded** | TensorRT FP16 and INT8 engines, built on the board by `studyexport.py` | JetPack TBD (L4T R36.TBD), TensorRT TBD (10.3.x expected), CUDA TBD, cuDNN TBD; torch 2.10.0 / torchvision 0.25.0 (Jetson wheels), numpy 1.26.4, ultralytics 8.4.149, onnx 1.23.2, onnxslim 0.1.98, onnxruntime 1.23.2; power mode TBD (highest nvpmodel mode, `jetson_clocks` on) | not pinned (cut) |
 | *(first export on each platform)* | | | |
 
-The Jetson's torch is not §1's 2.14.0: the board only exports and benchmarks, and NVIDIA's Jetson wheels exist only for older versions. Fill the TBDs from `scripts/jetson_probe.py` and the first engine's `manifest.json` (its `engine` block). The engines score the one-to-many head (`nms=None`) at both precisions; the one-to-one head this TensorRT would keep (§5) is the probe's "YOLO26 head" line.
+The dev cut the Jetson on 2026-10-29 to give the last two days to the Pi 5 and the paper. The Jetson is named as future
+work, and the row stays for that work, along with `jetson/` and PLATFORMS.md's Jetson section. The Jetson's torch is
+not §1's 2.14.0: the board only exports and benchmarks, and NVIDIA's Jetson wheels exist only for older versions. Fill the TBDs from `scripts/jetson_probe.py` and the first engine's `manifest.json` (its `engine` block). The engines score the one-to-many head (`nms=None`) at both precisions; the one-to-one head this TensorRT would keep (§5) is the probe's "YOLO26 head" line.
 
 ### 1.4 The laptop rule: heavy steps run under a memory cap
 
