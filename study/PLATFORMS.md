@@ -224,6 +224,43 @@ Sources: Ultralytics' [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/
 (numpy 1.26 before the torch wheel), NVIDIA's wheel index `developer.download.nvidia.com/compute/redist/jp/` and
 `pypi.jetson-ai-lab.io/jp6/cu126` (the same torch 2.10.0 / torchvision 0.25.0 builds). All checked 2026-10-22.
 
+### The Jetson wizards
+
+The board is a Jetson Orin Nano Super, and we bring its SD card. Two wizards take it from a blank card to the
+column's results, from Git Bash on the laptop, with no agent in the loop (#39):
+
+```bash
+cd study
+bash jetson/provision.sh   # a blank card: JetPack 6.2.1, the first boot (and the firmware bridge if needed), SSH with a key
+bash jetson/wizard.sh      # the probe, the power mode, the install, the copy, the 8 engines, the session, the results
+```
+
+`jetson/wizard.sh` has 9 stages:
+
+1. **What to have ready.** It checks the checkpoints, the images and the drift reference on the laptop. A YOLO26s
+   `best.pt.zip` is copied to `best.pt`: a browser download gives the torch checkpoint that name, and it is never
+   unzipped.
+2. **Connect.**
+3. **The probe,** saved in `verification/jetson_probe.txt`. It stops on CUT and offers the fixes for BLOCKED.
+4. **The power mode.** The highest mode with `jetson_clocks` on (it waits out a reboot), and the desktop closed for
+   this boot.
+5. **The install** (`jetson/install.sh`).
+6. **The copy** over SSH, each path checked by hash, so no USB stick is needed.
+7. **The 8 engine builds** on the board, under `nohup` (`jetson/export.sh`).
+8. **The session:** `plans/jetson.json` through `studysession.py`, under `nohup`.
+9. **The copy home,** the scoring, and the values for the Jetson row of INVARIANTS.md §1.3.
+
+Every stage finds what is already done, so run it again at any time. The host and the user are kept in `jetson/.env`
+(not in git).
+
+**Rehearsal.** `bash jetson/tests/rehearse.sh` runs stages 1–6 with the laptop standing in for the board: a fake ssh,
+a canned GO probe and board state, and a complete install. It declines stage 7, because the laptop cannot build a
+TensorRT engine. It passed its 11 checks on 2026-10-28, and again on 2026-10-29 after the validation's fixes. In both,
+a second run copied nothing again. The engines, the
+session and the copy home get their first test on the board.
+
+The rest of this section is what the wizards run, for doing it by hand.
+
 ### What the board needs from the laptop
 
 | What | Size | Why |
@@ -232,14 +269,16 @@ Sources: Ultralytics' [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/
 | `datasets/VisDrone/images/val` + `labels/val` (548 each) | 82 MB | INT8 calibration. Without them Ultralytics would start VisDrone's 2 GB download, so `studyexport.py` stops first |
 | `datasets/VisDrone/images/test` (1,610) | 301 MB | the bench |
 | `best.pt` of `yolo11s-640-s0`, `yolo11s-960-s0`, `yolo26s-640-s0`, `yolo26s-960-s0` | 4 x ~19 MB | the four exports. YOLO26s comes from Vidhyarth's Kaggle output |
+| `exports/yolo11s-640-s0/640/onnxruntime-fp32` | 37 MB | the session runner's drift reference (#8): YOLO11s, ONNX Runtime FP32 on the CPU, decided for the Jetson on 2026-10-28 (#39) |
 
 On the laptop (Git Bash), make two tars and get them to the board by USB stick, `scp` or a shared link:
 
 ```bash
-cd "C:/Users/srikr/Desktop/Studies/Minor/Term 5/study/datasets"
-tar -cf visdrone-jetson.tar VisDrone/images/val VisDrone/labels/val VisDrone/images/test
+cd "C:/Users/srikr/Desktop/Studies/Minor/Term 5/study"
+tar -cf visdrone-jetson.tar datasets/VisDrone/images/val datasets/VisDrone/labels/val datasets/VisDrone/images/test \
+    exports/yolo11s-640-s0/640/onnxruntime-fp32
 cd C:/Users/srikr/uav-yolo-checkpoints
-tar -cf ckpt-jetson.tar yolo11s-640-s0/best.pt yolo11s-960-s0/best.pt   # add yolo26s-640-s0/best.pt yolo26s-960-s0/best.pt
+tar -cf ckpt-jetson.tar yolo11s-640-s0/best.pt yolo11s-960-s0/best.pt yolo26s-640-s0/best.pt yolo26s-960-s0/best.pt
 ```
 
 Keep each `best.pt` in a folder named after its run: `studyexport.py` takes the run name from that folder.
@@ -258,33 +297,36 @@ python3 ~/uav/study/scripts/jetson_probe.py | tee ~/jetson_probe.txt
 so run it again after every boot.
 
 ```bash
-sudo nvpmodel -m <id>     # it may ask to reboot
+sudo nvpmodel -m <id>     # Orin Nano Super, JetPack 6.2.1: 0 15W, 1 25W (the default), 2 MAXN_SUPER, 3 7W; from 25W, no reboot
 sudo jetson_clocks
 ```
 
-**3. Install** (JetPack 6.1 or 6.2: L4T R36.4, Python 3.10, CUDA 12.6, TensorRT 10.3). The venv sees the system
-packages, because JetPack's TensorRT is an apt package (`python3-libnvinfer`) outside any venv.
+Run `jetson_clocks` after `nvpmodel`, never before: NVIDIA says the power mode cannot be changed once `jetson_clocks`
+has run. Never run `apt upgrade` on the board: NVIDIA's r36.4 repository has moved on to L4T 36.4.7 (JetPack 6.2.2),
+and the study is on 6.2.1. Checked on 2026-10-29, with the install's pins and URLs:
+`.scratch/uav-yolo-edge/findings/39-jetson-orin-nano-super-steps.md`.
+
+**3. Install** (JetPack 6.1 or 6.2: L4T R36.4, Python 3.10, CUDA 12.6, TensorRT 10.3). `jetson/install.sh` holds the
+commands and the pins. Each step that is already done is skipped, and sudo asks for the password at the apt steps:
 
 ```bash
-sudo apt update && sudo apt install -y python3-pip python3-venv     # skip if the probe shows pip and venv
-python3 -m venv --system-site-packages ~/uav-venv && . ~/uav-venv/bin/activate
-pip install -U pip
-pip install numpy==1.26.4    # NVIDIA's PyTorch-for-Jetson guide pins numpy 1.26; a precaution for JetPack's TensorRT bindings
-U=https://github.com/ultralytics/assets/releases/download/v0.0.0
-pip install $U/torch-2.10.0-cp310-cp310-linux_aarch64.whl $U/torchvision-0.25.0-cp310-cp310-linux_aarch64.whl
-# cuDSS, which torch 2.10 needs (Ultralytics' Jetson guide)
-D=https://developer.download.nvidia.com/compute/cudss/0.7.1/local_installers
-wget $D/cudss-local-tegra-repo-ubuntu2204-0.7.1_0.7.1-1_arm64.deb
-sudo dpkg -i cudss-local-tegra-repo-ubuntu2204-0.7.1_0.7.1-1_arm64.deb
-sudo cp /var/cudss-local-tegra-repo-ubuntu2204-0.7.1/cudss-*-keyring.gpg /usr/share/keyrings/
-sudo apt-get update && sudo apt-get -y install cudss
-# the study pins that apply here (requirements.txt and the toolchain row of INVARIANTS.md section 1.3)
-pip install ultralytics==8.4.149 pyyaml==6.0.3 onnx==1.23.2 onnxslim==0.1.98 opencv-python==4.11.0.86 numpy==1.26.4
-python -c "import torch, torchvision, tensorrt, cv2, numpy, ultralytics; print(torch.__version__, torch.cuda.is_available(), torchvision.__version__, tensorrt.__version__, cv2.__version__, numpy.__version__, ultralytics.__version__)"
+bash ~/uav/study/jetson/install.sh            # the install
+bash ~/uav/study/jetson/install.sh --check    # only the check: exit 0 when every pin is in place
 ```
 
-The last line must print `2.10.0 True 0.25.0 10.3.x ... 1.26.4 8.4.149`. torch goes in before ultralytics, so pip
-does not fetch a PyPI torch first. The torch version differs from the study's 2.14.0: the Jetson only exports and
+What it installs:
+
+- **The venv:** `~/uav-venv` with `--system-site-packages`, because JetPack's TensorRT is an apt package
+  (`python3-libnvinfer`) outside any venv.
+- **numpy 1.26.4 first.** NVIDIA's PyTorch-for-Jetson guide pins numpy 1.26, as a precaution for JetPack's TensorRT
+  bindings.
+- **Ultralytics' Jetson wheels:** torch 2.10.0 and torchvision 0.25.0.
+- **cuDSS 0.7.1** (apt), which torch 2.10 needs (Ultralytics' Jetson guide).
+- **The study pins:** ultralytics 8.4.149, pyyaml 6.0.3, onnx 1.23.2, onnxslim 0.1.98 and opencv-python 4.11.0.86.
+- **onnxruntime,** the CPU build, for the session runner's drift reference.
+
+The check must report torch 2.10.0 with CUDA, torchvision 0.25.0, TensorRT 10.3, numpy 1.26.4, ultralytics 8.4.149
+and the onnxruntime pin. torch goes in before ultralytics, so pip does not fetch a PyPI torch first. The torch version differs from the study's 2.14.0: the Jetson only exports and
 benchmarks, and the Jetson wheels exist only for these versions. The manifest and the run record it.
 
 - *No sudo:* cuDSS also comes as a tarball. Unpack
@@ -299,51 +341,55 @@ benchmarks, and the Jetson wheels exist only for these versions. The manifest an
 **4. Copy the files** into the clone:
 
 ```bash
-mkdir -p ~/uav/study/datasets ~/uav-ckpt
-tar -xf visdrone-jetson.tar -C ~/uav/study/datasets
+mkdir -p ~/uav-ckpt
+tar -xf visdrone-jetson.tar -C ~/uav/study
 tar -xf ckpt-jetson.tar -C ~/uav-ckpt
 ```
 
-**5. Export**: four engines per study model, FP16 and INT8 at 640 and 960. Each build takes minutes; INT8 first
+**5. Export:** four engines per study model, FP16 and INT8 at 640 and 960. Each build takes minutes; INT8 first
 calibrates on the 548 val images.
 
+- `jetson/export.sh` makes one `studyexport.py` call per engine. A failed build does not stop the others, and an
+  engine that already has a manifest is skipped.
+- It builds YOLO11s FP16 at 640 first, the study's first TensorRT engine anywhere, and INT8 at 960 last.
+
 ```bash
-cd ~/uav/study && . ~/uav-venv/bin/activate
-for run in yolo11s-640-s0 yolo26s-640-s0; do
-  python scripts/studyexport.py --weights ~/uav-ckpt/$run/best.pt --imgsz 640 --only tensorrt-fp16 tensorrt-int8
-done
-for run in yolo11s-960-s0 yolo26s-960-s0; do
-  python scripts/studyexport.py --weights ~/uav-ckpt/$run/best.pt --imgsz 960 --only tensorrt-fp16 tensorrt-int8
-done
+nohup bash ~/uav/study/jetson/export.sh > ~/uav/study/exports/jetson-export.log 2>&1 &   # an optional argument: the workspace in GiB
 ```
 
 Each INT8 manifest records `calibration.images_sha256`. On the laptop's val images it is
 `1189ee954c10649f0a00a2a9bebf14107228c0c57b48bf9a374e337392bbf38a`; a different value means different calibration
 images.
 
-If a build is killed for memory (most likely INT8 at 960 on a 4 GB board): close the desktop for this boot
-(`sudo systemctl isolate multi-user.target`), then rerun that one variant with `--workspace 1`. The manifest records
-the workspace.
+If a build is killed for memory (most likely INT8 at 960):
 
-**6. Bench**: eight cells, every test-dev image. Leave the board idle while it runs.
+1. Close the desktop for this boot: `sudo systemctl isolate multi-user.target`.
+2. Run `export.sh 1` again, for a 1 GiB workspace. It builds only the engines that are missing, and each manifest
+   records the workspace.
 
-```bash
-for cell in yolo11s-640-s0/640 yolo26s-640-s0/640 yolo11s-960-s0/960 yolo26s-960-s0/960; do
-  for v in tensorrt-fp16 tensorrt-int8; do
-    python scripts/studybench.py --artifact exports/$cell/$v --runtime tensorrt --imgsz ${cell#*/} \
-        --images datasets/VisDrone/images/test --out bench/jetson/$cell/$v --platform-tag jetson
-  done
-done
-```
+**6. Bench:** `plans/jetson.json`, the 8 engines on every test-dev image, through the session runner (see "Running a
+session"). It applies #8's rules to the Jetson too:
 
-The bench prints a WARNING if the board is not in its highest mode with `jetson_clocks` on. A run that dies resumes
-with the same command plus `--resume`.
+- the start gate, the shuffled cell order, and the crash and throttle re-runs;
+- the drift check: the YOLO11s ONNX Runtime FP32 reference on the CPU, first and last (decided on 2026-10-28, #39).
 
-**7. Bring home** the runs and the manifests (not the engines: they run only on this board):
+Leave the board idle while it runs. `jetson_clocks` does not survive a reboot, so run it again before you start or
+resume a session.
 
 ```bash
-cd ~/uav/study && tar -cf ~/jetson-bench.tar bench/jetson exports/*/*/tensorrt-*/manifest.json
+cd ~/uav/study && nohup ~/uav-venv/bin/python -u scripts/studysession.py plans/jetson.json --out bench/jetson/jetson \
+    >> bench-jetson.out 2>&1 &
 ```
 
-On the laptop, unpack it into `study/` and, if wanted, score the detections: `python scripts/studyscore.py
-bench/jetson/yolo11s-640-s0/640/tensorrt-fp16 ...`. Accuracy is not required for this column, but it costs nothing.
+The bench prints a WARNING if the board is not in its highest mode with `jetson_clocks` on. If the session stops, the
+same command resumes it.
+
+**7. Bring home** the session and the manifests, not the engines, which run only on this board:
+
+```bash
+cd ~/uav/study && tar -cf ~/jetson-bench.tar bench/jetson/jetson exports/*/*/tensorrt-*/manifest.json
+```
+
+On the laptop, unpack it into `study/`. If you want, score the detections with `python scripts/studyscore.py
+bench/jetson/jetson/runs/<cell>/attempt-<n> ...` (the `run_dir` column of `summary.csv`). The Jetson column does not
+need accuracy, but scoring costs nothing.

@@ -1,0 +1,15 @@
+{
+  "platform": "jetson",
+  "note": "the Jetson column (#11, #39): YOLO11s and YOLO26s, TensorRT FP16 (baseline) and INT8 (quantized), at 640 and 960, every test-dev image, latency only; the engines are built on the board by jetson/wizard.sh",
+  "seed": 0,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/tensorrt-fp16", "runtime": "tensorrt", "imgsz": 640},
+    {"artifact": "exports/yolo11s-640-s0/640/tensorrt-int8", "runtime": "tensorrt", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/tensorrt-fp16", "runtime": "tensorrt", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/tensorrt-int8", "runtime": "tensorrt", "imgsz": 640},
+    {"artifact": "exports/yolo11s-960-s0/960/tensorrt-fp16", "runtime": "tensorrt", "imgsz": 960},
+    {"artifact": "exports/yolo11s-960-s0/960/tensorrt-int8", "runtime": "tensorrt", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/tensorrt-fp16", "runtime": "tensorrt", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/tensorrt-int8", "runtime": "tensorrt", "imgsz": 960}
+  ]
+}
