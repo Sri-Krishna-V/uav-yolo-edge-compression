@@ -1,0 +1,77 @@
+2026-10-30T14:04:34+00:00 session on pi5 (the Pi 5 matrix, session 3 of 6 (#37): YOLO26s P3, P4, D2 and C2 (the teammate's checkpoints); 10 cells, about 2.2 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).): 10 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-30T14:04:35+00:00 room 28 C; cooling: fan 2012 rpm, arm_freq 2000, arm_freq_min 1500, temp_soft_limit 0, idle CPU 53.5 C
+2026-10-30T14:04:35+00:00 setup check governor: pass (['performance', 'performance', 'performance', 'performance'])
+2026-10-30T14:04:35+00:00 setup check desktop: pass ([])
+2026-10-30T14:04:35+00:00 setup check automatic updates: pass ({'apt-daily.timer': 'inactive', 'apt-daily-upgrade.timer': 'inactive'})
+2026-10-30T14:04:35+00:00 setup check numpy: pass (2.4.6)
+2026-10-30T14:04:35+00:00 setup check opencv-python-headless: pass (5.0.0.93)
+2026-10-30T14:04:35+00:00 setup check ncnn: pass (1.0.20260526)
+2026-10-30T14:04:35+00:00 setup check onnxruntime: pass (1.31.0)
+2026-10-30T14:04:35+00:00 setup check openvino: pass (2026.4.1)
+2026-10-30T14:04:35+00:00 setup check vcgencmd clock: pass (2000)
+2026-10-30T14:04:35+00:00 cell order, shuffled with seed 0: yolo26s-640-s0-distill/640/openvino-fp32, yolo26s-640-s0-distill/640/ncnn-fp32, yolo26s-640-s0-prune30/640/openvino-fp32, yolo26s-960-s0-prune30/960/ncnn-fp32, yolo26s-960-s0-prune30/960/onnxruntime-fp32, yolo26s-960-s0-prune30/960/openvino-fp32, yolo26s-640-s0-prune30/640/ncnn-fp32, yolo26s-640-s0-prune30/640/onnxruntime-fp32, yolo26s-640-s0-prune30-distill/640/onnxruntime-int8, yolo26s-640-s0-distill/640/onnxruntime-fp32
+2026-10-30T14:07:35+00:00 drift-start: gate opened after 180 s: 3 min passed, CPU still at 54.5 C
+2026-10-30T14:07:35+00:00 drift-start: attempt 1 starts
+2026-10-30T14:09:12+00:00 drift-start: attempt 1 complete, median latency 391.202 ms, throttle throttled
+2026-10-30T14:12:12+00:00 yolo26s-640-s0-distill/640/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 55.1 C
+2026-10-30T14:12:12+00:00 yolo26s-640-s0-distill/640/openvino-fp32: attempt 1 starts
+2026-10-30T14:21:38+00:00 yolo26s-640-s0-distill/640/openvino-fp32: attempt 1 complete, median latency 301.102 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T14:24:38+00:00 yolo26s-640-s0-distill/640/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.8 C
+2026-10-30T14:24:38+00:00 yolo26s-640-s0-distill/640/ncnn-fp32: attempt 1 starts
+2026-10-30T14:30:44+00:00 yolo26s-640-s0-distill/640/ncnn-fp32: attempt 1 complete, median latency 174.274 ms, throttle none
+2026-10-30T14:33:44+00:00 yolo26s-640-s0-prune30/640/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-30T14:33:44+00:00 yolo26s-640-s0-prune30/640/openvino-fp32: attempt 1 starts
+2026-10-30T14:40:11+00:00 yolo26s-640-s0-prune30/640/openvino-fp32: attempt 1 complete, median latency 193.06 ms, throttle none
+2026-10-30T14:43:11+00:00 yolo26s-960-s0-prune30/960/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.9 C
+2026-10-30T14:43:11+00:00 yolo26s-960-s0-prune30/960/ncnn-fp32: attempt 1 starts
+2026-10-30T14:52:16+00:00 yolo26s-960-s0-prune30/960/ncnn-fp32: attempt 1 complete, median latency 289.287 ms, throttle none
+2026-10-30T14:55:16+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T14:55:16+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: attempt 1 starts
+2026-10-30T15:12:04+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: attempt 1 complete, median latency 570.159 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T15:15:04+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.3 C
+2026-10-30T15:15:04+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: attempt 1 starts
+2026-10-30T15:30:10+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: attempt 1 complete, median latency 511.796 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T15:33:10+00:00 yolo26s-640-s0-prune30/640/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.8 C
+2026-10-30T15:33:10+00:00 yolo26s-640-s0-prune30/640/ncnn-fp32: attempt 1 starts
+2026-10-30T15:37:27+00:00 yolo26s-640-s0-prune30/640/ncnn-fp32: attempt 1 complete, median latency 113.773 ms, throttle none
+2026-10-30T15:40:27+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T15:40:27+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 starts
+2026-10-30T15:48:05+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 complete, median latency 233.095 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T15:51:05+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-30T15:51:05+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8: attempt 1 starts
+2026-10-30T15:57:36+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8: attempt 1 complete, median latency 193.207 ms, throttle none
+2026-10-30T16:00:36+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T16:00:36+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 1 starts
+2026-10-30T16:12:23+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 1 complete, median latency 385.265 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T16:15:23+00:00 yolo26s-640-s0-distill/640/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.9 C
+2026-10-30T16:15:23+00:00 yolo26s-640-s0-distill/640/openvino-fp32: attempt 2 starts (the throttle re-run)
+2026-10-30T16:24:57+00:00 yolo26s-640-s0-distill/640/openvino-fp32: attempt 2 complete, median latency 306.755 ms, throttle throttled
+2026-10-30T16:27:57+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T16:27:57+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+2026-10-30T16:44:49+00:00 yolo26s-960-s0-prune30/960/onnxruntime-fp32: attempt 2 complete, median latency 571.732 ms, throttle throttled
+2026-10-30T16:47:49+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.3 C
+2026-10-30T16:47:49+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: attempt 2 starts (the throttle re-run)
+2026-10-30T17:02:52+00:00 yolo26s-960-s0-prune30/960/openvino-fp32: attempt 2 complete, median latency 509.354 ms, throttle throttled
+2026-10-30T17:05:52+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T17:05:52+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+2026-10-30T17:13:27+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 2 complete, median latency 232.95 ms, throttle throttled
+2026-10-30T17:16:27+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T17:16:27+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+2026-10-30T17:28:18+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 2 complete, median latency 388.353 ms, throttle throttled
+2026-10-30T17:31:18+00:00 drift-end: gate opened after 180 s: 3 min passed, CPU still at 56.2 C
+2026-10-30T17:31:18+00:00 drift-end: attempt 1 starts
+2026-10-30T17:32:55+00:00 drift-end: attempt 1 complete, median latency 395.931 ms, throttle throttled
+2026-10-30T17:32:55+00:00 drift check: reference median 391.202 -> 395.931 ms (+1.2%): ok (drift-start throttled) (drift-end throttled)
+2026-10-30T17:32:55+00:00   drift-start: FP32, throttled, 1 attempt(s), median 391.202 ms (e2e_deploy), throttle throttled, drift ok, runs/drift-start/attempt-1
+2026-10-30T17:32:55+00:00   drift-end: FP32, throttled, 1 attempt(s), median 395.931 ms (e2e_deploy), throttle throttled, drift ok, runs/drift-end/attempt-1
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-prune30/640/onnxruntime-fp32: FP32, throttled, 2 attempt(s), median 232.95 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-640-s0-prune30/640/onnxruntime-fp32/attempt-2
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-prune30/640/openvino-fp32: FP32, ok, 1 attempt(s), median 193.06 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-640-s0-prune30/640/openvino-fp32/attempt-1
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-prune30/640/ncnn-fp32: FP16, ok, 1 attempt(s), median 113.773 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-640-s0-prune30/640/ncnn-fp32/attempt-1
+2026-10-30T17:32:55+00:00   yolo26s-960-s0-prune30/960/onnxruntime-fp32: FP32, throttled, 2 attempt(s), median 571.732 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-960-s0-prune30/960/onnxruntime-fp32/attempt-2
+2026-10-30T17:32:55+00:00   yolo26s-960-s0-prune30/960/openvino-fp32: FP32, throttled, 2 attempt(s), median 509.354 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-960-s0-prune30/960/openvino-fp32/attempt-2
+2026-10-30T17:32:55+00:00   yolo26s-960-s0-prune30/960/ncnn-fp32: FP16, ok, 1 attempt(s), median 289.287 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-960-s0-prune30/960/ncnn-fp32/attempt-1
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-distill/640/onnxruntime-fp32: FP32, throttled, 2 attempt(s), median 388.353 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-640-s0-distill/640/onnxruntime-fp32/attempt-2
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-distill/640/openvino-fp32: FP32, throttled, 2 attempt(s), median 306.755 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-640-s0-distill/640/openvino-fp32/attempt-2
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-distill/640/ncnn-fp32: FP16, ok, 1 attempt(s), median 174.274 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-640-s0-distill/640/ncnn-fp32/attempt-1
+2026-10-30T17:32:55+00:00   yolo26s-640-s0-prune30-distill/640/onnxruntime-int8: INT8, ok, 1 attempt(s), median 193.207 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8/attempt-1
+2026-10-30T17:32:55+00:00 session complete: bench/pi5/pi5-matrix-3-yolo26s-compressed/summary.csv
