@@ -206,7 +206,7 @@ cd study
 | Order | Command | Pi time |
 |---|---|---|
 | 1 | `bash pi/wizard.sh plans/pi5-matrix-1-yolo11s.json` | about 4.8 h |
-| 2 | `bash pi/wizard.sh plans/pi5-matrix-2-yolo26s.json` | about 3.3 h |
+| 2 | `bash pi/wizard.sh plans/pi5-matrix-2-yolo26s.json` | about 3.1 h |
 | 3 | `bash pi/wizard.sh plans/pi5-matrix-3-yolo26s-compressed.json` (needs your 4 checkpoints, in a later tar) | about 2.2 h |
 | 4 | `bash pi/wizard.sh plans/pi5-matrix-4-1280-baselines.json` | about 3.5 h |
 | 5 | `bash pi/wizard.sh plans/pi5-matrix-5-800.json` | about 2.1 h |
