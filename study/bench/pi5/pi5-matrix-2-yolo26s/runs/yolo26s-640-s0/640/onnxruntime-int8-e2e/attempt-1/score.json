@@ -1,0 +1,122 @@
+{
+  "stats": {
+    "metrics/mAP_small(B)": 0.07704006677647102,
+    "metrics/mAP_medium(B)": 0.23599384045721583,
+    "metrics/mAP_large(B)": 0.32776065811173516,
+    "coco/AP_all": 0.1540372642220549,
+    "coco/AP_50": 0.29108556422374393,
+    "coco/AP_75": 0.14925566163275047,
+    "coco/AP_small": 0.07704006677647102,
+    "coco/AP_medium": 0.23599384045721583,
+    "coco/AP_large": 0.32776065811173516,
+    "coco/AR_1": 0.06928766442142431,
+    "coco/AR_10": 0.22402475899995436,
+    "coco/AR_100": 0.3252693887041921,
+    "coco/AR_500": 0.33087869207173937,
+    "coco/AR_small": 0.23440573693492375,
+    "coco/AR_medium": 0.4606616512786023,
+    "coco/AR_large": 0.5444905011508526,
+    "coco/AR_50": 0.6021228809124031,
+    "coco/AR_75": 0.3222189449756249
+  },
+  "scoring_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": false,
+    "batch": 1,
+    "split": "test",
+    "imgsz": 640
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "images": 1610,
+  "detections": 728456,
+  "partial": false,
+  "run": "bench\\pi5\\pi5-matrix-2-yolo26s\\runs\\yolo26s-640-s0\\640\\onnxruntime-int8-e2e\\attempt-1",
+  "platform_tag": "pi5",
+  "runtime": "onnxruntime",
+  "precision": "INT8",
+  "head": "end2end",
+  "manifest": {
+    "run": "yolo26s-640-s0",
+    "variant": "onnxruntime-int8-e2e",
+    "runtime": "onnxruntime",
+    "precision": "int8",
+    "head": "end2end",
+    "imgsz": 640,
+    "batch": 1,
+    "artifact": "model_int8.onnx",
+    "files": {
+      "model_int8.onnx": "79d93e25334479503cce84004253567280a962d6999004de913a4bb27b1bc835"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo26s-640-s0\\best.pt",
+    "source_sha256": "9028268f9c743aff4c64221d28e4fd3631f2d392312c2296e0ad4de1cb650c9c",
+    "export_args": {
+      "imgsz": 640,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx",
+      "quantize": 8,
+      "data": "VisDrone.yaml",
+      "nms": false,
+      "max_det": 500
+    },
+    "calibration": {
+      "data": "VisDrone.yaml",
+      "split": "val",
+      "fraction": 1.0,
+      "imgsz": 640,
+      "images": 548,
+      "images_sha256": "1189ee954c10649f0a00a2a9bebf14107228c0c57b48bf9a374e337392bbf38a"
+    },
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-28T13:26:47.289422+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[640, 640]",
+      "end2end": "True",
+      "args": "{'data': 'VisDrone.yaml', 'batch': 1, 'fraction': 1.0, 'quantize': 8, 'nms': False, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 115.8,
+    "exported_utc": "2026-10-28T07:58:40+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "302c56ad5128bbd11b7e3dbca01996ae3bff46d9"
+  },
+  "latency_ms": 279.07,
+  "latency_is": "e2e_deploy",
+  "at_deployment_threshold": {
+    "conf": 0.25,
+    "e2e_median_ms": 279.07,
+    "e2e_p95_ms": 287.526,
+    "post_median_ms": 0.176
+  },
+  "at_evaluation_threshold": {
+    "conf": 0.001,
+    "e2e_median_ms": 279.142,
+    "e2e_p95_ms": 287.684,
+    "post_median_ms": 0.197
+  }
+}
