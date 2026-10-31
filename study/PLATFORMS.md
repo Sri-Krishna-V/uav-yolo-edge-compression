@@ -111,7 +111,8 @@ start. Standard library only; it needs no more than the bench does.
   test-dev images. If its median latency moves by more than 3%, every cell of the session is flagged for a re-run.
   The reference cell's export and onnxruntime must be on the platform: without them the runner does not start.
 - **Crashes:** a crashed cell runs again from the start, once. A second crash marks it failed.
-- **Throttling:** a throttled cell runs again at the end of the session, and both attempts are kept.
+- **Throttling:** a throttled cell runs again at the end of the session, and both attempts are kept. A Pi 5 latency
+  session does not re-run it: the cell keeps its flag and its one attempt (#40, INVARIANTS.md §4.7).
   - Pi: `vcgencmd` throttle flags.
   - Jetson: over-current counters and the GPU clock.
   - The laptop and the phone give no signal, so their throttle state is "unknown".

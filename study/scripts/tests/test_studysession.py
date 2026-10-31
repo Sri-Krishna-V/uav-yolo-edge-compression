@@ -290,9 +290,21 @@ check("5 no throttle signal on this platform: unknown, and no re-run", r["thrott
 sticky = bench_meta(100.0)  # no sample saw a throttle, but bit 18 (throttled since boot) was set between the first and last
 sticky["throttle"].update(start="0x10000", end="0x50000")
 env = FakeEnv(script={name(A): [{"meta": sticky}]})
-out, state = run(plan(A, platform="pi5"), env)
+out, state = run(plan(A, platform="pi4b"), env)
 check("5 the Pi: a since-boot throttle bit that appeared during the run counts", summary(out)[name(A)]["attempts"] == "2",
       summary(out)[name(A)])
+
+env = FakeEnv(script={name(A): [{"throttled": True, "ms": 130.0}, {"ms": 101.0}]})
+out, state = run(plan(A, B, platform="pi5"), env)
+r = summary(out)[name(A)]
+check("5 a Pi 5 latency session runs no throttle re-run: the cell keeps its flag and its one attempt (#40)",
+      r["outcome"] == "throttled" and r["throttle"] == "throttled" and r["attempts"] == "1" and r["latency_ms"] == "130.0"
+      and [c[0] for c in env.calls].count(name(A)) == 1, r)
+check("5 ... and the log says why", "kept with its flag" in (out / "session.log").read_text(encoding="utf-8"))
+env = FakeEnv(script={name(A): [{"meta": sticky}]})
+out, state = run(plan(A, platform="pi5"), env)
+r = summary(out)[name(A)]
+check("5 ... the since-boot bit still flags it there", r["throttle"] == "throttled" and r["attempts"] == "1", r)
 
 for label, jet in (("an over-current counter rose", {"over_current_throttled": True, "images_gpu_below_max": 0}),
                    ("the GPU clock fell below its pinned maximum", {"over_current_throttled": False, "images_gpu_below_max": 3})):

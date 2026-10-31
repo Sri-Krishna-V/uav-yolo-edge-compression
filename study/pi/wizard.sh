@@ -318,7 +318,7 @@ if [[ "$PLATFORM" == pi* ]]; then
   FAN=$(hw fan_rpm)
   if [[ -z "$FAN" ]]; then
     warn "no fan found. The firmware turns the fan on only if it spins at boot: check that the fan's cable is in the FAN"
-    warn "socket, then reboot the Pi. Without the fan the Pi throttles, and its cells are re-run."
+    warn "socket, then reboot the Pi. Without the fan the Pi throttles, and its cells' latencies are flagged."
     confirm "Go on without a fan?" || exit 1
   else
     say "Fan: about $FAN rpm (0 is normal below 50 C: it starts at 50 C and is at full speed by 75 C)."

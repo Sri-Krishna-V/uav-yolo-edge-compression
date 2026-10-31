@@ -164,7 +164,7 @@ Decided 22 October 2026 by the map ticket *Measurement protocol* (#8), from *Pow
   - **J per frame** = the run's mean rail sum × its duration / its frames.
   - **Net of idle** = (run mean − idle mean) × duration / frames. Both are recorded.
 - **The sampler's cost on FPS**, measured once per energy session. Right after the plan's first cell, that cell runs once more with the same rest minute and the same 3 minutes, but with the sampler off. `session.json` records the FPS with and without the sampler, the difference, and which of the two runs throttled. It is one pair of runs: #7 saw FPS move about 7 % between two identical laptop runs, so a difference of a few percent is within the noise. That bounds the sampler's cost; it does not measure it.
-- The latency session's other rules apply unchanged: the start gate, the shuffled order, 4 threads, a re-run after a crash or a throttle (the sampler-off run's included). There is no drift check, since no latency comes from the session. A run whose windows hold fewer than 10 readings has no energy, and counts as a crash.
+- The latency session's other rules apply unchanged: the start gate, the shuffled order, 4 threads, a re-run after a crash or a throttle (the sampler-off run's included; a Pi 5 latency session no longer re-runs a throttle, §4.7). There is no drift check, since no latency comes from the session. A run whose windows hold fewer than 10 readings has no energy, and counts as a crash.
 
 ### 4.7 Platform runs: the Pi 5's cooling and clock lock
 
@@ -174,6 +174,7 @@ Decided by #29: the cooling on 25 October 2026 (recorded on #8), the clock lock 
 - **Cooling:** a fan with a 4-pin plug in the Pi 5's FAN socket, on the firmware's default fan curve. Each session records the fan's rpm (#28).
 - **The clock lock: `arm_freq=2000` in `/boot/firmware/config.txt`, for every Pi 5 run.** At the stock 2400 MHz, the pilot's full cell settled at 81 °C and hit the soft temperature limit (`get_throttled` bit 3), with the clock dipping to 2256–2366 MHz. At 2000 MHz it held 75–77 °C (peak 79.3 °C) with no throttle bit. The lock costs about 9 % of latency (ONNX Runtime FP32, A1 at 640: 355.7 → 388.5 ms).
 - **A soft throttle at the lock is accepted and reported** (decided 29 October 2026, #40). In a 28 °C room, #26's energy check hit the soft temperature limit at 2000 MHz in every FP32 run (clock 1856–1966 MHz; INT8 did not throttle). Such a cell keeps its `throttled` flag and is used. Every Pi 5 session record gives each cell's throttle flag and the min and median clock from its `meta.json`, and the paper says which cells throttled.
+- **No throttle re-run on the Pi 5** (decided 31 October 2026, #40, from matrix sessions 2 and 6 on). In sessions 1, 3, 4 and 5, 1 of 16 re-runs cleared the flag; the re-runs moved the median latency by −3.6 to +1.9 % and took 23–43 % of each session (0.7–3.0 h). A Pi 5 latency session now keeps a throttled cell's one attempt; a crash still runs again, and an energy session (§4.6) still re-runs a throttled run.
 - **Every Pi 5 number is at 2000 MHz,** and the paper says so. A Pi 5 session whose `session.json` records another `cooling.arm_freq` is not used.
 - **The start gate is unchanged** (below 50 °C, or 3 minutes). With the fan, the Pi idles at about 50 °C, so 9 of the first 15 gates opened at the timeout. Whether the rule changes is open on #8.
 

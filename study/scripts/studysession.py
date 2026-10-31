@@ -23,8 +23,9 @@ The rules it applies, so that nobody applies them by hand:
   crash     a run that exits non-zero or leaves no complete meta.json runs again from the start, once, in a fresh
             directory. A second crash marks the cell failed, and the session goes on.
   throttle  a cell that throttled runs again at the end of the session (after the gate lets the platform cool), once.
-            Both attempts are kept; the clean one gives the cell's latency. Throttled means: on a Pi, a vcgencmd flag
-            seen during the run, or a since-boot flag that appeared between its first and last sample; on a Jetson,
+            Both attempts are kept; the clean one gives the cell's latency. A Pi 5 latency session runs no throttle
+            re-run: the cell keeps its flag and its one attempt (#40, INVARIANTS.md 4.7). Throttled means: on a Pi, a
+            vcgencmd flag seen during the run, or a since-boot flag that appeared between its first and last sample; on a Jetson,
             an over-current counter that rose, or images whose GPU clock fell below its pinned maximum. Elsewhere
             there is no signal, and the summary says "unknown".
   drift     the reference cell (YOLO11s baseline, ONNX Runtime FP32, 640, the first 200 test-dev images) runs at the start
@@ -400,9 +401,14 @@ class Session:
             order.insert(order.index(self.plan["cells"][0]["name"]) + 1, SAMPLER_OFF)
         return order
 
+    def keeps_throttle(self):
+        """A Pi 5 latency session keeps a throttled cell with its flag, and does not re-run it (#40)."""
+        return self.plan["platform"] == "pi5" and not self.energy
+
     def needs_rerun(self, u):
-        """A cell (or the sampler-off run) whose main pass completed throttled gets a re-run pass."""
-        return u in self.sequence() and any(a["pass"] == "main" and a.get("throttle") == "throttled" for a in self.attempts(u))
+        """A cell (or the sampler-off run) whose main pass completed throttled gets a re-run pass, unless keeps_throttle()."""
+        return not self.keeps_throttle() and u in self.sequence() \
+            and any(a["pass"] == "main" and a.get("throttle") == "throttled" for a in self.attempts(u))
 
     def next_run(self):
         """(unit, pass) to run next, or None: the opening reference run, the cells, the throttle re-runs, the closing run."""
@@ -566,7 +572,9 @@ class Session:
                      + (f"latency {rec['latency_ms']} ms" if rec["latency_source"] == "e2e_deploy" else
                         f"pre + net + post {rec['latency_ms']} ms (at the evaluation threshold, so not latency: this studybench "
                         "gives no e2e_deploy, #22)") + f", throttle {rec['throttle']}"
-                     + ("; it runs again at the end of the session" if pass_ == "main" and self.needs_rerun(u) else ""))
+                     + ("; it runs again at the end of the session" if pass_ == "main" and self.needs_rerun(u) else "")
+                     + ("; kept with its flag, no re-run on a Pi 5 (#40)" if rec["throttle"] == "throttled" and self.keeps_throttle()
+                        and u in self.sequence() else ""))
         else:
             then = "it runs again from the start" if pass_state(attempts, pass_) == "todo" else "a second crash: the cell is failed"
             self.log(f"{u}: attempt {n} CRASHED (exit {rec['exit']}): {rec['error']}; {then}")
