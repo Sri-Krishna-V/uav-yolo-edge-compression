@@ -1,0 +1,111 @@
+{
+  "stats": {
+    "metrics/mAP_small(B)": 0.11838580692197909,
+    "metrics/mAP_medium(B)": 0.33026947272711754,
+    "metrics/mAP_large(B)": 0.4975912374125827,
+    "coco/AP_all": 0.2218150203450882,
+    "coco/AP_50": 0.38108039672560284,
+    "coco/AP_75": 0.2236119496944239,
+    "coco/AP_small": 0.11838580692197909,
+    "coco/AP_medium": 0.33026947272711754,
+    "coco/AP_large": 0.4975912374125827,
+    "coco/AR_1": 0.09008170906076275,
+    "coco/AR_10": 0.28650193693591103,
+    "coco/AR_100": 0.40338836935392186,
+    "coco/AR_500": 0.40745744818727375,
+    "coco/AR_small": 0.30207663790904776,
+    "coco/AR_medium": 0.5520619552602328,
+    "coco/AR_large": 0.6610317851741333,
+    "coco/AR_50": 0.692837815419988,
+    "coco/AR_75": 0.4065751425496432
+  },
+  "scoring_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": false,
+    "batch": 1,
+    "split": "test",
+    "imgsz": 800
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "images": 1610,
+  "detections": 661098,
+  "partial": false,
+  "run": "bench\\pi5\\pi5-matrix-5-800\\runs\\yolo26s-960-s0\\800\\onnxruntime-fp32\\attempt-2",
+  "platform_tag": "pi5",
+  "runtime": "onnxruntime",
+  "precision": "FP32",
+  "head": "raw",
+  "manifest": {
+    "run": "yolo26s-960-s0",
+    "variant": "onnxruntime-fp32",
+    "runtime": "onnxruntime",
+    "precision": "fp32",
+    "head": "raw",
+    "imgsz": 800,
+    "batch": 1,
+    "artifact": "model.onnx",
+    "files": {
+      "model.onnx": "6c0cfda03d99044fdd8bcafc8c368e7f0178a86bc7f3051e9f8ccff0913f2fb8"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo26s-960-s0\\best.pt",
+    "source_sha256": "814fcb89ea2e1ce6f1ba8249652647f339a908c64ed07fcea127e0e14ecdc891",
+    "export_args": {
+      "imgsz": 800,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx"
+    },
+    "calibration": null,
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-28T13:38:35.452269+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[800, 800]",
+      "end2end": "False",
+      "args": "{'data': None, 'batch': 1, 'fraction': 1.0, 'quantize': None, 'nms': None, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 6.2,
+    "exported_utc": "2026-10-28T08:08:39+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "72b4ec664d18ac4f7561fdd3fdd4898cd741391d"
+  },
+  "latency_ms": 611.903,
+  "latency_is": "e2e_deploy",
+  "at_deployment_threshold": {
+    "conf": 0.25,
+    "e2e_median_ms": 611.903,
+    "e2e_p95_ms": 619.276,
+    "post_median_ms": 1.2
+  },
+  "at_evaluation_threshold": {
+    "conf": 0.001,
+    "e2e_median_ms": 625.123,
+    "e2e_p95_ms": 634.337,
+    "post_median_ms": 14.973
+  }
+}
