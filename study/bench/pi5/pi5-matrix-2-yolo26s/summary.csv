@@ -1,0 +1,14 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,ok,388.268,e2e_deploy,none,ok,runs/drift-start/attempt-1,a1 complete not throttled
+drift-end,onnxruntime,FP32,640,200,1,throttled,393.15,e2e_deploy,throttled,ok,runs/drift-end/attempt-1,a1 complete throttled
+yolo26s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,all,2,throttled,383.063,e2e_deploy,throttled,ok,runs/yolo26s-640-s0/640/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-640-s0/640/openvino-fp32,openvino,FP32,640,all,2,throttled,302.17,e2e_deploy,throttled,ok,runs/yolo26s-640-s0/640/openvino-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-640-s0/640/ncnn-fp32,ncnn,FP16,640,all,1,ok,173.755,e2e_deploy,none,ok,runs/yolo26s-640-s0/640/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo26s-640-s0/640/onnxruntime-int8,onnxruntime,INT8,640,all,1,ok,275.892,e2e_deploy,none,ok,runs/yolo26s-640-s0/640/onnxruntime-int8/attempt-1,a1 complete not throttled
+yolo26s-640-s0/640/onnxruntime-fp32-e2e,onnxruntime,FP32,640,all,2,throttled,386.919,e2e_deploy,throttled,ok,runs/yolo26s-640-s0/640/onnxruntime-fp32-e2e/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-640-s0/640/onnxruntime-int8-e2e,onnxruntime,INT8,640,all,1,ok,279.07,e2e_deploy,none,ok,runs/yolo26s-640-s0/640/onnxruntime-int8-e2e/attempt-1,a1 complete not throttled
+yolo26s-640-s0/640/openvino-fp32-e2e,openvino,FP32,640,all,2,throttled,310.526,e2e_deploy,throttled,ok,runs/yolo26s-640-s0/640/openvino-fp32-e2e/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-960-s0/960/onnxruntime-fp32,onnxruntime,FP32,960,all,2,throttled,926.505,e2e_deploy,throttled,ok,runs/yolo26s-960-s0/960/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-960-s0/960/openvino-fp32,openvino,FP32,960,all,2,throttled,766.275,e2e_deploy,throttled,ok,runs/yolo26s-960-s0/960/openvino-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-960-s0/960/ncnn-fp32,ncnn,FP16,960,all,1,ok,427.927,e2e_deploy,none,ok,runs/yolo26s-960-s0/960/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo26s-960-s0/960/onnxruntime-int8,onnxruntime,INT8,960,all,1,ok,644.37,e2e_deploy,none,ok,runs/yolo26s-960-s0/960/onnxruntime-int8/attempt-1,a1 complete not throttled
