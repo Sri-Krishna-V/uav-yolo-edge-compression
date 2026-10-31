@@ -1,0 +1,4 @@
+/home/rpi/sb/bin/python -u /home/rpi/uav/study/scripts/studybench.py --artifact exports/yolo11s-640-s0/640/onnxruntime-fp32 --runtime onnxruntime --imgsz 640 --images datasets/VisDrone/images/test --out bench/pi5/pi5-matrix-6-1120/runs/drift-start/attempt-1 --threads 4 --warmup 20 --platform-tag pi5 --limit 200
+[100/200] 0000118_02632_d_0000077.jpg pre 3.4 net 402.4 post 23.1 (at 0.25: 2.5) ms, 500 dets (87 at 0.25)
+[200/200] 0000320_00750_d_0000007.jpg pre 3.6 net 409.6 post 13.4 (at 0.25: 1.5) ms, 500 dets (42 at 0.25)
+done: 200 images, onnxruntime FP32, head raw; median pre 3.461 net 403.646 ms; latency (e2e_deploy, conf 0.25) 409.072 ms (p95 415.823), post 1.647 ms; at conf 0.001: total 423.224, post 15.741 ms
