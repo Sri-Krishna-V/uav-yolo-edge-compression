@@ -1,0 +1,260 @@
+2026-10-30T18:22:08+00:00 session on pi5 (the Pi 5 matrix, session 4 of 6 (#37): the FP32 baselines at 1280, B3 and B4; 6 cells, about 3.5 h. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7); no OpenVINO INT8 on the Pi 5 (#38).): 6 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-10-30T18:22:08+00:00 room 28 C; cooling: fan 2013 rpm, arm_freq 2000, arm_freq_min 1500, temp_soft_limit 0, idle CPU 56.2 C
+2026-10-30T18:22:08+00:00 setup check governor: pass (['performance', 'performance', 'performance', 'performance'])
+2026-10-30T18:22:08+00:00 setup check desktop: pass ([])
+2026-10-30T18:22:08+00:00 setup check automatic updates: pass ({'apt-daily.timer': 'inactive', 'apt-daily-upgrade.timer': 'inactive'})
+2026-10-30T18:22:08+00:00 setup check numpy: pass (2.4.6)
+2026-10-30T18:22:08+00:00 setup check opencv-python-headless: pass (5.0.0.93)
+2026-10-30T18:22:08+00:00 setup check ncnn: pass (1.0.20260526)
+2026-10-30T18:22:08+00:00 setup check onnxruntime: pass (1.31.0)
+2026-10-30T18:22:08+00:00 setup check openvino: pass (2026.4.1)
+2026-10-30T18:22:08+00:00 setup check vcgencmd clock: pass (2000)
+2026-10-30T18:22:08+00:00 cell order, shuffled with seed 0: yolo26s-1280-s0/1280/openvino-fp32, yolo11s-1280-s0/1280/ncnn-fp32, yolo11s-1280-s0/1280/openvino-fp32, yolo11s-1280-s0/1280/onnxruntime-fp32, yolo26s-1280-s0/1280/ncnn-fp32, yolo26s-1280-s0/1280/onnxruntime-fp32
+2026-10-30T18:25:08+00:00 drift-start: gate opened after 180 s: 3 min passed, CPU still at 55.1 C
+2026-10-30T18:25:08+00:00 drift-start: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 384.7 post 23.3 (at 0.25: 2.6) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.2 net 392.6 post 14.6 (at 0.25: 1.6) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 3.235 net 385.594 ms; latency (e2e_deploy, conf 0.25) 391.157 ms (p95 399.04), post 1.669 ms; at conf 0.001: total 406.068, post 16.432 ms
+2026-10-30T18:26:45+00:00 drift-start: attempt 1 complete, median latency 391.157 ms, throttle throttled
+2026-10-30T18:29:45+00:00 yolo26s-1280-s0/1280/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 54.0 C
+2026-10-30T18:29:45+00:00 yolo26s-1280-s0/1280/openvino-fp32: attempt 1 starts
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.2 net 1373.3 post 32.6 (at 0.25: 4.1) ms, 500 dets (109 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.5 net 1380.4 post 15.6 (at 0.25: 2.2) ms, 500 dets (53 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.5 net 1374.0 post 5.4 (at 0.25: 1.4) ms, 156 dets (23 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.4 net 1393.4 post 9.3 (at 0.25: 0.7) ms, 338 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 10.8 net 1382.8 post 11.3 (at 0.25: 2.1) ms, 362 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.5 net 1384.6 post 4.7 (at 0.25: 1.4) ms, 160 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.5 net 1384.0 post 5.9 (at 0.25: 1.1) ms, 158 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.4 net 1386.8 post 7.7 (at 0.25: 1.1) ms, 253 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.3 net 1391.1 post 14.0 (at 0.25: 1.2) ms, 462 dets (22 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.4 net 1391.1 post 5.5 (at 0.25: 1.1) ms, 170 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.2 net 1384.6 post 1.8 (at 0.25: 0.9) ms, 43 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.7 net 1384.2 post 20.1 (at 0.25: 1.8) ms, 500 dets (38 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 11.1 net 1384.9 post 15.9 (at 0.25: 1.2) ms, 500 dets (19 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.9 net 1378.9 post 15.1 (at 0.25: 1.1) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.0 net 1380.1 post 17.7 (at 0.25: 1.9) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.8 net 1394.4 post 2.5 (at 0.25: 1.2) ms, 71 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.8 net 1388.7 post 17.5 (at 0.25: 2.8) ms, 500 dets (71 at 0.25)
+    done: 1610 images, openvino FP32, head raw; median pre 11.433 net 1386.973 ms; latency (e2e_deploy, conf 0.25) 1400.154 ms (p95 1415.079), post 1.55 ms; at conf 0.001: total 1412.105, post 15.194 ms
+2026-10-30T19:08:56+00:00 yolo26s-1280-s0/1280/openvino-fp32: attempt 1 complete, median latency 1400.154 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T19:11:56+00:00 yolo11s-1280-s0/1280/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-30T19:11:56+00:00 yolo11s-1280-s0/1280/ncnn-fp32: attempt 1 starts
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    load vulkan driver failed
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.2 net 759.8 post 29.1 (at 0.25: 3.2) ms, 500 dets (97 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.5 net 761.0 post 14.5 (at 0.25: 2.0) ms, 500 dets (51 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.4 net 765.3 post 7.2 (at 0.25: 1.2) ms, 252 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.6 net 758.8 post 4.2 (at 0.25: 0.6) ms, 158 dets (2 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.4 net 758.6 post 13.8 (at 0.25: 1.9) ms, 500 dets (47 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.4 net 761.0 post 6.1 (at 0.25: 1.4) ms, 221 dets (30 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.4 net 764.9 post 5.7 (at 0.25: 0.8) ms, 196 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.3 net 765.0 post 8.9 (at 0.25: 1.1) ms, 305 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.4 net 759.3 post 14.9 (at 0.25: 1.2) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.4 net 760.1 post 5.1 (at 0.25: 1.0) ms, 180 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.4 net 763.3 post 1.3 (at 0.25: 0.7) ms, 36 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.6 net 765.0 post 17.8 (at 0.25: 1.6) ms, 500 dets (36 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 11.9 net 762.8 post 14.8 (at 0.25: 1.0) ms, 500 dets (17 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.9 net 760.4 post 13.9 (at 0.25: 1.1) ms, 500 dets (17 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.7 net 760.3 post 15.4 (at 0.25: 1.7) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.7 net 764.6 post 3.9 (at 0.25: 1.1) ms, 139 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.6 net 757.5 post 20.9 (at 0.25: 2.9) ms, 500 dets (82 at 0.25)
+    done: 1610 images, ncnn FP16, head raw; median pre 11.574 net 762.276 ms; latency (e2e_deploy, conf 0.25) 775.682 ms (p95 779.817), post 1.413 ms; at conf 0.001: total 788.162, post 14.732 ms
+2026-10-30T19:34:13+00:00 yolo11s-1280-s0/1280/ncnn-fp32: attempt 1 complete, median latency 775.682 ms, throttle none
+2026-10-30T19:37:13+00:00 yolo11s-1280-s0/1280/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 56.8 C
+2026-10-30T19:37:13+00:00 yolo11s-1280-s0/1280/openvino-fp32: attempt 1 starts
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.4 net 1304.3 post 33.4 (at 0.25: 3.7) ms, 500 dets (96 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.3 net 1298.0 post 16.1 (at 0.25: 2.2) ms, 500 dets (51 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.5 net 1304.6 post 8.1 (at 0.25: 1.3) ms, 249 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.5 net 1315.8 post 4.4 (at 0.25: 0.7) ms, 149 dets (2 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.4 net 1312.5 post 15.5 (at 0.25: 2.2) ms, 500 dets (48 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.6 net 1299.4 post 6.6 (at 0.25: 1.4) ms, 224 dets (28 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 10.9 net 1296.8 post 6.4 (at 0.25: 0.9) ms, 194 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.4 net 1302.9 post 9.7 (at 0.25: 1.2) ms, 310 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.4 net 1322.5 post 15.4 (at 0.25: 1.2) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.5 net 1312.8 post 5.4 (at 0.25: 1.1) ms, 182 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.5 net 1308.1 post 1.5 (at 0.25: 0.8) ms, 39 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.8 net 1312.2 post 19.0 (at 0.25: 1.8) ms, 500 dets (37 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 12.1 net 1302.2 post 16.1 (at 0.25: 1.2) ms, 500 dets (17 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.4 net 1302.6 post 15.5 (at 0.25: 1.2) ms, 500 dets (16 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.9 net 1305.9 post 16.8 (at 0.25: 1.8) ms, 500 dets (43 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.9 net 1307.3 post 4.2 (at 0.25: 1.2) ms, 138 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.8 net 1315.4 post 22.5 (at 0.25: 3.1) ms, 500 dets (79 at 0.25)
+    done: 1610 images, openvino FP32, head raw; median pre 11.431 net 1302.999 ms; latency (e2e_deploy, conf 0.25) 1316.174 ms (p95 1330.223), post 1.571 ms; at conf 0.001: total 1329.828, post 16.088 ms
+2026-10-30T20:14:11+00:00 yolo11s-1280-s0/1280/openvino-fp32: attempt 1 complete, median latency 1316.174 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T20:17:11+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 55.6 C
+2026-10-30T20:17:11+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: attempt 1 starts
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.6 net 1693.6 post 30.4 (at 0.25: 3.4) ms, 500 dets (96 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.5 net 1690.7 post 15.9 (at 0.25: 2.2) ms, 500 dets (51 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.4 net 1695.5 post 7.6 (at 0.25: 1.2) ms, 249 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.5 net 1693.8 post 4.4 (at 0.25: 0.8) ms, 149 dets (2 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 10.8 net 1683.3 post 15.6 (at 0.25: 2.2) ms, 500 dets (48 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 12.3 net 1698.6 post 6.6 (at 0.25: 1.5) ms, 224 dets (28 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 10.7 net 1686.3 post 6.0 (at 0.25: 0.9) ms, 194 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.5 net 1711.3 post 9.2 (at 0.25: 1.2) ms, 310 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 12.2 net 1685.2 post 16.3 (at 0.25: 1.4) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.7 net 1699.6 post 5.6 (at 0.25: 1.2) ms, 182 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.5 net 1694.9 post 1.6 (at 0.25: 0.9) ms, 39 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.3 net 1678.3 post 19.2 (at 0.25: 1.8) ms, 500 dets (37 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 12.0 net 1690.5 post 15.7 (at 0.25: 1.2) ms, 500 dets (17 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 12.0 net 1678.7 post 15.9 (at 0.25: 1.2) ms, 500 dets (16 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.9 net 1696.8 post 16.3 (at 0.25: 1.9) ms, 500 dets (43 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 12.0 net 1691.8 post 4.2 (at 0.25: 1.2) ms, 138 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.9 net 1691.7 post 22.5 (at 0.25: 3.1) ms, 500 dets (79 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 11.565 net 1695.367 ms; latency (e2e_deploy, conf 0.25) 1708.708 ms (p95 1722.954), post 1.54 ms; at conf 0.001: total 1721.466, post 15.566 ms
+2026-10-30T21:04:52+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: attempt 1 complete, median latency 1708.708 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T21:07:52+00:00 yolo26s-1280-s0/1280/ncnn-fp32: gate opened after 180 s: 3 min passed, CPU still at 58.4 C
+2026-10-30T21:07:52+00:00 yolo26s-1280-s0/1280/ncnn-fp32: attempt 1 starts
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    dlopen failed libvulkan.so.1: cannot open shared object file: No such file or directory
+    load vulkan driver failed
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.3 net 832.3 post 29.4 (at 0.25: 3.7) ms, 500 dets (110 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.3 net 830.7 post 14.4 (at 0.25: 2.1) ms, 500 dets (53 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.5 net 830.0 post 4.8 (at 0.25: 1.2) ms, 166 dets (25 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.5 net 830.9 post 9.0 (at 0.25: 0.6) ms, 348 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.4 net 829.9 post 10.3 (at 0.25: 1.9) ms, 360 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.4 net 835.0 post 4.6 (at 0.25: 1.3) ms, 165 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.5 net 836.3 post 4.8 (at 0.25: 0.9) ms, 165 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.5 net 835.1 post 7.2 (at 0.25: 1.1) ms, 258 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.4 net 835.8 post 13.3 (at 0.25: 1.2) ms, 460 dets (22 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.4 net 834.5 post 4.9 (at 0.25: 1.0) ms, 172 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.4 net 829.2 post 1.5 (at 0.25: 0.7) ms, 42 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.7 net 834.8 post 17.8 (at 0.25: 1.7) ms, 500 dets (39 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 11.9 net 833.9 post 14.9 (at 0.25: 1.1) ms, 500 dets (19 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.9 net 830.7 post 14.0 (at 0.25: 1.0) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.7 net 830.8 post 16.5 (at 0.25: 1.7) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.7 net 832.7 post 2.2 (at 0.25: 1.1) ms, 70 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.8 net 827.8 post 16.9 (at 0.25: 2.7) ms, 500 dets (73 at 0.25)
+    done: 1610 images, ncnn FP16, head raw; median pre 11.422 net 832.13 ms; latency (e2e_deploy, conf 0.25) 845.268 ms (p95 849.092), post 1.395 ms; at conf 0.001: total 856.478, post 14.033 ms
+2026-10-30T21:31:56+00:00 yolo26s-1280-s0/1280/ncnn-fp32: attempt 1 complete, median latency 845.268 ms, throttle none
+2026-10-30T21:34:56+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.9 C
+2026-10-30T21:34:56+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: attempt 1 starts
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.3 net 1681.6 post 31.5 (at 0.25: 3.9) ms, 500 dets (109 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.5 net 1681.2 post 15.0 (at 0.25: 2.2) ms, 500 dets (53 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.7 net 1688.3 post 4.7 (at 0.25: 1.3) ms, 156 dets (23 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.7 net 1683.3 post 9.4 (at 0.25: 0.8) ms, 338 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.9 net 1689.4 post 11.0 (at 0.25: 2.1) ms, 362 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 13.4 net 1690.7 post 5.0 (at 0.25: 1.3) ms, 160 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.6 net 1682.8 post 5.0 (at 0.25: 1.0) ms, 158 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.7 net 1676.9 post 8.2 (at 0.25: 1.2) ms, 253 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 12.0 net 1686.9 post 13.9 (at 0.25: 1.2) ms, 462 dets (22 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 12.4 net 1695.5 post 5.2 (at 0.25: 1.1) ms, 170 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.8 net 1676.5 post 1.5 (at 0.25: 0.8) ms, 43 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.8 net 1689.6 post 19.4 (at 0.25: 1.7) ms, 500 dets (38 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 12.2 net 1681.5 post 19.9 (at 0.25: 1.4) ms, 500 dets (19 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 12.2 net 1676.4 post 16.0 (at 0.25: 1.1) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.2 net 1675.5 post 18.3 (at 0.25: 1.9) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 12.1 net 1703.9 post 2.3 (at 0.25: 1.3) ms, 71 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 12.1 net 1701.9 post 17.1 (at 0.25: 2.7) ms, 500 dets (71 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 11.849 net 1688.463 ms; latency (e2e_deploy, conf 0.25) 1702.296 ms (p95 1714.456), post 1.495 ms; at conf 0.001: total 1713.843, post 14.783 ms
+2026-10-30T22:22:23+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: attempt 1 complete, median latency 1702.296 ms, throttle throttled; it runs again at the end of the session
+2026-10-30T22:25:23+00:00 yolo26s-1280-s0/1280/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.9 C
+2026-10-30T22:25:23+00:00 yolo26s-1280-s0/1280/openvino-fp32: attempt 2 starts (the throttle re-run)
+    [100/1610] 0000118_02632_d_0000077.jpg pre 10.5 net 1393.3 post 32.8 (at 0.25: 4.1) ms, 500 dets (109 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.5 net 1392.1 post 15.4 (at 0.25: 2.4) ms, 500 dets (53 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.5 net 1394.8 post 5.0 (at 0.25: 1.3) ms, 156 dets (23 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.4 net 1402.5 post 9.9 (at 0.25: 0.8) ms, 338 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 10.8 net 1374.8 post 11.6 (at 0.25: 2.1) ms, 362 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.6 net 1391.7 post 6.0 (at 0.25: 1.6) ms, 160 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.4 net 1387.1 post 5.2 (at 0.25: 1.1) ms, 158 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 10.8 net 1374.4 post 7.9 (at 0.25: 1.2) ms, 253 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.3 net 1374.9 post 14.5 (at 0.25: 1.3) ms, 462 dets (22 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.4 net 1393.2 post 5.3 (at 0.25: 1.1) ms, 170 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.6 net 1385.4 post 1.6 (at 0.25: 0.8) ms, 43 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.0 net 1372.9 post 19.9 (at 0.25: 1.8) ms, 500 dets (38 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 11.1 net 1374.8 post 16.5 (at 0.25: 1.2) ms, 500 dets (19 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.3 net 1397.0 post 15.8 (at 0.25: 1.1) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.3 net 1387.7 post 17.7 (at 0.25: 1.8) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.8 net 1387.0 post 2.3 (at 0.25: 1.1) ms, 71 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.8 net 1391.3 post 17.3 (at 0.25: 2.8) ms, 500 dets (71 at 0.25)
+    done: 1610 images, openvino FP32, head raw; median pre 11.366 net 1387.727 ms; latency (e2e_deploy, conf 0.25) 1400.741 ms (p95 1413.578), post 1.518 ms; at conf 0.001: total 1412.286, post 15.046 ms
+2026-10-30T23:04:36+00:00 yolo26s-1280-s0/1280/openvino-fp32: attempt 2 complete, median latency 1400.741 ms, throttle throttled
+2026-10-30T23:07:36+00:00 yolo11s-1280-s0/1280/openvino-fp32: gate opened after 180 s: 3 min passed, CPU still at 58.4 C
+2026-10-30T23:07:36+00:00 yolo11s-1280-s0/1280/openvino-fp32: attempt 2 starts (the throttle re-run)
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.1 net 1289.4 post 31.8 (at 0.25: 3.4) ms, 500 dets (96 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 10.8 net 1294.4 post 16.1 (at 0.25: 2.3) ms, 500 dets (51 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.4 net 1293.2 post 7.9 (at 0.25: 1.2) ms, 249 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.4 net 1288.9 post 4.2 (at 0.25: 0.7) ms, 149 dets (2 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.4 net 1289.0 post 15.1 (at 0.25: 2.1) ms, 500 dets (48 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 11.5 net 1298.7 post 6.9 (at 0.25: 1.5) ms, 224 dets (28 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.4 net 1298.6 post 6.6 (at 0.25: 0.9) ms, 194 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 10.8 net 1286.1 post 10.1 (at 0.25: 1.2) ms, 310 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.3 net 1307.9 post 15.3 (at 0.25: 1.3) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 11.4 net 1304.1 post 5.5 (at 0.25: 1.1) ms, 182 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.3 net 1300.4 post 1.5 (at 0.25: 0.8) ms, 39 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.9 net 1295.5 post 20.0 (at 0.25: 1.8) ms, 500 dets (37 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 12.1 net 1288.8 post 15.6 (at 0.25: 1.1) ms, 500 dets (17 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 12.1 net 1292.4 post 14.6 (at 0.25: 1.1) ms, 500 dets (16 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.1 net 1291.3 post 15.8 (at 0.25: 1.8) ms, 500 dets (43 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.8 net 1296.3 post 4.4 (at 0.25: 1.2) ms, 138 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.8 net 1295.8 post 22.1 (at 0.25: 3.1) ms, 500 dets (79 at 0.25)
+    done: 1610 images, openvino FP32, head raw; median pre 11.379 net 1295.075 ms; latency (e2e_deploy, conf 0.25) 1308.233 ms (p95 1320.466), post 1.544 ms; at conf 0.001: total 1321.389, post 15.978 ms
+2026-10-30T23:44:21+00:00 yolo11s-1280-s0/1280/openvino-fp32: attempt 2 complete, median latency 1308.233 ms, throttle throttled
+2026-10-30T23:47:21+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 58.4 C
+2026-10-30T23:47:21+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.5 net 1686.0 post 31.0 (at 0.25: 3.7) ms, 500 dets (96 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.7 net 1678.2 post 15.3 (at 0.25: 2.1) ms, 500 dets (51 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.6 net 1677.9 post 7.4 (at 0.25: 1.2) ms, 249 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.5 net 1672.8 post 4.1 (at 0.25: 0.8) ms, 149 dets (2 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.6 net 1683.0 post 15.0 (at 0.25: 2.1) ms, 500 dets (48 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 12.9 net 1685.1 post 6.5 (at 0.25: 1.4) ms, 224 dets (28 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.0 net 1680.3 post 5.9 (at 0.25: 0.9) ms, 194 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.6 net 1685.6 post 9.7 (at 0.25: 1.2) ms, 310 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.7 net 1684.6 post 15.3 (at 0.25: 1.3) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.9 net 1694.1 post 5.6 (at 0.25: 1.1) ms, 182 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.7 net 1682.2 post 1.6 (at 0.25: 0.8) ms, 39 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.2 net 1700.7 post 18.7 (at 0.25: 1.8) ms, 500 dets (37 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 11.3 net 1678.2 post 16.5 (at 0.25: 1.3) ms, 500 dets (17 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 11.9 net 1679.4 post 14.5 (at 0.25: 1.2) ms, 500 dets (16 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.3 net 1679.3 post 15.7 (at 0.25: 1.8) ms, 500 dets (43 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.3 net 1690.7 post 4.2 (at 0.25: 1.2) ms, 138 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.3 net 1682.8 post 21.9 (at 0.25: 3.0) ms, 500 dets (79 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 11.528 net 1681.756 ms; latency (e2e_deploy, conf 0.25) 1695.085 ms (p95 1710.799), post 1.535 ms; at conf 0.001: total 1707.507, post 15.415 ms
+2026-10-31T00:34:40+00:00 yolo11s-1280-s0/1280/onnxruntime-fp32: attempt 2 complete, median latency 1695.085 ms, throttle throttled
+2026-10-31T00:37:40+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: gate opened after 180 s: 3 min passed, CPU still at 57.3 C
+2026-10-31T00:37:40+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: attempt 2 starts (the throttle re-run)
+    [100/1610] 0000118_02632_d_0000077.jpg pre 11.4 net 1664.5 post 29.8 (at 0.25: 3.7) ms, 500 dets (109 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 11.6 net 1663.5 post 14.3 (at 0.25: 2.1) ms, 500 dets (53 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 11.9 net 1659.7 post 5.0 (at 0.25: 1.3) ms, 156 dets (23 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.6 net 1678.0 post 9.1 (at 0.25: 0.7) ms, 338 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 11.6 net 1650.8 post 10.2 (at 0.25: 2.0) ms, 362 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 13.4 net 1663.5 post 4.6 (at 0.25: 1.4) ms, 160 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 11.6 net 1662.2 post 4.9 (at 0.25: 1.0) ms, 158 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 11.7 net 1662.0 post 7.3 (at 0.25: 1.1) ms, 253 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.9 net 1670.3 post 14.3 (at 0.25: 1.3) ms, 462 dets (22 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 13.0 net 1674.9 post 5.3 (at 0.25: 1.1) ms, 170 dets (15 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 11.6 net 1661.4 post 1.5 (at 0.25: 0.8) ms, 43 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 12.0 net 1657.0 post 18.0 (at 0.25: 1.7) ms, 500 dets (38 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 12.1 net 1652.6 post 15.1 (at 0.25: 1.2) ms, 500 dets (19 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 12.0 net 1654.8 post 14.6 (at 0.25: 1.1) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.9 net 1668.9 post 17.3 (at 0.25: 1.8) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.9 net 1669.8 post 2.3 (at 0.25: 1.2) ms, 71 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.9 net 1664.0 post 16.8 (at 0.25: 2.7) ms, 500 dets (71 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 11.8 net 1661.535 ms; latency (e2e_deploy, conf 0.25) 1675.06 ms (p95 1687.718), post 1.466 ms; at conf 0.001: total 1686.422, post 14.293 ms
+2026-10-31T01:24:22+00:00 yolo26s-1280-s0/1280/onnxruntime-fp32: attempt 2 complete, median latency 1675.06 ms, throttle throttled
+2026-10-31T01:27:22+00:00 drift-end: gate opened after 180 s: 3 min passed, CPU still at 58.4 C
+2026-10-31T01:27:22+00:00 drift-end: attempt 1 starts
+    [100/200] 0000118_02632_d_0000077.jpg pre 3.2 net 391.6 post 24.2 (at 0.25: 2.6) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 3.3 net 394.6 post 13.7 (at 0.25: 1.6) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 3.25 net 389.079 ms; latency (e2e_deploy, conf 0.25) 394.301 ms (p95 403.05), post 1.708 ms; at conf 0.001: total 409.091, post 16.587 ms
+2026-10-31T01:28:59+00:00 drift-end: attempt 1 complete, median latency 394.301 ms, throttle throttled
+2026-10-31T01:28:59+00:00 drift check: reference median 391.157 -> 394.301 ms (+0.8%): ok (drift-start throttled) (drift-end throttled)
+2026-10-31T01:28:59+00:00   drift-start: FP32, throttled, 1 attempt(s), median 391.157 ms (e2e_deploy), throttle throttled, drift ok, runs/drift-start/attempt-1
+2026-10-31T01:28:59+00:00   drift-end: FP32, throttled, 1 attempt(s), median 394.301 ms (e2e_deploy), throttle throttled, drift ok, runs/drift-end/attempt-1
+2026-10-31T01:28:59+00:00   yolo11s-1280-s0/1280/onnxruntime-fp32: FP32, throttled, 2 attempt(s), median 1695.085 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo11s-1280-s0/1280/onnxruntime-fp32/attempt-2
+2026-10-31T01:28:59+00:00   yolo11s-1280-s0/1280/openvino-fp32: FP32, throttled, 2 attempt(s), median 1308.233 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo11s-1280-s0/1280/openvino-fp32/attempt-2
+2026-10-31T01:28:59+00:00   yolo11s-1280-s0/1280/ncnn-fp32: FP16, ok, 1 attempt(s), median 775.682 ms (e2e_deploy), throttle none, drift ok, runs/yolo11s-1280-s0/1280/ncnn-fp32/attempt-1
+2026-10-31T01:28:59+00:00   yolo26s-1280-s0/1280/onnxruntime-fp32: FP32, throttled, 2 attempt(s), median 1675.06 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-1280-s0/1280/onnxruntime-fp32/attempt-2
+2026-10-31T01:28:59+00:00   yolo26s-1280-s0/1280/openvino-fp32: FP32, throttled, 2 attempt(s), median 1400.741 ms (e2e_deploy), throttle throttled, drift ok, runs/yolo26s-1280-s0/1280/openvino-fp32/attempt-2
+2026-10-31T01:28:59+00:00   yolo26s-1280-s0/1280/ncnn-fp32: FP16, ok, 1 attempt(s), median 845.268 ms (e2e_deploy), throttle none, drift ok, runs/yolo26s-1280-s0/1280/ncnn-fp32/attempt-1
+2026-10-31T01:28:59+00:00 session complete: bench/pi5/pi5-matrix-4-1280-baselines/summary.csv
