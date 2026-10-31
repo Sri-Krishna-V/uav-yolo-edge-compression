@@ -1,0 +1,19 @@
+{
+  "platform": "pi5",
+  "note": "the Pi 5 matrix, session 7 (#37, #41): the per-channel ONNX Runtime INT8 cells (onnxruntime-int8pc, INVARIANTS.md 8), one beside each stock ONNX Runtime INT8 cell of sessions 1-6; 12 cells, about 4 h. Seed 65 is chosen so that B2 and B1 at 800 run first, right after the reference. Full cells (all 1,610 test-dev images), at the 2000 MHz lock (INVARIANTS.md 4.7).",
+  "seed": 65,
+  "cells": [
+    {"artifact": "exports/yolo26s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo11s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8pc-e2e", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo11s-960-s0/960/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo11s-1280-s0/1280/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1280},
+    {"artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}
