@@ -1,0 +1,417 @@
+{
+  "tool": "studybench.py",
+  "status": "complete",
+  "platform_tag": "pi5",
+  "config": {
+    "runtime": "openvino",
+    "imgsz": 800,
+    "threads": 4,
+    "artifact_sha256": {
+      "model_openvino_model/metadata.yaml": "306045ffe0c4ba29915ce45472ea96041da665858d1b31b72a2ecb2e032109d0",
+      "model_openvino_model/model.bin": "e9e551b9e650997140bdea267bf2eb3c019d22df931259613300624666bdcf35",
+      "model_openvino_model/model.xml": "d8841c7664ef92e5c1aa4f153d8ae546a2723aaca9ffe485822a88665310397f"
+    },
+    "images": 1610,
+    "images_sha1": "00106accba1f0837a97fd3e812526ac819a44eec",
+    "deploy_conf": 0.25
+  },
+  "artifact": "exports/yolo11s-960-s0/800/openvino-fp32",
+  "model_file": "exports/yolo11s-960-s0/800/openvino-fp32/model_openvino_model/model.xml",
+  "manifest": {
+    "run": "yolo11s-960-s0",
+    "variant": "openvino-fp32",
+    "runtime": "openvino",
+    "precision": "fp32",
+    "head": "raw",
+    "imgsz": 800,
+    "batch": 1,
+    "artifact": "model_openvino_model",
+    "files": {
+      "model_openvino_model/metadata.yaml": "306045ffe0c4ba29915ce45472ea96041da665858d1b31b72a2ecb2e032109d0",
+      "model_openvino_model/model.bin": "e9e551b9e650997140bdea267bf2eb3c019d22df931259613300624666bdcf35",
+      "model_openvino_model/model.xml": "d8841c7664ef92e5c1aa4f153d8ae546a2723aaca9ffe485822a88665310397f"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-960-s0\\best.pt",
+    "source_sha256": "faaa6cb22d1ee714ad7a1243cfb5bf1813af11820414f6995dc93b1742c20fb9",
+    "export_args": {
+      "imgsz": 800,
+      "batch": 1,
+      "device": "cpu",
+      "format": "openvino"
+    },
+    "calibration": null,
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-28T13:38:00.980182+05:30",
+      "stride": 32,
+      "task": "detect",
+      "head": "Detect",
+      "batch": 1,
+      "imgsz": [
+        800,
+        800
+      ],
+      "end2end": false,
+      "args": {
+        "data": null,
+        "batch": 1,
+        "fraction": 1.0,
+        "quantize": null,
+        "nms": null,
+        "dynamic": false
+      },
+      "names": {
+        "0": "pedestrian",
+        "1": "people",
+        "2": "bicycle",
+        "3": "car",
+        "4": "van",
+        "5": "truck",
+        "6": "tricycle",
+        "7": "awning-tricycle",
+        "8": "bus",
+        "9": "motor"
+      }
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 3.7,
+    "exported_utc": "2026-10-28T08:08:03+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "72b4ec664d18ac4f7561fdd3fdd4898cd741391d"
+  },
+  "imgsz": 800,
+  "threads": 4,
+  "warmup": 20,
+  "limit": null,
+  "images_dir": "datasets/VisDrone/images/test",
+  "complete_testdev": true,
+  "preprocess": "validator rect=False batch 1: ceil long-side resize INTER_LINEAR, LetterBox pad 114 scaleup=False, BGR->RGB, CHW, /255",
+  "postprocess": {
+    "conf": 0.001,
+    "iou": 0.7,
+    "max_det": 500,
+    "max_nms": 30000,
+    "max_wh": 7680,
+    "multi_label": true,
+    "agnostic": false
+  },
+  "deploy_conf": 0.25,
+  "post_passes": "two per image on the same model output, each timed: at conf 0.001 (t_post_ms, saved for accuracy) and at 0.25 (t_post_deploy_ms, timed only); the 0.25 pass runs first on odd image indices",
+  "timed": "pre + net + post per image; image read/decode and COCO conversion excluded",
+  "latency": "e2e_deploy = pre + net + post at 0.25; t_total_ms is pre + net + post at 0.001",
+  "sessions": [
+    {
+      "index": 0,
+      "start": "2026-10-31T04:28:00+00:00",
+      "first_image": 0,
+      "model_load_s": 1.259,
+      "warmup": 20,
+      "warmup_done": "2026-10-31T04:28:10+00:00",
+      "last_image": 1599,
+      "last_update": "2026-10-31T04:42:00+00:00",
+      "end": "2026-10-31T04:42:05+00:00"
+    }
+  ],
+  "platform": {
+    "uname": {
+      "system": "Linux",
+      "node": "raspberrypi",
+      "release": "6.12.109+rpt-rpi-2712",
+      "version": "#1 SMP PREEMPT Debian 1:6.12.109-1+rpt1 (2026-09-11)",
+      "machine": "aarch64",
+      "processor": ""
+    },
+    "cpu_model": "Raspberry Pi 5 Model B Rev 1.0",
+    "cpu_part": "0xd0b",
+    "device_model": "Raspberry Pi 5 Model B Rev 1.0",
+    "android": null,
+    "cpu_count": 4,
+    "cpu_affinity": 4,
+    "cpu_max_mhz": [
+      2000,
+      2000,
+      2000,
+      2000
+    ],
+    "governor": "performance",
+    "mem_total_kb": 4146944,
+    "jetson": null
+  },
+  "versions": {
+    "python": "3.11.2",
+    "numpy": "2.4.6",
+    "cv2": "5.0.0",
+    "openvino": "2026.4.1-22982-e213a147257-releases/2026/4"
+  },
+  "runtime_info": {
+    "device": "CPU",
+    "requested": {
+      "PERFORMANCE_HINT": "LATENCY",
+      "INFERENCE_NUM_THREADS": "4",
+      "EXECUTION_MODE_HINT": "ExecutionMode.ACCURACY",
+      "INFERENCE_PRECISION_HINT": "<Type: 'float32'>"
+    },
+    "effective": {
+      "PERFORMANCE_HINT": "LATENCY",
+      "INFERENCE_NUM_THREADS": "4",
+      "INFERENCE_PRECISION_HINT": "<Type: 'float32'>",
+      "EXECUTION_MODE_HINT": "ExecutionMode.ACCURACY",
+      "NUM_STREAMS": "1",
+      "ENABLE_HYPER_THREADING": "False",
+      "ENABLE_CPU_PINNING": "True",
+      "SCHEDULING_CORE_TYPE": "SchedulingCoreType.ANY_CORE",
+      "EXECUTION_DEVICES": "['CPU']"
+    },
+    "compute_layers": {
+      "Convolution f32": 88,
+      "MatMul f32": 2
+    },
+    "precision_from": "the runtime precision of the compiled model's convolution and matmul layers"
+  },
+  "precision": "FP32",
+  "cv2_threads": 4,
+  "cpu_clock": {
+    "source": "vcgencmd measure_clock arm",
+    "read": "every image, after its timing",
+    "failed_reads": 0,
+    "call_ms": {
+      "n": 1610,
+      "median": 11.638,
+      "max": 113.421
+    }
+  },
+  "head": "raw",
+  "start": "2026-10-31T04:28:00+00:00",
+  "end": "2026-10-31T04:42:05+00:00",
+  "images_timed": 1610,
+  "detections": 659720,
+  "timing_ms": {
+    "t_pre_ms": {
+      "median": 4.825,
+      "p95": 5.307,
+      "mean": 4.891,
+      "min": 4.318,
+      "max": 5.467
+    },
+    "t_net_ms": {
+      "median": 468.38,
+      "p95": 469.954,
+      "mean": 468.596,
+      "min": 467.594,
+      "max": 473.329
+    },
+    "t_post_ms": {
+      "median": 14.578,
+      "p95": 20.578,
+      "mean": 13.097,
+      "min": 0.648,
+      "max": 35.252
+    },
+    "t_total_ms": {
+      "median": 487.979,
+      "p95": 493.98,
+      "mean": 486.584,
+      "min": 473.888,
+      "max": 507.944
+    },
+    "post_deploy": {
+      "median": 1.179,
+      "p95": 2.724,
+      "mean": 1.361,
+      "min": 0.183,
+      "max": 11.884
+    },
+    "e2e_deploy": {
+      "median": 474.621,
+      "p95": 476.731,
+      "mean": 474.847,
+      "min": 473.207,
+      "max": 484.576
+    }
+  },
+  "device_state": {
+    "temp_c": {
+      "min": 74.9,
+      "max": 82.0,
+      "median": 79.3
+    },
+    "cpu_mhz": {
+      "min": 1966.0,
+      "max": 2000.0,
+      "median": 2000.0
+    },
+    "gpu_temp_c": null,
+    "gpu_mhz": null,
+    "n_cand_max": 7477,
+    "images_over_max_nms": 0
+  },
+  "throttle": {
+    "start": "0x80000",
+    "end": "0x80000",
+    "or_of_samples": "0x80000",
+    "during_run": {
+      "under_voltage": false,
+      "freq_capped": false,
+      "throttled": false,
+      "soft_temp_limit": false
+    },
+    "since_boot": {
+      "under_voltage": false,
+      "freq_capped": false,
+      "throttled": false,
+      "soft_temp_limit": true
+    },
+    "samples": [
+      [
+        0,
+        "0x80000"
+      ],
+      [
+        49,
+        "0x80000"
+      ],
+      [
+        99,
+        "0x80000"
+      ],
+      [
+        149,
+        "0x80000"
+      ],
+      [
+        199,
+        "0x80000"
+      ],
+      [
+        249,
+        "0x80000"
+      ],
+      [
+        299,
+        "0x80000"
+      ],
+      [
+        349,
+        "0x80000"
+      ],
+      [
+        399,
+        "0x80000"
+      ],
+      [
+        449,
+        "0x80000"
+      ],
+      [
+        499,
+        "0x80000"
+      ],
+      [
+        549,
+        "0x80000"
+      ],
+      [
+        599,
+        "0x80000"
+      ],
+      [
+        649,
+        "0x80000"
+      ],
+      [
+        699,
+        "0x80000"
+      ],
+      [
+        749,
+        "0x80000"
+      ],
+      [
+        799,
+        "0x80000"
+      ],
+      [
+        849,
+        "0x80000"
+      ],
+      [
+        899,
+        "0x80000"
+      ],
+      [
+        949,
+        "0x80000"
+      ],
+      [
+        999,
+        "0x80000"
+      ],
+      [
+        1049,
+        "0x80000"
+      ],
+      [
+        1099,
+        "0x80000"
+      ],
+      [
+        1149,
+        "0x80000"
+      ],
+      [
+        1199,
+        "0x80000"
+      ],
+      [
+        1249,
+        "0x80000"
+      ],
+      [
+        1299,
+        "0x80000"
+      ],
+      [
+        1349,
+        "0x80000"
+      ],
+      [
+        1399,
+        "0x80000"
+      ],
+      [
+        1449,
+        "0x80000"
+      ],
+      [
+        1499,
+        "0x80000"
+      ],
+      [
+        1549,
+        "0x80000"
+      ],
+      [
+        1599,
+        "0x80000"
+      ],
+      [
+        1610,
+        "0x80000"
+      ]
+    ]
+  },
+  "jetson": null,
+  "max_rss_mb": 425.0,
+  "resumed": false
+}

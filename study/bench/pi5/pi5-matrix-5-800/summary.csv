@@ -1,0 +1,11 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,throttled,387.729,e2e_deploy,throttled,ok,runs/drift-start/attempt-1,a1 complete throttled
+drift-end,onnxruntime,FP32,640,200,1,throttled,390.399,e2e_deploy,throttled,ok,runs/drift-end/attempt-1,a1 complete throttled
+yolo11s-960-s0/800/onnxruntime-fp32,onnxruntime,FP32,800,all,2,throttled,629.937,e2e_deploy,throttled,ok,runs/yolo11s-960-s0/800/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo11s-960-s0/800/openvino-fp32,openvino,FP32,800,all,1,ok,474.621,e2e_deploy,none,ok,runs/yolo11s-960-s0/800/openvino-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0/800/ncnn-fp32,ncnn,FP16,800,all,1,ok,276.8,e2e_deploy,none,ok,runs/yolo11s-960-s0/800/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo11s-960-s0/800/onnxruntime-int8,onnxruntime,INT8,800,all,1,ok,416.659,e2e_deploy,none,ok,runs/yolo11s-960-s0/800/onnxruntime-int8/attempt-1,a1 complete not throttled
+yolo26s-960-s0/800/onnxruntime-fp32,onnxruntime,FP32,800,all,2,throttled,611.903,e2e_deploy,throttled,ok,runs/yolo26s-960-s0/800/onnxruntime-fp32/attempt-2,a1 complete throttled; a2 re-run complete throttled
+yolo26s-960-s0/800/openvino-fp32,openvino,FP32,800,all,1,ok,489.572,e2e_deploy,none,ok,runs/yolo26s-960-s0/800/openvino-fp32/attempt-1,a1 complete not throttled
+yolo26s-960-s0/800/ncnn-fp32,ncnn,FP16,800,all,1,ok,286.048,e2e_deploy,none,ok,runs/yolo26s-960-s0/800/ncnn-fp32/attempt-1,a1 complete not throttled
+yolo26s-960-s0/800/onnxruntime-int8,onnxruntime,INT8,800,all,1,ok,431.187,e2e_deploy,none,ok,runs/yolo26s-960-s0/800/onnxruntime-int8/attempt-1,a1 complete not throttled
