@@ -75,11 +75,12 @@ import studyclock
 
 STUDY = Path(__file__).resolve().parents[1]
 SESSIONS = ["pi5/pi5-matrix-*", "m34/m34-fullcell*", "m34/m34-matrix-*"]
-SESSION_NOTES = {  # decided on #44 and #37, 1 November
+SESSION_NOTES = {  # decided on #44, #37 and #27, 1 November
     "pi5-matrix-6-1120": "latency about 6 % high against the other sessions' (measured by session 7)",
     "pi5-matrix-7-int8pc": "drift flagged across a restart; kept (#37)",
+    "m34-matrix-1": "drift +4.9 %, flagged; kept, latency provisional (#27, #34)",
 }
-DRIFT_DECIDED = {"pi5-matrix-7-int8pc"}  # its drift note is in SESSION_NOTES
+DRIFT_DECIDED = {"pi5-matrix-7-int8pc", "m34-matrix-1"}  # their drift notes are in SESSION_NOTES
 ACCURACY = {"ap": "coco/AP_all", "ap50": "coco/AP_50", "ap75": "coco/AP_75", "ap_small": "coco/AP_small", "ap_medium": "coco/AP_medium",
             "ap_large": "coco/AP_large", "ar500": "coco/AR_500"}
 LATENCY = {"latency_ms": ("e2e_deploy", "median"), "latency_p95_ms": ("e2e_deploy", "p95"), "pre_ms": ("t_pre_ms", "median"),

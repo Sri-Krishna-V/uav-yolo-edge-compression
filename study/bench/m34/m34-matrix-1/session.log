@@ -1,0 +1,33 @@
+2026-11-01T05:36:45+00:00 session on m34 (the phone's matrix, session 1 (#27, #46, #47), on the reinstalled Termux (OpenCV 5.0.0 and ONNX Runtime 1.31.1, against 4.14.0 and 1.31.0 on 25 October): A1 at 640 in FP32 again, so that B1 at 960 in per-channel INT8 has its equal-latency partner in the same session and software, and the 25 October cell measures the software change; A1 at 640 in per-channel INT8; and A2 at 640 in FP32 and per-channel INT8 for YOLO11s against YOLO26s. ONNX Runtime only, all 1,610 test-dev images; about 2 h with the fixed 3-minute start waits. Seed 5 runs the pair first, back to back): 5 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-11-01T05:36:45+00:00 room not given
+2026-11-01T05:36:45+00:00 cell order, shuffled with seed 5: yolo11s-640-s0/640/onnxruntime-fp32, yolo11s-960-s0/960/onnxruntime-int8pc, yolo26s-640-s0/640/onnxruntime-fp32, yolo11s-640-s0/640/onnxruntime-int8pc, yolo26s-640-s0/640/onnxruntime-int8pc
+2026-11-01T05:39:46+00:00 drift-start: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.9 C
+2026-11-01T05:39:46+00:00 drift-start: attempt 1 starts
+2026-11-01T05:42:33+00:00 drift-start: attempt 1 complete, median latency 648.316 ms, throttle unknown
+2026-11-01T05:45:35+00:00 yolo11s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.5 C
+2026-11-01T05:45:35+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+2026-11-01T06:06:29+00:00 yolo11s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 675.222 ms, throttle unknown
+2026-11-01T06:09:30+00:00 yolo11s-960-s0/960/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.3 C
+2026-11-01T06:09:30+00:00 yolo11s-960-s0/960/onnxruntime-int8pc: attempt 1 starts
+2026-11-01T06:31:35+00:00 yolo11s-960-s0/960/onnxruntime-int8pc: attempt 1 complete, median latency 733.53 ms, throttle unknown
+2026-11-01T06:34:37+00:00 yolo26s-640-s0/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 35.0 C
+2026-11-01T06:34:37+00:00 yolo26s-640-s0/640/onnxruntime-fp32: attempt 1 starts
+2026-11-01T06:54:49+00:00 yolo26s-640-s0/640/onnxruntime-fp32: attempt 1 complete, median latency 667.395 ms, throttle unknown
+2026-11-01T06:57:51+00:00 yolo11s-640-s0/640/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.2 C
+2026-11-01T06:57:51+00:00 yolo11s-640-s0/640/onnxruntime-int8pc: attempt 1 starts
+2026-11-01T07:09:05+00:00 yolo11s-640-s0/640/onnxruntime-int8pc: attempt 1 complete, median latency 335.608 ms, throttle unknown
+2026-11-01T07:12:07+00:00 yolo26s-640-s0/640/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.2 C
+2026-11-01T07:12:07+00:00 yolo26s-640-s0/640/onnxruntime-int8pc: attempt 1 starts
+2026-11-01T07:23:41+00:00 yolo26s-640-s0/640/onnxruntime-int8pc: attempt 1 complete, median latency 346.02 ms, throttle unknown
+2026-11-01T07:26:43+00:00 drift-end: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 34.7 C
+2026-11-01T07:26:43+00:00 drift-end: attempt 1 starts
+2026-11-01T07:29:31+00:00 drift-end: attempt 1 complete, median latency 680.088 ms, throttle unknown
+2026-11-01T07:29:31+00:00 drift check: reference median 648.316 -> 680.088 ms (+4.9%): moved more than 3%: every cell of this session is flagged for a re-run
+2026-11-01T07:29:31+00:00   drift-start: FP32, ok, 1 attempt(s), median 648.316 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-start/attempt-1
+2026-11-01T07:29:31+00:00   drift-end: FP32, ok, 1 attempt(s), median 680.088 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-end/attempt-1
+2026-11-01T07:29:31+00:00   yolo11s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 675.222 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-11-01T07:29:31+00:00   yolo11s-960-s0/960/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 733.53 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-960-s0/960/onnxruntime-int8pc/attempt-1
+2026-11-01T07:29:31+00:00   yolo11s-640-s0/640/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 335.608 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0/640/onnxruntime-int8pc/attempt-1
+2026-11-01T07:29:31+00:00   yolo26s-640-s0/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 667.395 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-640-s0/640/onnxruntime-fp32/attempt-1
+2026-11-01T07:29:31+00:00   yolo26s-640-s0/640/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 346.02 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-640-s0/640/onnxruntime-int8pc/attempt-1
+2026-11-01T07:29:31+00:00 session complete: bench/m34/m34-matrix-1/summary.csv

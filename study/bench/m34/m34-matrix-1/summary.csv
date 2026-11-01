@@ -1,0 +1,8 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,ok,648.316,e2e_deploy,unknown,re-run,runs/drift-start/attempt-1,a1 complete throttle unknown
+drift-end,onnxruntime,FP32,640,200,1,ok,680.088,e2e_deploy,unknown,re-run,runs/drift-end/attempt-1,a1 complete throttle unknown
+yolo11s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,all,1,ok,675.222,e2e_deploy,unknown,re-run,runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1,a1 complete throttle unknown
+yolo11s-960-s0/960/onnxruntime-int8pc,onnxruntime,INT8,960,all,1,ok,733.53,e2e_deploy,unknown,re-run,runs/yolo11s-960-s0/960/onnxruntime-int8pc/attempt-1,a1 complete throttle unknown
+yolo11s-640-s0/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,335.608,e2e_deploy,unknown,re-run,runs/yolo11s-640-s0/640/onnxruntime-int8pc/attempt-1,a1 complete throttle unknown
+yolo26s-640-s0/640/onnxruntime-fp32,onnxruntime,FP32,640,all,1,ok,667.395,e2e_deploy,unknown,re-run,runs/yolo26s-640-s0/640/onnxruntime-fp32/attempt-1,a1 complete throttle unknown
+yolo26s-640-s0/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,346.02,e2e_deploy,unknown,re-run,runs/yolo26s-640-s0/640/onnxruntime-int8pc/attempt-1,a1 complete throttle unknown

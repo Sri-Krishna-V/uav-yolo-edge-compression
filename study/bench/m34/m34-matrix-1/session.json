@@ -1,0 +1,255 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "m34",
+    "note": "the phone's matrix, session 1 (#27, #46, #47), on the reinstalled Termux (OpenCV 5.0.0 and ONNX Runtime 1.31.1, against 4.14.0 and 1.31.0 on 25 October): A1 at 640 in FP32 again, so that B1 at 960 in per-channel INT8 has its equal-latency partner in the same session and software, and the 25 October cell measures the software change; A1 at 640 in per-channel INT8; and A2 at 640 in FP32 and per-channel INT8 for YOLO11s against YOLO26s. ONNX Runtime only, all 1,610 test-dev images; about 2 h with the fixed 3-minute start waits. Seed 5 runs the pair first, back to back",
+    "seed": 5,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/onnxruntime-int8pc",
+        "artifact": "exports/yolo11s-960-s0/960/onnxruntime-int8pc",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-640-s0/640/onnxruntime-int8pc",
+        "artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8pc",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-640-s0/640/onnxruntime-fp32",
+        "artifact": "exports/yolo26s-640-s0/640/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-640-s0/640/onnxruntime-int8pc",
+        "artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8pc",
+        "runtime": "onnxruntime",
+        "imgsz": 640,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "fa08111439cc6416f99a213ecdd59af2090e0d54211173a9b75d1e1355158229",
+  "dry_run": false,
+  "seed": 5,
+  "order": [
+    "yolo11s-640-s0/640/onnxruntime-fp32",
+    "yolo11s-960-s0/960/onnxruntime-int8pc",
+    "yolo26s-640-s0/640/onnxruntime-fp32",
+    "yolo11s-640-s0/640/onnxruntime-int8pc",
+    "yolo26s-640-s0/640/onnxruntime-int8pc"
+  ],
+  "units": {
+    "drift-start": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-start/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.9
+          },
+          "start": "2026-11-01T05:39:46+00:00",
+          "result": "complete",
+          "latency_ms": 648.316,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T05:42:33+00:00"
+        }
+      ]
+    },
+    "drift-end": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-end/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.7
+          },
+          "start": "2026-11-01T07:26:43+00:00",
+          "result": "complete",
+          "latency_ms": 680.088,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T07:29:31+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.5
+          },
+          "start": "2026-11-01T05:45:35+00:00",
+          "result": "complete",
+          "latency_ms": 675.222,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T06:06:29+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/onnxruntime-int8pc": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/onnxruntime-int8pc/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.3
+          },
+          "start": "2026-11-01T06:09:30+00:00",
+          "result": "complete",
+          "latency_ms": 733.53,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-11-01T06:31:35+00:00"
+        }
+      ]
+    },
+    "yolo11s-640-s0/640/onnxruntime-int8pc": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-640-s0/640/onnxruntime-int8pc/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.2
+          },
+          "start": "2026-11-01T06:57:51+00:00",
+          "result": "complete",
+          "latency_ms": 335.608,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-11-01T07:09:05+00:00"
+        }
+      ]
+    },
+    "yolo26s-640-s0/640/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-640-s0/640/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 35.0
+          },
+          "start": "2026-11-01T06:34:37+00:00",
+          "result": "complete",
+          "latency_ms": 667.395,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T06:54:49+00:00"
+        }
+      ]
+    },
+    "yolo26s-640-s0/640/onnxruntime-int8pc": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-640-s0/640/onnxruntime-int8pc/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.2
+          },
+          "start": "2026-11-01T07:12:07+00:00",
+          "result": "complete",
+          "latency_ms": 346.02,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-11-01T07:23:41+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-11-01T05:36:45+00:00",
+      "facts": {
+        "governors": [
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware"
+        ],
+        "desktop": [],
+        "update_units": null,
+        "packages": {
+          "numpy": "2.5.4",
+          "opencv-python-headless": "5.0.0.93",
+          "onnxruntime": "1.31.1",
+          "openvino": null,
+          "ncnn": null,
+          "opencv-python": "5.0.0.93"
+        },
+        "python": "3.14.8",
+        "os": "Android-16-aarch64-64bit-ELF",
+        "kernel": "16",
+        "rpi_issue": null,
+        "device_model": null
+      },
+      "checks": [],
+      "override": null,
+      "ambient_c": null
+    }
+  ],
+  "status": "complete",
+  "drift": {
+    "start_ms": 648.316,
+    "end_ms": 680.088,
+    "change_pct": 4.9,
+    "throttled": [],
+    "verdict": "re-run"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "stats": {
+    "metrics/mAP_small(B)": 0.07811900004020741,
+    "metrics/mAP_medium(B)": 0.2593377177338058,
+    "metrics/mAP_large(B)": 0.40443554856610886,
+    "coco/AP_all": 0.16962199621917648,
+    "coco/AP_50": 0.30678369157126684,
+    "coco/AP_75": 0.16887113326884245,
+    "coco/AP_small": 0.07811900004020741,
+    "coco/AP_medium": 0.2593377177338058,
+    "coco/AP_large": 0.40443554856610886,
+    "coco/AR_1": 0.0738095207203063,
+    "coco/AR_10": 0.23401642545194182,
+    "coco/AR_100": 0.33265574047925184,
+    "coco/AR_500": 0.3366511833773266,
+    "coco/AR_small": 0.23655266208381026,
+    "coco/AR_medium": 0.46770597398302977,
+    "coco/AR_large": 0.5890311431058625,
+    "coco/AR_50": 0.6093031357064691,
+    "coco/AR_75": 0.32649370546766227
+  },
+  "scoring_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": false,
+    "batch": 1,
+    "split": "test",
+    "imgsz": 640
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "images": 1610,
+  "detections": 755401,
+  "partial": false,
+  "run": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\bench\\m34\\m34-matrix-1\\runs\\yolo11s-640-s0\\640\\onnxruntime-int8pc\\attempt-1",
+  "platform_tag": "m34",
+  "runtime": "onnxruntime",
+  "precision": "INT8",
+  "head": "raw",
+  "manifest": {
+    "run": "yolo11s-640-s0",
+    "variant": "onnxruntime-int8pc",
+    "runtime": "onnxruntime",
+    "precision": "int8",
+    "head": "raw",
+    "imgsz": 640,
+    "batch": 1,
+    "artifact": "model_int8pc.onnx",
+    "files": {
+      "model_int8pc.onnx": "3e88149108c8a889dcf4eedcca23de7b5644d922193ce576bef3a543809d01b5"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-640-s0\\best.pt",
+    "source_sha256": "6498bde0289db4ae3fbeb59ff1b50df6c19f8789bfdcf34925483b7fe2fbf213",
+    "export_args": {
+      "imgsz": 640,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx",
+      "quantize": 8,
+      "data": "VisDrone.yaml"
+    },
+    "calibration": {
+      "data": "VisDrone.yaml",
+      "split": "val",
+      "fraction": 1.0,
+      "imgsz": 640
+    },
+    "per_channel": {
+      "method": "studyqdq.py (#41): each Conv's weights per output channel (symmetric INT8, absmax/127) and its int32 bias at input scale x weight scale, from the FP32 export; every node and activation scale is the stock INT8 export's",
+      "from": {
+        "onnxruntime-fp32": {
+          "model.onnx": "22e9560f863f845e021879a2287f9e43aeef2efc4112948e909acf84ac872adf"
+        },
+        "onnxruntime-int8": {
+          "model_int8.onnx": "63177280d719264c2761adf9752bbea9ad30806969035cac0dcab5bd0bdf24c7"
+        }
+      },
+      "convs": 88,
+      "biases": 87
+    },
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-21T12:20:18.720462+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[640, 640]",
+      "end2end": "False",
+      "args": "{'data': 'VisDrone.yaml', 'batch': 1, 'fraction': 1.0, 'quantize': 8, 'nms': None, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 0.9,
+    "exported_utc": "2026-10-31T16:23:31+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "8f450e87b38850ab6b63553d1d697e5a0a0f264d"
+  },
+  "latency_ms": 335.608,
+  "latency_is": "e2e_deploy",
+  "at_deployment_threshold": {
+    "conf": 0.25,
+    "e2e_median_ms": 335.608,
+    "e2e_p95_ms": 418.77,
+    "post_median_ms": 2.317
+  },
+  "at_evaluation_threshold": {
+    "conf": 0.001,
+    "e2e_median_ms": 367.221,
+    "e2e_p95_ms": 479.232,
+    "post_median_ms": 32.941
+  }
+}
