@@ -1,0 +1,15 @@
+{
+  "platform": "m34",
+  "note": "the phone's matrix, session 3 (#27, #46, #47): the phone's equal-latency candidates past 640, B1 and B2 in FP32 at 800 against B3 and B4 in per-channel INT8 at 1120, each pair back to back; then B1 and B2 in FP32 at 960 (their INT8 speed-up, #47) and the pruned P2 and P4 in FP32 at 960; ONNX Runtime only, all 1,610 test-dev images; about 5 h with the fixed 3-minute start waits. Seed 1638 runs them by value, so a cut takes the pruned cells first: the two pairs, the FP32 cells at 960, then the pruned cells",
+  "seed": 1638,
+  "cells": [
+    {"artifact": "exports/yolo11s-960-s0/800/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo26s-960-s0/800/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1120},
+    {"artifact": "exports/yolo11s-960-s0/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo11s-960-s0-prune30/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo26s-960-s0-prune30/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960}
+  ]
+}
