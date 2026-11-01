@@ -73,5 +73,16 @@ pi5,ncnn,YOLO26s,B4,baseline,1280,1280,0,FP16,,one-to-many,B4 FP16 at 1280,1,845
 pi5,ncnn,YOLO26s,P3,pruned,640,640,0,FP16,,one-to-many,P3 FP16 at 640,1,113.773,3.256,109.415,0.984,15.171,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
 pi5,ncnn,YOLO26s,P4,pruned,960,960,0,FP16,,one-to-many,P4 FP16 at 960,1,289.287,6.735,281.161,1.192,15.257,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
 pi5,ncnn,YOLO26s,D2,distilled,640,640,0,FP16,,one-to-many,D2 FP16 at 640,1,174.274,3.238,169.887,1.061,14.801,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
-m34,onnxruntime,YOLO11s,A1,baseline,640,640,0,FP32,,one-to-many,A1 FP32 at 640,1,636.56,9.264,624.676,2.309,32.486,,,,m34-fullcell,0,
-m34,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,stock,one-to-many,A1 INT8 at 640,1,304.779,9.323,292.659,2.373,35.01,,,,m34-fullcell-int8,0,stock INT8 recipe: no per-channel cell scored yet
+m34,onnxruntime,YOLO11s,A1,baseline,640,640,0,FP32,,one-to-many,A1 FP32 at 640,1,675.222,9.976,662.973,2.409,32.507,,,,m34-matrix-1,0,"drift +4.9 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,per-channel,one-to-many,A1 INT8 at 640,1,335.608,10.0,322.43,2.317,32.941,,,,m34-matrix-1,0,"drift +4.9 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO11s,B1,quantized,960,960,0,INT8,per-channel,one-to-many,B1 INT8 at 960,1,733.53,20.297,710.081,2.629,31.747,,,,m34-matrix-1,0,"drift +4.9 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,stock,one-to-many,A1 INT8 at 640,0,304.779,9.323,292.659,2.373,35.01,,,,m34-fullcell-int8,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+m34,onnxruntime,YOLO11s,P1,pruned,640,640,0,FP32,,one-to-many,P1 FP32 at 640,1,389.33,9.345,377.314,2.154,32.368,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO11s,D1,distilled,640,640,0,FP32,,one-to-many,D1 FP32 at 640,1,675.208,10.031,662.635,2.42,32.614,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO11s,C1,combined,640,640,0,INT8,per-channel,one-to-many,C1 INT8 at 640,1,246.534,9.505,234.353,2.166,32.814,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,A2,baseline,640,640,0,FP32,,one-to-many,A2 FP32 at 640,1,667.395,10.043,654.608,2.376,32.267,,,,m34-matrix-1,0,"drift +4.9 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,A2,quantized,640,640,0,INT8,per-channel,one-to-many,A2 INT8 at 640,1,346.02,9.982,333.011,2.369,32.442,,,,m34-matrix-1,0,"drift +4.9 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,B2,quantized,960,960,0,INT8,per-channel,one-to-many,B2 INT8 at 960,1,763.037,20.838,739.197,2.826,31.7,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,P3,pruned,640,640,0,FP32,,one-to-many,P3 FP32 at 640,1,393.189,9.872,380.883,2.206,33.468,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,D2,distilled,640,640,0,FP32,,one-to-many,D2 FP32 at 640,1,657.941,9.922,645.381,2.383,32.569,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"
+m34,onnxruntime,YOLO26s,C2,combined,640,640,0,INT8,per-channel,one-to-many,C2 INT8 at 640,1,247.191,9.761,234.788,2.138,35.52,,,,m34-matrix-2,0,"drift +3.4 %, flagged; kept, latency provisional (#27, #34)"

@@ -346,7 +346,7 @@ def figure(panels, platform, out_dir):
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
     ink, muted = studynms.INK, studynms.MUTED
-    fig = plt.figure(figsize=(13, 8.2) if len(panels) == 3 else (5.5 * len(panels) + 0.5, 6), facecolor="white")
+    fig = plt.figure(figsize=(13, 8.2) if len(panels) == 3 else (max(5.5 * len(panels) + 0.5, 11), 6), facecolor="white")  # the title's width
     for i, (ax, panel) in enumerate(zip(_axes(fig, len(panels)), panels)):
         left = {id(p["compressed"]) for p in panel["connectors"] if p["baseline"]["latency_ms"] > p["compressed"]["latency_ms"]}
         for j, (model, s) in enumerate(panel["models"].items()):
@@ -376,7 +376,9 @@ def figure(panels, platform, out_dir):
             ax.spines[side].set_color(muted)
         ax.tick_params(colors=muted)
         ax.set_ylabel("AP-small (COCO, VisDrone test-dev)", color=muted)
-    handles = [Line2D([], [], color=COLOURS[m], marker="o", markeredgecolor="white", linewidth=1.6, label=f"{m}: baselines, 640 to 1280")
+    sizes = {m: sorted({c["imgsz"] for p in panels if m in p["models"] for c in p["models"][m]["baselines"]}) for m in COLOURS}
+    handles = [Line2D([], [], color=COLOURS[m], marker="o", markeredgecolor="white", linewidth=1.6,
+                      label=f"{m}: baselines, {sizes[m][0]} to {sizes[m][-1]}" if len(sizes[m]) > 1 else f"{m}: baseline at {sizes[m][0]}")
                for m in COLOURS if any(m in p["models"] for p in panels)]
     shown = {c["configuration"] for p in panels for s in p["models"].values() for c in s["points"]}
     handles += [Line2D([], [], color=muted, marker=MARKERS[k], linestyle="none", markersize=7, label=CONFIG_NAMES[k]) for k in MARKERS if k in shown]

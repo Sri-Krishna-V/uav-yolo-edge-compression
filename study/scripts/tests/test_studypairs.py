@@ -190,7 +190,7 @@ def test_figure_data():
             "openvino": [("P2 FP32 at 960", "B1 FP32 at 800"), ("P4 FP32 at 960", "B2 FP32 at 800")],
             "ncnn": [("P2 FP16 at 960", "B1 FP16 at 800"), ("P4 FP16 at 960", "B2 FP16 at 800")]}
     check("4 a connector for each headline pair, in its runtime's panel", conn == want, f"{conn}")
-    check("4 the phone has 2 cells now: no figure for it", sp.figure_platforms(cells) == ["pi5"], f"{sp.figure_platforms(cells)}")
+    check("4 the phone's matrix sessions 1 and 2 give it a figure", sp.figure_platforms(cells) == ["pi5", "m34"], f"{sp.figure_platforms(cells)}")
     phone = [cell("A1", 640, "baseline", 640.0, 0.09, platform="m34", session="m34-fullcell"),
              cell("A1", 640, "quantized", 300.0, 0.08, platform="m34", session="m34-fullcell-int8", recipe="stock")]
     again = dict(phone[0], session="m34-matrix-1", start_utc="2026-11-01T06:00:00+00:00")

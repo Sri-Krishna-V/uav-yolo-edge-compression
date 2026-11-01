@@ -1,0 +1,133 @@
+{
+  "stats": {
+    "metrics/mAP_small(B)": 0.06310505613431282,
+    "metrics/mAP_medium(B)": 0.22269773107649504,
+    "metrics/mAP_large(B)": 0.36752195784843833,
+    "coco/AP_all": 0.14418018852306144,
+    "coco/AP_50": 0.26779970380120643,
+    "coco/AP_75": 0.13954084699318836,
+    "coco/AP_small": 0.06310505613431282,
+    "coco/AP_medium": 0.22269773107649504,
+    "coco/AP_large": 0.36752195784843833,
+    "coco/AR_1": 0.06583735038948588,
+    "coco/AR_10": 0.20637074023325844,
+    "coco/AR_100": 0.2979202137946873,
+    "coco/AR_500": 0.30266955538086693,
+    "coco/AR_small": 0.2012221332656447,
+    "coco/AR_medium": 0.43244780599933685,
+    "coco/AR_large": 0.5564579846885752,
+    "coco/AR_50": 0.5634486398969216,
+    "coco/AR_75": 0.28816148828634747
+  },
+  "scoring_args": {
+    "max_det": 500,
+    "iou": 0.7,
+    "conf": 0.001,
+    "nms": null,
+    "save_json": true,
+    "rect": false,
+    "batch": 1,
+    "split": "test",
+    "imgsz": 640
+  },
+  "coco_max_dets": [
+    1,
+    10,
+    100,
+    500
+  ],
+  "images": 1610,
+  "detections": 737123,
+  "partial": false,
+  "run": "C:\\Users\\srikr\\Desktop\\Studies\\Minor\\Term 5\\study\\bench\\m34\\m34-matrix-2\\runs\\yolo11s-640-s0-prune30-distill\\640\\onnxruntime-int8pc\\attempt-1",
+  "platform_tag": "m34",
+  "runtime": "onnxruntime",
+  "precision": "INT8",
+  "head": "raw",
+  "manifest": {
+    "run": "yolo11s-640-s0-prune30-distill",
+    "variant": "onnxruntime-int8pc",
+    "runtime": "onnxruntime",
+    "precision": "int8",
+    "head": "raw",
+    "imgsz": 640,
+    "batch": 1,
+    "artifact": "model_int8pc.onnx",
+    "files": {
+      "model_int8pc.onnx": "94c49d72d2828786fd8b63d22e0d43b34fddfce851f5307189da0feacecf955d"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-640-s0-prune30-distill\\best.pt",
+    "source_sha256": "160be2352424737a4d8ca2b7dd3b36e9339231f72b2a2c906a57b510e001bb16",
+    "export_args": {
+      "imgsz": 640,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx",
+      "quantize": 8,
+      "data": "VisDrone.yaml"
+    },
+    "calibration": {
+      "data": "VisDrone.yaml",
+      "split": "val",
+      "fraction": 1.0,
+      "imgsz": 640,
+      "images": 548,
+      "images_sha256": "1189ee954c10649f0a00a2a9bebf14107228c0c57b48bf9a374e337392bbf38a"
+    },
+    "per_channel": {
+      "method": "studyqdq.py (#41): each Conv's weights per output channel (symmetric INT8, absmax/127) and its int32 bias at input scale x weight scale, from the FP32 export; every node and activation scale is the stock INT8 export's",
+      "from": {
+        "onnxruntime-fp32": {
+          "model.onnx": "a67c270cd18b8b75fa9a98c8c26ca7baf68f28de3215629ff9aff318046375a2"
+        },
+        "onnxruntime-int8": {
+          "model_int8.onnx": "9577491195d7df4824049f9c36c043175922528610b20228b1ac9367198e54f3"
+        }
+      },
+      "convs": 88,
+      "biases": 87
+    },
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-28T13:10:16.680422+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[640, 640]",
+      "end2end": "False",
+      "args": "{'data': 'VisDrone.yaml', 'batch': 1, 'fraction': 1.0, 'quantize': 8, 'nms': None, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 0.7,
+    "exported_utc": "2026-10-31T16:24:30+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "8f450e87b38850ab6b63553d1d697e5a0a0f264d"
+  },
+  "latency_ms": 246.534,
+  "latency_is": "e2e_deploy",
+  "at_deployment_threshold": {
+    "conf": 0.25,
+    "e2e_median_ms": 246.534,
+    "e2e_p95_ms": 340.287,
+    "post_median_ms": 2.166
+  },
+  "at_evaluation_threshold": {
+    "conf": 0.001,
+    "e2e_median_ms": 276.925,
+    "e2e_p95_ms": 394.372,
+    "post_median_ms": 32.814
+  }
+}

@@ -281,8 +281,11 @@ def test_real_latency():
     check("2 latency, pi5_matrix_1_record.md: A1 640 NCNN FP16 171.5 ms, none below 2000 MHz",
           spot(find("pi5", "A1", 640, "ncnn", "FP16")) == (171.5, 0, 2000, "none", False))
     m34 = find("m34", "A1", 640, "onnxruntime", "INT8")["cell"]
-    check("2 latency, m34_fullcell_int8_record.md: the phone's A1 640 INT8 304.8 ms, no clock reading",
-          (r1(m34["latency_ms"]), m34["below_2000_mhz"]) == (304.8, None), f"{m34}")
+    check("2 latency, m34_matrix_1_record.md: the phone's A1 640 INT8 (per-channel) 335.6 ms, no clock reading",
+          (r1(m34["latency_ms"]), m34["below_2000_mhz"]) == (335.6, None), f"{m34}")
+    b2 = find("m34", "B2", 960, "onnxruntime", "INT8")["cell"]
+    check("2 latency, m34_matrix_2_record.md: the phone's B2 960 INT8 (per-channel) 763.0 ms, its drift noted",
+          (r1(b2["latency_ms"]), "+3.4 %" in b2["note"]) == (763.0, True), f"{b2}")
 
 
 RECORD_RUNTIMES = {"ONNX Runtime FP32": ("onnxruntime", "FP32", ""), "OpenVINO FP32": ("openvino", "FP32", ""), "NCNN FP16": ("ncnn", "FP16", ""),
@@ -326,9 +329,10 @@ def test_real_int8():
         got = (f"{r['stock_ap_diff']:.4f} ({r['stock_ap_diff_pct']:.1f} %)", f"{r['stock_ap_small_diff']:.4f} ({r['stock_ap_small_diff_pct']:.1f} %)",
                f"{r['stock_speedup']:.2f}×", r["stock_spans_session_6"])
         check(f"2 result D, session 6's stock table, {name} {imgsz}: {ap_lost}, {small_lost}, {speedup}", got == (ap_lost, small_lost, speedup, False), f"{got}")
-    m34 = [r for r in rows if r["platform"] == "m34"]
-    check("2 result D, m34_fullcell_int8_record.md: the phone's A1 640 INT8 is 2.09x faster (304.8 / 636.6)",
-          [(r["checkpoint"], round(r["stock_speedup"], 2)) for r in m34] == [("A1", 2.09)], f"{m34}")
+    m34 = {r["checkpoint"]: r for r in rows if r["platform"] == "m34"}
+    got = {c: (round(r["per_channel_speedup"], 2) if r["fp32"] else None) for c, r in m34.items()}
+    check("2 result D, m34_matrix_1_record.md: the phone's per-channel INT8 is 2.01x (A1) and 1.93x (A2) faster; B1, B2, C1, C2 have "
+          "no FP32 cell", got == {"A1": 2.01, "A2": 1.93, "B1": None, "B2": None, "C1": None, "C2": None}, f"{got}")
     check("2 result D: C1 and C2 have INT8 rows with no FP32 cell", all(pi5[(c, 640, "one-to-many")]["fp32"] is None for c in ("C1", "C2")))
 
 

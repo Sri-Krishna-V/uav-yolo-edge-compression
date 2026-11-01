@@ -1,0 +1,191 @@
+2026-11-01T07:50:29+00:00 session on m34 (the phone's matrix, session 2 (#27, #46, #47): the rest of the matrix resolution on the phone, the pruned, distilled and combined configurations of both study models at 640, and B2 at 960 in per-channel INT8; ONNX Runtime only, all 1,610 test-dev images; about 2.5 h with the fixed 3-minute start waits. Seed 376 runs them by value, so a cut takes the distilled cells first: B2 at 960, the combined cells, the pruned cells, then the distilled cells): 7 cells; every run uses 4 threads and 20 warm-up images, untimed
+2026-11-01T07:50:29+00:00 room not given
+2026-11-01T07:50:29+00:00 cell order, shuffled with seed 376: yolo26s-960-s0/960/onnxruntime-int8pc, yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc, yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc, yolo26s-640-s0-prune30/640/onnxruntime-fp32, yolo11s-640-s0-prune30/640/onnxruntime-fp32, yolo26s-640-s0-distill/640/onnxruntime-fp32, yolo11s-640-s0-distill/640/onnxruntime-fp32
+2026-11-01T07:53:31+00:00 drift-start: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 31.7 C
+2026-11-01T07:53:31+00:00 drift-start: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 8.5 net 600.3 post 43.9 (at 0.25: 4.6) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 9.1 net 686.1 post 27.7 (at 0.25: 2.9) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 8.486 net 618.0 ms; latency (e2e_deploy, conf 0.25) 630.495 ms (p95 719.692), post 3.005 ms; at conf 0.001: total 656.917, post 30.505 ms
+2026-11-01T07:56:05+00:00 drift-start: attempt 1 complete, median latency 630.495 ms, throttle unknown
+2026-11-01T07:59:07+00:00 yolo26s-960-s0/960/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 31.7 C
+2026-11-01T07:59:07+00:00 yolo26s-960-s0/960/onnxruntime-int8pc: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 18.4 net 835.1 post 64.2 (at 0.25: 31.9) ms, 500 dets (100 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 19.0 net 793.9 post 28.4 (at 0.25: 3.5) ms, 500 dets (47 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 19.2 net 665.8 post 17.2 (at 0.25: 2.1) ms, 310 dets (20 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 32.1 net 1535.1 post 6.7 (at 0.25: 1.5) ms, 110 dets (1 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 22.0 net 759.6 post 18.3 (at 0.25: 4.0) ms, 299 dets (48 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 21.8 net 777.5 post 18.4 (at 0.25: 2.7) ms, 305 dets (25 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 20.6 net 737.5 post 5.2 (at 0.25: 1.6) ms, 81 dets (6 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 20.3 net 746.3 post 19.4 (at 0.25: 2.3) ms, 321 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 20.5 net 730.2 post 33.7 (at 0.25: 2.6) ms, 500 dets (25 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 20.6 net 730.9 post 10.2 (at 0.25: 2.0) ms, 169 dets (12 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 20.2 net 730.9 post 2.3 (at 0.25: 1.5) ms, 29 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 21.8 net 733.6 post 39.1 (at 0.25: 3.0) ms, 500 dets (34 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 21.3 net 733.0 post 33.4 (at 0.25: 2.4) ms, 500 dets (18 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 21.8 net 734.8 post 31.5 (at 0.25: 2.5) ms, 500 dets (19 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 20.8 net 739.2 post 33.3 (at 0.25: 3.4) ms, 500 dets (44 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 21.6 net 747.6 post 5.2 (at 0.25: 2.2) ms, 77 dets (16 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 21.8 net 732.1 post 33.9 (at 0.25: 4.2) ms, 500 dets (53 at 0.25)
+    done: 1610 images, onnxruntime INT8, head raw; median pre 20.838 net 739.197 ms; latency (e2e_deploy, conf 0.25) 763.037 ms (p95 903.828), post 2.826 ms; at conf 0.001: total 789.531, post 31.7 ms
+2026-11-01T08:21:59+00:00 yolo26s-960-s0/960/onnxruntime-int8pc: attempt 1 complete, median latency 763.037 ms, throttle unknown
+2026-11-01T08:25:00+00:00 yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.7 C
+2026-11-01T08:25:00+00:00 yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 9.7 net 373.0 post 56.3 (at 0.25: 13.2) ms, 500 dets (67 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 8.6 net 208.1 post 27.9 (at 0.25: 2.9) ms, 500 dets (44 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 8.8 net 213.3 post 23.8 (at 0.25: 1.5) ms, 457 dets (13 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 8.7 net 279.4 post 35.8 (at 0.25: 1.1) ms, 200 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 8.9 net 240.7 post 28.9 (at 0.25: 2.8) ms, 500 dets (46 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 9.2 net 217.1 post 29.6 (at 0.25: 1.7) ms, 500 dets (18 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 9.2 net 213.3 post 10.4 (at 0.25: 1.2) ms, 194 dets (8 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 9.7 net 234.1 post 31.8 (at 0.25: 1.7) ms, 500 dets (15 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 10.6 net 249.9 post 37.6 (at 0.25: 2.1) ms, 500 dets (25 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.0 net 232.7 post 16.5 (at 0.25: 1.6) ms, 290 dets (13 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.1 net 234.8 post 6.7 (at 0.25: 1.2) ms, 118 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 11.2 net 257.8 post 39.9 (at 0.25: 2.6) ms, 500 dets (32 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 10.3 net 298.8 post 53.0 (at 0.25: 4.4) ms, 500 dets (16 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 9.3 net 234.8 post 30.7 (at 0.25: 1.3) ms, 500 dets (11 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 9.2 net 246.5 post 31.9 (at 0.25: 2.5) ms, 500 dets (36 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 10.4 net 329.9 post 43.7 (at 0.25: 5.8) ms, 285 dets (21 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 10.3 net 249.5 post 42.9 (at 0.25: 3.9) ms, 500 dets (58 at 0.25)
+    done: 1610 images, onnxruntime INT8, head raw; median pre 9.505 net 234.353 ms; latency (e2e_deploy, conf 0.25) 246.534 ms (p95 340.287), post 2.166 ms; at conf 0.001: total 276.925, post 32.814 ms
+2026-11-01T08:33:57+00:00 yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc: attempt 1 complete, median latency 246.534 ms, throttle unknown
+2026-11-01T08:36:59+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.6 C
+2026-11-01T08:36:59+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 8.7 net 206.6 post 48.0 (at 0.25: 3.5) ms, 500 dets (58 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 9.1 net 214.3 post 29.8 (at 0.25: 2.8) ms, 500 dets (40 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 8.9 net 277.8 post 57.1 (at 0.25: 4.4) ms, 500 dets (16 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 8.6 net 206.6 post 21.1 (at 0.25: 0.5) ms, 425 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 8.8 net 225.4 post 30.4 (at 0.25: 2.8) ms, 500 dets (41 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 8.7 net 229.7 post 31.7 (at 0.25: 1.6) ms, 500 dets (16 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 10.2 net 238.2 post 16.3 (at 0.25: 1.6) ms, 280 dets (11 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 10.2 net 257.2 post 38.8 (at 0.25: 1.9) ms, 500 dets (16 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 9.8 net 234.7 post 38.7 (at 0.25: 1.9) ms, 500 dets (19 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.3 net 233.2 post 16.2 (at 0.25: 1.8) ms, 279 dets (16 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.0 net 256.3 post 14.7 (at 0.25: 1.2) ms, 252 dets (6 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 10.2 net 258.4 post 43.3 (at 0.25: 2.3) ms, 500 dets (26 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 10.4 net 235.0 post 42.8 (at 0.25: 1.7) ms, 500 dets (15 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 9.8 net 315.5 post 60.5 (at 0.25: 4.2) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 10.5 net 241.9 post 37.2 (at 0.25: 2.7) ms, 500 dets (34 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 12.7 net 377.1 post 29.4 (at 0.25: 6.2) ms, 261 dets (20 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 10.5 net 239.7 post 43.7 (at 0.25: 4.1) ms, 500 dets (60 at 0.25)
+    done: 1610 images, onnxruntime INT8, head raw; median pre 9.761 net 234.788 ms; latency (e2e_deploy, conf 0.25) 247.191 ms (p95 326.642), post 2.138 ms; at conf 0.001: total 280.065, post 35.52 ms
+2026-11-01T08:45:54+00:00 yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc: attempt 1 complete, median latency 247.191 ms, throttle unknown
+2026-11-01T08:48:56+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.6 C
+2026-11-01T08:48:56+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 8.7 net 381.3 post 46.9 (at 0.25: 4.1) ms, 500 dets (70 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 8.7 net 359.5 post 28.7 (at 0.25: 2.9) ms, 500 dets (41 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 8.9 net 389.4 post 21.2 (at 0.25: 1.7) ms, 377 dets (13 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 9.2 net 383.1 post 24.9 (at 0.25: 0.5) ms, 452 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 8.9 net 359.1 post 30.5 (at 0.25: 3.0) ms, 500 dets (41 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 9.3 net 388.1 post 27.9 (at 0.25: 1.5) ms, 500 dets (13 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 9.7 net 433.9 post 33.7 (at 0.25: 2.9) ms, 163 dets (5 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 9.8 net 383.2 post 25.3 (at 0.25: 1.8) ms, 416 dets (14 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 10.0 net 441.6 post 63.9 (at 0.25: 5.2) ms, 500 dets (16 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.0 net 404.5 post 10.3 (at 0.25: 1.8) ms, 175 dets (13 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 9.7 net 390.8 post 4.3 (at 0.25: 1.2) ms, 72 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 10.7 net 386.1 post 42.9 (at 0.25: 2.4) ms, 500 dets (24 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 10.3 net 387.7 post 39.0 (at 0.25: 1.5) ms, 500 dets (10 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 10.6 net 388.6 post 34.8 (at 0.25: 1.8) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 9.3 net 361.5 post 33.2 (at 0.25: 2.7) ms, 500 dets (33 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.6 net 784.4 post 23.8 (at 0.25: 6.1) ms, 185 dets (17 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 12.3 net 587.1 post 48.5 (at 0.25: 4.4) ms, 500 dets (60 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 9.872 net 380.883 ms; latency (e2e_deploy, conf 0.25) 393.189 ms (p95 473.39), post 2.206 ms; at conf 0.001: total 423.689, post 33.468 ms
+2026-11-01T09:01:48+00:00 yolo26s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 complete, median latency 393.189 ms, throttle unknown
+2026-11-01T09:04:50+00:00 yolo11s-640-s0-prune30/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.3 C
+2026-11-01T09:04:50+00:00 yolo11s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 9.2 net 397.5 post 46.6 (at 0.25: 4.6) ms, 500 dets (83 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 8.8 net 378.2 post 27.2 (at 0.25: 3.2) ms, 500 dets (47 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 9.1 net 365.8 post 22.0 (at 0.25: 1.5) ms, 426 dets (12 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 8.8 net 419.4 post 38.7 (at 0.25: 1.2) ms, 211 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 9.0 net 371.1 post 30.3 (at 0.25: 3.1) ms, 500 dets (45 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 9.7 net 378.6 post 31.4 (at 0.25: 2.2) ms, 500 dets (18 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 9.0 net 368.8 post 6.2 (at 0.25: 1.3) ms, 112 dets (6 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 8.8 net 363.0 post 23.2 (at 0.25: 1.7) ms, 417 dets (13 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 10.0 net 382.1 post 38.5 (at 0.25: 2.2) ms, 500 dets (23 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 8.7 net 365.3 post 10.7 (at 0.25: 1.6) ms, 196 dets (12 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.2 net 383.5 post 4.5 (at 0.25: 1.3) ms, 77 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 9.4 net 369.0 post 39.5 (at 0.25: 2.7) ms, 500 dets (33 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 9.6 net 358.4 post 36.5 (at 0.25: 1.8) ms, 500 dets (18 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 9.5 net 358.8 post 29.6 (at 0.25: 1.6) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 10.4 net 386.1 post 34.3 (at 0.25: 2.5) ms, 500 dets (28 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 10.5 net 385.1 post 11.5 (at 0.25: 2.1) ms, 202 dets (20 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 10.4 net 391.8 post 37.4 (at 0.25: 4.3) ms, 500 dets (63 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 9.345 net 377.314 ms; latency (e2e_deploy, conf 0.25) 389.33 ms (p95 482.84), post 2.154 ms; at conf 0.001: total 417.763, post 32.368 ms
+2026-11-01T09:17:35+00:00 yolo11s-640-s0-prune30/640/onnxruntime-fp32: attempt 1 complete, median latency 389.33 ms, throttle unknown
+2026-11-01T09:20:36+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.2 C
+2026-11-01T09:20:36+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 8.8 net 607.6 post 44.8 (at 0.25: 4.8) ms, 500 dets (85 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 8.4 net 608.2 post 28.2 (at 0.25: 3.2) ms, 500 dets (46 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 8.6 net 610.9 post 21.2 (at 0.25: 1.7) ms, 395 dets (21 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 10.7 net 656.0 post 20.5 (at 0.25: 0.5) ms, 369 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 9.8 net 649.9 post 28.9 (at 0.25: 3.2) ms, 500 dets (42 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 10.1 net 646.5 post 31.4 (at 0.25: 2.3) ms, 500 dets (22 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 10.1 net 636.3 post 8.3 (at 0.25: 1.4) ms, 138 dets (7 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 10.0 net 676.2 post 30.7 (at 0.25: 2.0) ms, 500 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 11.3 net 731.7 post 35.0 (at 0.25: 2.4) ms, 500 dets (25 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.4 net 682.2 post 10.7 (at 0.25: 1.7) ms, 182 dets (13 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.1 net 672.3 post 2.9 (at 0.25: 1.2) ms, 44 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 10.0 net 630.6 post 39.3 (at 0.25: 2.9) ms, 500 dets (36 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 10.1 net 642.7 post 33.1 (at 0.25: 2.2) ms, 500 dets (24 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 9.9 net 647.2 post 33.1 (at 0.25: 1.7) ms, 500 dets (13 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 10.5 net 663.6 post 34.1 (at 0.25: 3.3) ms, 500 dets (45 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 10.2 net 658.4 post 7.6 (at 0.25: 2.1) ms, 125 dets (20 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 10.4 net 650.7 post 34.6 (at 0.25: 4.5) ms, 500 dets (68 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 9.922 net 645.381 ms; latency (e2e_deploy, conf 0.25) 657.941 ms (p95 744.394), post 2.383 ms; at conf 0.001: total 687.803, post 32.569 ms
+2026-11-01T09:40:33+00:00 yolo26s-640-s0-distill/640/onnxruntime-fp32: attempt 1 complete, median latency 657.941 ms, throttle unknown
+2026-11-01T09:43:35+00:00 yolo11s-640-s0-distill/640/onnxruntime-fp32: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.5 C
+2026-11-01T09:43:35+00:00 yolo11s-640-s0-distill/640/onnxruntime-fp32: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/1610] 0000118_02632_d_0000077.jpg pre 8.9 net 622.1 post 46.8 (at 0.25: 5.1) ms, 500 dets (88 at 0.25)
+    [200/1610] 0000320_00750_d_0000007.jpg pre 8.7 net 624.6 post 26.6 (at 0.25: 3.2) ms, 500 dets (43 at 0.25)
+    [300/1610] 9999938_00000_d_0000048.jpg pre 9.0 net 623.9 post 23.1 (at 0.25: 1.9) ms, 431 dets (17 at 0.25)
+    [400/1610] 9999938_00000_d_0000148.jpg pre 11.1 net 655.8 post 30.3 (at 0.25: 0.7) ms, 500 dets (0 at 0.25)
+    [500/1610] 9999938_00000_d_0000248.jpg pre 9.9 net 655.3 post 31.6 (at 0.25: 3.4) ms, 500 dets (42 at 0.25)
+    [600/1610] 9999938_00000_d_0000348.jpg pre 9.5 net 657.6 post 28.4 (at 0.25: 2.5) ms, 499 dets (26 at 0.25)
+    [700/1610] 9999938_00000_d_0000448.jpg pre 10.2 net 739.5 post 43.0 (at 0.25: 4.5) ms, 238 dets (13 at 0.25)
+    [800/1610] 9999941_00000_d_0000032.jpg pre 10.0 net 659.4 post 31.4 (at 0.25: 2.1) ms, 500 dets (17 at 0.25)
+    [900/1610] 9999952_00000_d_0000066.jpg pre 10.0 net 653.7 post 33.1 (at 0.25: 2.0) ms, 500 dets (24 at 0.25)
+    [1000/1610] 9999952_00000_d_0000166.jpg pre 10.3 net 744.7 post 39.5 (at 0.25: 5.4) ms, 230 dets (16 at 0.25)
+    [1100/1610] 9999952_00000_d_0000266.jpg pre 10.3 net 725.2 post 13.1 (at 0.25: 3.1) ms, 66 dets (4 at 0.25)
+    [1200/1610] 9999963_00000_d_0000021.jpg pre 10.7 net 652.8 post 39.0 (at 0.25: 3.3) ms, 500 dets (41 at 0.25)
+    [1300/1610] 9999973_00000_d_0000044.jpg pre 10.1 net 650.3 post 33.6 (at 0.25: 1.6) ms, 500 dets (10 at 0.25)
+    [1400/1610] 9999973_00000_d_0000144.jpg pre 10.5 net 661.2 post 31.1 (at 0.25: 1.9) ms, 500 dets (18 at 0.25)
+    [1500/1610] 9999986_00000_d_0000001.jpg pre 11.0 net 660.5 post 34.1 (at 0.25: 3.5) ms, 500 dets (48 at 0.25)
+    [1600/1610] 9999996_00000_d_0000019.jpg pre 11.3 net 763.6 post 12.0 (at 0.25: 2.2) ms, 207 dets (19 at 0.25)
+    [1610/1610] 9999996_00000_d_0000029.jpg pre 11.1 net 776.4 post 37.9 (at 0.25: 4.3) ms, 500 dets (65 at 0.25)
+    done: 1610 images, onnxruntime FP32, head raw; median pre 10.031 net 662.635 ms; latency (e2e_deploy, conf 0.25) 675.208 ms (p95 792.914), post 2.42 ms; at conf 0.001: total 703.894, post 32.614 ms
+2026-11-01T10:04:15+00:00 yolo11s-640-s0-distill/640/onnxruntime-fp32: attempt 1 complete, median latency 675.208 ms, throttle unknown
+2026-11-01T10:07:17+00:00 drift-end: gate opened after 180 s: fixed 3 min wait (the phone shows no CPU temperature); battery 33.5 C
+2026-11-01T10:07:17+00:00 drift-end: attempt 1 starts
+    /data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+      warnings.warn(
+    [100/200] 0000118_02632_d_0000077.jpg pre 8.7 net 627.2 post 45.2 (at 0.25: 4.9) ms, 500 dets (87 at 0.25)
+    [200/200] 0000320_00750_d_0000007.jpg pre 8.9 net 662.3 post 26.1 (at 0.25: 2.9) ms, 500 dets (42 at 0.25)
+    done: 200 images, onnxruntime FP32, head raw; median pre 8.817 net 639.799 ms; latency (e2e_deploy, conf 0.25) 651.959 ms (p95 739.993), post 3.401 ms; at conf 0.001: total 680.635, post 32.406 ms
+2026-11-01T10:09:58+00:00 drift-end: attempt 1 complete, median latency 651.959 ms, throttle unknown
+2026-11-01T10:09:58+00:00 drift check: reference median 630.495 -> 651.959 ms (+3.4%): moved more than 3%: every cell of this session is flagged for a re-run
+2026-11-01T10:09:58+00:00   drift-start: FP32, ok, 1 attempt(s), median 630.495 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-start/attempt-1
+2026-11-01T10:09:58+00:00   drift-end: FP32, ok, 1 attempt(s), median 651.959 ms (e2e_deploy), throttle unknown, drift re-run, runs/drift-end/attempt-1
+2026-11-01T10:09:58+00:00   yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 246.534 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc/attempt-1
+2026-11-01T10:09:58+00:00   yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 247.191 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc/attempt-1
+2026-11-01T10:09:58+00:00   yolo26s-960-s0/960/onnxruntime-int8pc: INT8, ok, 1 attempt(s), median 763.037 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-960-s0/960/onnxruntime-int8pc/attempt-1
+2026-11-01T10:09:58+00:00   yolo11s-640-s0-prune30/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 389.33 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0-prune30/640/onnxruntime-fp32/attempt-1
+2026-11-01T10:09:58+00:00   yolo26s-640-s0-prune30/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 393.189 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-640-s0-prune30/640/onnxruntime-fp32/attempt-1
+2026-11-01T10:09:58+00:00   yolo11s-640-s0-distill/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 675.208 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo11s-640-s0-distill/640/onnxruntime-fp32/attempt-1
+2026-11-01T10:09:58+00:00   yolo26s-640-s0-distill/640/onnxruntime-fp32: FP32, ok, 1 attempt(s), median 657.941 ms (e2e_deploy), throttle unknown, drift re-run, runs/yolo26s-640-s0-distill/640/onnxruntime-fp32/attempt-1
+2026-11-01T10:09:58+00:00 session complete: bench/m34/m34-matrix-2/summary.csv

@@ -18,10 +18,15 @@ YOLO26s & B2 at 960 & 926.5 [1{,}377] & 646.0 / 644.4 & 1.43$\times$ / 1.44$\tim
 YOLO26s & B4 at 1120$^{\dagger}$ & 1397.8 [19]$^{\mathrm{S}}$ & 880.6 / 943.1 & (1.59$\times$)$^{\mathrm{S}}$ / 1.48$\times$ & $-$5.3 / $-$14.3 & $-$6.5 / $-$18.6 \\
 \midrule
 \multicolumn{7}{l}{\textit{Galaxy M34, ONNX Runtime}} \\
-YOLO11s & A1 at 640 & 636.6 & -- / 304.8 & -- / 2.09$\times$ & -- / $-$10.3 & -- / $-$15.0 \\
+YOLO11s & A1 at 640 & 675.2 & 335.6 / 304.8 & 2.01$\times$ / 2.22$\times$ & $-$9.5 / $-$10.3 & $-$13.6 / $-$15.0 \\
+YOLO11s & C1 at 640 & -- & 246.5 / -- & -- / -- & -- / -- & -- / -- \\
+YOLO11s & B1 at 960 & -- & 733.5 / -- & -- / -- & -- / -- & -- / -- \\
+YOLO26s & A2 at 640 & 667.4 & 346.0 / -- & 1.93$\times$ / -- & $-$7.6 / -- & $-$11.0 / -- \\
+YOLO26s & C2 at 640 & -- & 247.2 / -- & -- / -- & -- / -- & -- / -- \\
+YOLO26s & B2 at 960 & -- & 763.0 / -- & -- / -- & -- / -- & -- / -- \\
 \bottomrule
 \multicolumn{7}{l}{\footnotesize Each INT8 cell against the FP32 cell of the same checkpoint, input resolution and runtime. INT8 columns: per-channel / stock.} \\
-\multicolumn{7}{l}{\footnotesize Speed-up: FP32 latency over INT8's. Changes: INT8 minus FP32, in \% of FP32. --: no such cell (no FP32 export of C1 and C2 was run).} \\
+\multicolumn{7}{l}{\footnotesize Speed-up: FP32 latency over INT8's. Changes: INT8 minus FP32, in \% of FP32. --: no such cell (no FP32 export of B1 and B2 and C1 and C2 was run).} \\
 \multicolumn{7}{l}{\footnotesize [n]: the cell ran n of its 1,610 images below 2000 MHz (INVARIANTS.md section 4.7); the median clocks are in the latency table.} \\
 \multicolumn{7}{l}{\footnotesize $^{\dagger}$ A checkpoint run at an input resolution it was not trained at (800 from the 960 models, 1120 from the 1280 ones): its accuracy there is a little lower (\#8).} \\
 \multicolumn{7}{l}{\footnotesize $^{\mathrm{S}}$ Session 6's FP32 cell (about 6\% high). A bracketed per-channel speed-up sets session 7's cell against it, so use the stock one, within session 6: B3 at 1120 1.49$\times$, B4 at 1120 1.48$\times$.} \\

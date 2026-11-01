@@ -85,8 +85,19 @@ YOLO26s & P4 FP16 at 960 & Pruned & FP16 & 289.3 & 6.7 & 281.2 & 1.19 & 0 & 2000
 YOLO26s & D2 FP16 at 640 & Distilled & FP16 & 174.3 & 3.2 & 169.9 & 1.06 & 0 & 2000 \\
 \midrule
 \multicolumn{10}{l}{\textit{Galaxy M34, ONNX Runtime}} \\
-YOLO11s & A1 FP32 at 640 & Baseline & FP32 & 636.6 & 9.3 & 624.7 & 2.31 & -- & -- \\
+YOLO11s & A1 FP32 at 640 & Baseline & FP32 & 675.2 & 10.0 & 663.0 & 2.41 & -- & -- \\
+YOLO11s & A1 INT8 at 640 & Quantized & INT8 & 335.6 & 10.0 & 322.4 & 2.32 & -- & -- \\
+YOLO11s & B1 INT8 at 960 & Quantized & INT8 & 733.5 & 20.3 & 710.1 & 2.63 & -- & -- \\
 YOLO11s & A1 INT8 at 640 & Quantized, stock & INT8 & 304.8 & 9.3 & 292.7 & 2.37 & -- & -- \\
+YOLO11s & P1 FP32 at 640 & Pruned & FP32 & 389.3 & 9.3 & 377.3 & 2.15 & -- & -- \\
+YOLO11s & D1 FP32 at 640 & Distilled & FP32 & 675.2 & 10.0 & 662.6 & 2.42 & -- & -- \\
+YOLO11s & C1 INT8 at 640 & Combined & INT8 & 246.5 & 9.5 & 234.4 & 2.17 & -- & -- \\
+YOLO26s & A2 FP32 at 640 & Baseline & FP32 & 667.4 & 10.0 & 654.6 & 2.38 & -- & -- \\
+YOLO26s & A2 INT8 at 640 & Quantized & INT8 & 346.0 & 10.0 & 333.0 & 2.37 & -- & -- \\
+YOLO26s & B2 INT8 at 960 & Quantized & INT8 & 763.0 & 20.8 & 739.2 & 2.83 & -- & -- \\
+YOLO26s & P3 FP32 at 640 & Pruned & FP32 & 393.2 & 9.9 & 380.9 & 2.21 & -- & -- \\
+YOLO26s & D2 FP32 at 640 & Distilled & FP32 & 657.9 & 9.9 & 645.4 & 2.38 & -- & -- \\
+YOLO26s & C2 INT8 at 640 & Combined & INT8 & 247.2 & 9.8 & 234.8 & 2.14 & -- & -- \\
 \bottomrule
 \multicolumn{10}{l}{\footnotesize Medians over the 1,610 test-dev images at batch 1. Latency: pre-processing + network + post-processing at the deployment threshold, 0.25.} \\
 \multicolumn{10}{l}{\footnotesize The Pi 5 at a 2000 MHz clock lock (INVARIANTS.md section 4.7). Below 2000 MHz: images, of 1,610. The phone has no clock reading.} \\
