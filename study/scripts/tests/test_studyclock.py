@@ -99,7 +99,8 @@ def record_clock_table(path):
 
 
 def test_records():
-    """Every row of sessions 1-6's clock tables, found by its attempt and median latency (the records round 393.15 up),
+    """Every row of sessions 1-6's clock tables, found by its attempt and median latency (to 0.05: the records round a tie
+    either way, 393.15 up and 232.95 down),
     gives the record's numbers, and the attempts the records bold are the ones that count."""
     for k, (rec, sdir) in RECORDS.items():
         table, got = record_clock_table(STUDY / rec), sc.session_attempts(STUDY / sdir)

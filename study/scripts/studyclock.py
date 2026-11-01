@@ -19,8 +19,8 @@ latency: the model load, the 20 warm-up images, the second post-processing pass 
 image's loop. The phone has no clock lock and no throttle signal, so for a session on any platform but the Pi 5 the
 table leaves the throttle, clock and temperature columns empty, and only the latency and the time split mean anything.
 Checked by tests/test_studyclock.py: every row of the clock tables of sessions 1-6's records, and the time tables of
-sessions 2, 4, 5 and 7, come out of this script unchanged. The records round latency half up (393.15 -> 393.2); so does
-this. Standard library only; attempt_clock() and session_attempts() are what studyresults.py reuses.
+sessions 2, 4, 5 and 7, come out of this script unchanged. The records round a latency tie either way (session 2's
+393.15 up to 393.2, session 3's 232.95 down to 232.9); this script rounds half up. Standard library only; attempt_clock() and session_attempts() are what studyresults.py reuses.
 """
 
 import argparse
