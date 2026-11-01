@@ -70,3 +70,25 @@ images below 2000 MHz) is not in this table; only whether the cell throttled is.
 (test 4 also checks its AP 0.1739, AP-small 0.0881, latency 279.5 against `pi5_matrix_7_record.md`). Objects per image were
 checked against the YOLO label files under `datasets/VisDrone/labels/test`: for all 1,610 images, the ground-truth json's count
 for image id `i` equals the line count of the label file of `files[i]` (75,102 objects in all), so the id-to-file mapping holds.
+
+## The cells table: `cells.csv`
+
+Built by `study/scripts/studyresults.py` (#44): one row per cell, from every Pi 5 matrix session and every Galaxy M34
+full-cell or matrix session, by the attempt that `summary.csv` names in `run_dir`. Every table and figure here reads
+it; re-run the script when a session lands (`python study/scripts/studyresults.py`). The script's docstring defines
+every column; the names do not change.
+
+- **76 cells now**: the Pi 5's 74 (sessions 1-7, all scored) and the phone's 2 (25 October). Twenty of them run a
+  checkpoint at an input resolution it was not trained at (`untrained_imgsz` = 1: 800 from the 960 models, 1120 from the
+  1280 ones).
+- **Throttle columns** (INVARIANTS.md §4.7) are `studyclock.py`'s (#43), from `timings.csv`: `throttled` as recorded,
+  `below_2000_mhz`, `clock_min_mhz`, `clock_median_mhz`, `peak_temp_c`, and the bit-3 reads. They are empty for the
+  phone, which has no clock lock and no throttle signal.
+- **Software versions** come from each cell's `meta.json` (`opencv_version`, `runtime_version`, ...), so the phone's
+  sessions of 25 October (OpenCV 4.14.0, ONNX Runtime 1.31.0) and 1 November (5.0.0, 1.31.1) stay apart.
+- **Notes** a table must footnote: session 6's cells, "latency about 6 % high against the other sessions' (measured by
+  session 7)"; session 7's, "drift flagged across a restart; kept (#37)"; session 7's B2 at 800, whose first attempt
+  was interrupted.
+- **Checked** by `study/scripts/tests/test_studyresults.py`. Every cell's precision, AP, AP50, AP-small, AR@500 and
+  latency equal its row in the session records' results tables (`verification/pi5_matrix_{1..7}_record.md`), and the
+  two M34 cells equal `m34_fullcell_record.md` and `m34_fullcell_int8_record.md`.

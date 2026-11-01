@@ -12,7 +12,7 @@ Each cell is a dict: name (`<run>/<imgsz>/<variant>`), runtime, imgsz, and attem
   nul_tail True to end timings.csv with a NUL-filled line, as a restart leaves it
   score    the score.json to write (None: no score.json, as for a run not scored yet)
   meta     extra keys for meta.json
-counted is the attempt summary.csv names in run_dir (default: the last one).
+counted is the attempt summary.csv names in run_dir (default: the last one; 0 for none, as for a failed cell).
 """
 import csv
 import json
@@ -65,11 +65,12 @@ def make_session(root, name, cells, platform="pi5", precision="FP32", drift="ok"
             attempts.append(rec)
         units[c["name"]] = {"attempts": attempts}
         k = c.get("counted", len(attempts))
-        a = c["attempts"][k - 1]
-        summary.append({"cell": c["name"], "runtime": c["runtime"], "precision": a.get("precision", precision), "imgsz": c["imgsz"],
+        a = c["attempts"][k - 1] if k else {}
+        log = "; ".join(f"a{r['n']}{' re-run' if r['pass'] == 'rerun' else ''} {r['result']}" for r in attempts)
+        summary.append({"cell": c["name"], "runtime": c["runtime"], "precision": a.get("precision", precision) if k else "", "imgsz": c["imgsz"],
                         "images": c.get("images", "all"), "attempts": len(attempts), "outcome": c.get("outcome", "ok"),
-                        "latency_ms": c.get("latency_ms", ""), "latency_source": "e2e_deploy", "throttle": a.get("throttle", "none"),
-                        "drift": c.get("drift", drift), "run_dir": f"runs/{c['name']}/attempt-{k}", "attempt_log": "a1 complete"})
+                        "latency_ms": c.get("latency_ms", ""), "latency_source": "e2e_deploy" if k else "", "throttle": a.get("throttle", "none") if k else "",
+                        "drift": c.get("drift", drift), "run_dir": f"runs/{c['name']}/attempt-{k}" if k else "", "attempt_log": log})
     first = min(a["start"] - a.get("gate_s", 180) for c in cells for a in c["attempts"])
     session = {"tool": "studysession.py", "plan": {"platform": platform, "note": "a fake session"}, "units": units,
                "invocations": [{"start": iso(first)}], "status": "complete"}
