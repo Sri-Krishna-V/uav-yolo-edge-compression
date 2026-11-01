@@ -1,0 +1,15 @@
+cell,runtime,precision,imgsz,images,attempts,outcome,latency_ms,latency_source,throttle,drift,run_dir,attempt_log
+drift-start,onnxruntime,FP32,640,200,1,ok,401.707,e2e_deploy,none,re-run,runs/drift-start/attempt-1,a1 complete not throttled
+drift-end,onnxruntime,FP32,640,200,1,ok,389.098,e2e_deploy,none,re-run,runs/drift-end/attempt-1,a1 complete not throttled
+yolo26s-960-s0/800/onnxruntime-int8pc,onnxruntime,INT8,800,all,2,ok,430.332,e2e_deploy,none,re-run,runs/yolo26s-960-s0/800/onnxruntime-int8pc/attempt-2,a1 interrupted; a2 complete not throttled
+yolo11s-960-s0/800/onnxruntime-int8pc,onnxruntime,INT8,800,all,1,ok,416.229,e2e_deploy,none,re-run,runs/yolo11s-960-s0/800/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo11s-640-s0/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,272.297,e2e_deploy,none,re-run,runs/yolo11s-640-s0/640/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo26s-640-s0/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,277.445,e2e_deploy,none,re-run,runs/yolo26s-640-s0/640/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo26s-640-s0/640/onnxruntime-int8pc-e2e,onnxruntime,INT8,640,all,1,ok,279.54,e2e_deploy,none,re-run,runs/yolo26s-640-s0/640/onnxruntime-int8pc-e2e/attempt-1,a1 complete not throttled
+yolo11s-960-s0/960/onnxruntime-int8pc,onnxruntime,INT8,960,all,1,ok,617.174,e2e_deploy,none,re-run,runs/yolo11s-960-s0/960/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo26s-960-s0/960/onnxruntime-int8pc,onnxruntime,INT8,960,all,1,ok,646.026,e2e_deploy,none,re-run,runs/yolo26s-960-s0/960/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo11s-1280-s0/1280/onnxruntime-int8pc,onnxruntime,INT8,1280,all,1,ok,1153.206,e2e_deploy,none,re-run,runs/yolo11s-1280-s0/1280/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo11s-1280-s0/1120/onnxruntime-int8pc,onnxruntime,INT8,1120,all,1,ok,831.987,e2e_deploy,none,re-run,runs/yolo11s-1280-s0/1120/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo26s-1280-s0/1120/onnxruntime-int8pc,onnxruntime,INT8,1120,all,1,ok,880.649,e2e_deploy,none,re-run,runs/yolo26s-1280-s0/1120/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,193.204,e2e_deploy,none,re-run,runs/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc/attempt-1,a1 complete not throttled
+yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc,onnxruntime,INT8,640,all,1,ok,194.134,e2e_deploy,none,re-run,runs/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc/attempt-1,a1 complete not throttled
