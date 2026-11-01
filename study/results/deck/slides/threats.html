@@ -1,0 +1,16 @@
+<section id="threats" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Threats to validity</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">What could make these results wrong</h2>
+</div>
+<table style="font-size:26px;color:#0a1628;background:#ffffff">
+<tr><th style="width:18%">Threat</th><th style="width:44%">What happened</th><th style="width:38%">Effect on the claims</th></tr>
+<tr><td>Throttling</td><td>24 of 74 Pi 5 cells flagged, all FP32</td><td>FP32 latency high if anything: INT8 speed-ups slightly flattered</td></tr>
+<tr><td>Session offset</td><td>Session 6 (1120) ran about 6 % slow; kept, marked §</td><td>No headline pair uses a session 6 cell</td></tr>
+<tr><td>The phone</td><td>Drift +4.9 % and +3.4 %; no clock lock</td><td>Phone latency provisional; its one pair is 8.6 % apart</td></tr>
+<tr><td>Statistics</td><td>One seed; one pass over test-dev; no intervals yet</td><td>Smallest gains (+0.0044) are about 1.6× YOLO11s’s seed spread</td></tr>
+<tr><td>Scope</td><td>Pi 4B and Jetson cut; one dataset; COCO-style metric</td><td>Results speak for CPU-class platforms only</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">cells.csv · RESULTS.md caveats · issues #9, #34, #48</p>
+<aside>Say what each threat does to the headline. Throttling: 24 of 74 Pi 5 cells were flagged throttled, all FP32 (cells.csv, throttled column); no INT8 or NCNN cell ran an image below 2000 MHz. A throttled latency is if anything high, so it makes INT8’s speed-up look larger, and it makes two INT8 pairs look farther from their baselines than an unthrottled baseline would. A1 at 640 (389.8 ms) is within 0.3 % of the pilot’s unthrottled 388.5 ms. Session 6: its INT8 cells ran 6.2 to 7.1 % slower than session 7’s at 1120; accuracy is unaffected. Seeds: every cell is seed 0. Only YOLO11s has a measured three-seed spread at 640: 0.0007 AP and 0.0027 AP-small (#9). The two smallest Result A gains (+0.0044 and +0.0049) are about 1.6 to 1.8× that AP-small spread: a yardstick, not a test. The paired bootstrap (#48) will measure test-set sampling only, not seed variance. The phone is a consumer-grade phone with no way to lock its clock.</aside>
+</section>

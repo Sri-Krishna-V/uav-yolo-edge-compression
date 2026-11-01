@@ -1,0 +1,25 @@
+<section id="gap" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Related work and the gap</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">Compression is judged by FLOPs and mAP, not by what the saved latency buys</h2>
+</div>
+<div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;padding:36px;border:1px solid rgba(10,22,40,0.10)">
+<h3 style="font-size:30px;font-weight:600;color:#64748b">What is known</h3>
+<p style="font-size:26px;line-height:1.4">FLOPs and parameter counts do not predict latency on the device [6, 7, 8]</p>
+<p style="font-size:26px;line-height:1.4">Aerial detectors mostly report desktop-GPU speed [9, 23, 24]</p>
+<p style="font-size:26px;line-height:1.4">More pixels help small objects: tiling and resolution scaling [4, 5]</p>
+<p style="font-size:26px;line-height:1.4">INT8 at a larger input beat FP32 on embedded GPUs, without matched latency or AP-small [10, 11]</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:18px;background:#ffffff;padding:36px;border:1px solid rgba(10,22,40,0.10);border-top:8px solid #2563eb">
+<h3 style="font-size:30px;font-weight:600;color:#2563eb">What this study measures</h3>
+<p style="font-size:26px;line-height:1.4">The resolution trade at <b>equal measured latency</b>, scored on AP-small</p>
+<p style="font-size:26px;line-height:1.4">INT8 and pruning on the same footing, on three runtimes</p>
+<p style="font-size:26px;line-height:1.4">YOLO11s against YOLO26s on a Pi 5 and a consumer-grade phone</p>
+<p style="font-size:26px;line-height:1.4">What NMS costs, and what the NMS-free head is worth</p>
+</div>
+</div>
+<p style="font-size:24px;line-height:1.4;color:#64748b">Not claimed: that compression hurting small objects is new. It has been reported for INT8 [21] and pruning [22, 23].</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">Novelty check: .scratch/uav-yolo-edge/findings/novelty-check.md (17 October) · references on the last two slides</p>
+<aside>The gap, said honestly. Pruning and efficiency surveys show that FLOPs and parameter counts do not translate into latency on a device: the engine and the tensor shapes dominate [6, 7, 8]. Aerial detection papers mostly report FLOPs or desktop-GPU frames per second [9, 23, 24]. Spending more pixels on small objects is known to help, through tiling [4] and resolution scaling [5]. The idea of spending an INT8 saving on resolution is not new: Plastiras et al. [10] and Vandersteegen et al. [11] did it on embedded GPUs, but without holding measured latency fixed, without AP-small, and without pruning. Compression hurting small objects more than large ones has been reported for INT8 on VisDrone [21] and for pruning [22]; I-YOLOv11n [23] asserts it for pruning without isolating it. Our novelty check (17 October, about 70 searches) found no controlled, equal-latency study on CPU-class platforms with AP-small. What is new here is the controlled design, the pruning arm, the YOLO11s against YOLO26s comparison and the CPU-class platforms; not the idea.</aside>
+</section>

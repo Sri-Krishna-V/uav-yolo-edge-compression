@@ -1,0 +1,44 @@
+<section id="timeline" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">How the study ran</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">A bar set in advance, missed, and one change of course</h2>
+</div>
+<div style="position:relative;display:flex;flex-direction:column;gap:0px">
+<div style="height:6px;background:#0a1628"></div>
+<div style="display:grid;grid-template-columns:repeat(6, 1fr);gap:20px;padding:28px 0 0 0">
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">9 Oct · #1, #6</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600">Plan and recipe fixed</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">Two models, five configurations, VisDrone test-dev</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#2563eb">15 Oct · #9</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600;color:#2563eb">Bar set in advance</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">AP-small must drop 2× as much as AP</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">15–17 Oct · #9</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600">Bar missed</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">Laptop: INT8 1.40×, pruning 1.17×</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#2563eb">20 Oct · #10</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600;color:#2563eb">Change of course</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">Main question becomes the equal-latency comparison</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">28–31 Oct · #29, #41</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600">Pi 5 sessions</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">Clock locked at 2000 MHz; per-channel INT8 fix</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">1 Nov · #44–#49</p>
+<p style="font-size:26px;line-height:1.35;font-weight:600">Scope cut, results</p>
+<p style="font-size:24px;line-height:1.35;color:#64748b">Pi 4B and Jetson cut; phone kept, provisional</p>
+</div>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;width:1560px">Every decision is a GitHub issue: the question, the evidence, and the date it was decided.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">github.com/Sri-Krishna-V/uav-yolo-edge-compression · map issue #1</p>
+<aside>The study was run as a research project from the start: a map issue (#1) with one ticket per decision. On 9 October the plan and training recipe were fixed (100 epochs, SGD, seed 0, 640 as the matrix resolution; #6). On 15 October, before any compressed result existed, we fixed the bar for the small-object hypothesis on #9: confirmed only at 2× or more with a confidence interval excluding 0. The first checks on a consumer-grade laptop came in weak for INT8 (1.40× and 1.51×) and absent for pruning (1.17×). On 20 October (#10) the main question became the equal-latency comparison, with NMS cost as result B. On the Pi 5 the stock clock throttled at 81 to 83 °C, so every run was locked at 2000 MHz (#29). On 31 October the stock INT8 recipe was found to halve YOLO26s’s accuracy; per-channel weights fixed it (#41). On 1 November the Pi 4B and the Jetson were cut and the results tickets #44 to #49 opened. Some decisions were posted to the tickets a day or two after they were made.</aside>
+</section>

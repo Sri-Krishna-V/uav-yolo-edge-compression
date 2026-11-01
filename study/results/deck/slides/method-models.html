@@ -1,0 +1,24 @@
+<section id="method-models" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Method · 1 of 3</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">Two models, five configurations, one fixed training recipe</h2>
+</div>
+<div style="display:flex;gap:48px">
+<div style="width:620px;display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Data.</b> VisDrone2019-DET [1]: train 6,471 · val 548 · test-dev 1,610. Results on test-dev only, never tuned on it.</p>
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Models.</b> YOLO11s [12] and YOLO26s [13], fine-tuned from COCO: 100 epochs, SGD, seed 0.</p>
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Input resolutions.</b> 640 to 1280; compressed configurations at 640, 960 and 1120.</p>
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Accuracy.</b> COCO-style AP and AP-small [2] at the 0.001 evaluation threshold.</p>
+</div>
+<table style="flex:1;font-size:27px;color:#0a1628;background:#ffffff">
+<tr><th style="width:30%">Configuration</th><th style="width:70%">What is done</th></tr>
+<tr><td>baseline</td><td>Fine-tuned, no compression; the runtime’s default precision</td></tr>
+<tr><td>quantized</td><td>Post-training INT8, per-channel weights, calibrated on val [14, 15]</td></tr>
+<tr><td>pruned</td><td>30 % of channels removed per layer, then recovery fine-tuning [16, 17]</td></tr>
+<tr><td>distilled</td><td>Trained with a YOLO11m or YOLO26m teacher [18]</td></tr>
+<tr><td>combined</td><td>Pruned, recovered with the teacher, then INT8</td></tr>
+</table>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">GLOSSARY.md · INVARIANTS.md sections 3, 7, 8</p>
+<aside>Split discipline: train on train, pick checkpoints on val, report test-dev, never tune on test-dev (INVARIANTS.md section 3). INT8 calibration uses all 548 val images. The pruning ratio is the fraction of channels removed, not of parameters: 30 % of channels removes about 40 % of YOLO11s’s parameters and 32 % of YOLO26s’s, so do not say "30 % smaller". Input resolutions 800 and 1120 are the 960 and 1280 checkpoints run at a resolution they were not trained at (20 cells; hollow markers in the figures). Per-channel INT8 is a fix made on 31 October after the stock recipe cost YOLO26s up to 20 % of its AP (#41); the stock cells are kept and shown separately. Metric caveat: faster-coco-eval, maxDets 500, not the official VisDrone toolkit. Absolute AP of about 0.19 at 640 is normal for VisDrone at this model scale.</aside>
+</section>

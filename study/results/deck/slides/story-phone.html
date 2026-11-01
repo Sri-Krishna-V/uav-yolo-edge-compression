@@ -1,0 +1,20 @@
+<section id="story-phone" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result A · on a consumer-grade phone</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">On the phone INT8 buys more speed, so the resolution step is bigger</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/8108b990cb9a58f57604b3112a995c17" alt="INT8 speed-up at 640: Pi 5 1.43× and 1.38×, phone 2.01× and 1.93×" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#2563eb">+0.0355</p>
+<p style="font-size:27px;line-height:1.35">AP-small in the phone’s one pair: INT8 at 960 against plain at 640</p>
+</div>
+<div style="background:#f1f5f9;padding:20px 24px">
+<p style="font-size:24px;line-height:1.4">* Galaxy M34, a consumer-grade phone. Provisional: drift checks failed (+4.9 %, +3.4 %), no clock lock. The pair is 8.6 % apart, so not robust to that drift.</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s05_phone · tables/result_d_int8.csv · tables/equal_latency.csv · issue #34</p>
+<aside>The same question on a consumer-grade phone. INT8 is about twice as fast there (2.01× for YOLO11s, 1.93× for YOLO26s at 640) against about 1.4× on the Pi 5, so INT8 can afford a bigger resolution step: INT8 at 960 lands near the plain model at 640 (733.5 against 675.2 ms, 8.6 % apart) and gains 0.0355 AP-small, 39 % of the plain model’s. Read it as “a bigger step was affordable”, not as “the phone is better at INT8”. Everything about the phone’s latency is provisional: it has no clock lock, its drift checks failed by 4.9 and 3.4 %, and 8.6 % plus 5 % drift exceeds the 10 % pair rule. Phone sessions 3 and 4 add more pairs. Accuracy on the phone matches the Pi 5’s to four digits. Do not let the chart suggest the phone is faster: it is slower in absolute terms (FP32 675 against 390 ms; INT8 336 against 272 ms); only its INT8 ratio is larger. The Pi 5’s FP32 baselines throttled, which inflates the Pi 5 ratio, so the true gap is if anything larger. Sources: result_d_int8.csv per_channel_speedup; equal_latency.csv, platform m34.</aside>
+</section>

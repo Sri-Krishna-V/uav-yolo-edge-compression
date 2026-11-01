@@ -1,0 +1,16 @@
+<section id="story-small" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">The hypothesis set in advance</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">Compression does hurt small objects more, but only 1.1 to 1.5×, short of the 2× bar</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/977297e1616e726ffc75ecf24d69d5a9" alt="AP drop and AP-small drop per compressed configuration, with ratios from 1.13× to 1.44×" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:26px">
+<p style="font-size:27px;line-height:1.4">The bar (#9): 2× or more, with a confidence interval excluding 0. Below 1.3× counts as absent.</p>
+<p style="font-size:27px;line-height:1.4">Pi 5: 1.13 to 1.44×. The consumer-grade laptop check agreed: INT8 1.40×, pruning 1.17×.</p>
+<p style="font-size:27px;line-height:1.4"><span style="color:#2563eb">Same direction as prior reports [21, 22]: real, but modest.</span></p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s10_small · tables/small_object.csv · Pi 5, 640, ONNX Runtime, per-channel INT8 · no Pi 5 intervals yet (#48)</p>
+<aside>This is the hypothesis we fixed before any compressed result existed. Compression should hurt AP-small disproportionately: confirmed at 2× the AP drop or more, with a confidence interval excluding 0; weak from 1.3 to 2×; absent below 1.3×. On the Pi 5, at 640, the ratio is 1.43× and 1.44× for per-channel INT8, 1.13× (YOLO11s) and 1.31× (YOLO26s) for pruning, and 1.31× and 1.37× for the combined configuration. The stock INT8 recipe gives 1.45× and 1.47×: the recipe changes the size of the loss, not its small-object share. So the effect is real, in the expected direction, and weak by our own bar; that is why the paper rests on the equal-latency comparison instead. Prior work reports similar ratios: about 1.3× for INT8 on VisDrone [21], 1.6 to 1.8× for pruning on road scenes [22] (from our reading of their tables). The laptop numbers (#9) have 95 % intervals: INT8 1.40× [1.27, 1.64], pruning 1.17× [0.99, 1.32]. The Pi 5 rows have none until #48 runs. If asked: these are relative drops. In absolute points AP-small loses less than AP (YOLO11s INT8: 0.0123 against 0.0179), because AP-small starts lower; the hypothesis was stated, and is tested, in relative terms. Source: tables/small_object.csv.</aside>
+</section>

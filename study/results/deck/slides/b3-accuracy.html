@@ -1,0 +1,27 @@
+<section id="b3-accuracy" data-transition="fade" style="background:#f1f5f9;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Backup · accuracy at 640</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">Accuracy by configuration, and what we do not claim</h2>
+</div>
+<div style="display:flex;gap:40px">
+<table style="flex:1;font-size:24px;color:#0a1628;background:#ffffff">
+<tr><th style="width:16%">Model</th><th style="width:42%">Configuration, ONNX Runtime</th><th style="width:21%">AP</th><th style="width:21%">AP-small</th></tr>
+<tr><td>YOLO11s</td><td>baseline FP32</td><td>0.1875</td><td>0.0904</td></tr>
+<tr><td>YOLO11s</td><td>quantized, per-channel (stock)</td><td>0.1696 (0.1682)</td><td>0.0781 (0.0769)</td></tr>
+<tr><td>YOLO11s</td><td>pruned · distilled</td><td>0.1573 · 0.1950</td><td>0.0739 · 0.0963</td></tr>
+<tr><td>YOLO11s</td><td>combined, per-channel (stock)</td><td>0.1442 (0.1420)</td><td>0.0631 (0.0607)</td></tr>
+<tr><td>YOLO26s</td><td>baseline FP32</td><td>0.1943</td><td>0.0995</td></tr>
+<tr><td>YOLO26s</td><td>quantized, per-channel (stock)</td><td>0.1795 (0.1549)</td><td>0.0886 (0.0698)</td></tr>
+<tr><td>YOLO26s</td><td>pruned · distilled</td><td>0.1583 · 0.1979</td><td>0.0754 · 0.1027</td></tr>
+<tr><td>YOLO26s</td><td>combined, per-channel (stock)</td><td>0.1446 (0.1285)</td><td>0.0645 (0.0538)</td></tr>
+</table>
+<div style="width:520px;display:flex;flex-direction:column;gap:20px">
+<h3 style="font-size:30px;font-weight:600">Not claimed</h3>
+<p style="font-size:26px;line-height:1.4">Not the official VisDrone toolkit metric: COCO-style, maxDets 500, test-dev.</p>
+<p style="font-size:26px;line-height:1.4">Energy: one Pi 5 rail-sum measurement only, not wall power.</p>
+<p style="font-size:26px;line-height:1.4">No claim that YOLO26s is lighter or faster.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">tables/accuracy.csv · Raspberry Pi 5 · input resolution 640</p>
+<aside>Source: tables/accuracy.csv. Distillation is the one compressed configuration above its baseline at 640: D1 +0.0075 AP and D2 +0.0036. It costs no latency and saves none, so it never enters an equal-latency comparison. Energy: A1 at 640, INT8 1.14 against FP32 2.04 J per frame net of idle (44 % less), one run each, from #26; it is the Pi 5’s rail sum, which leaves out the USB ports, the fan and conversion losses (INVARIANTS.md 4.6). Not in any CSV, so quote it only if asked.</aside>
+</section>

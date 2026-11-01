@@ -1,0 +1,16 @@
+<section id="problem" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">The problem</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">Two thirds of the objects a drone sees are small</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/e2412b7e9d125c1c1befa658480c1279" alt="Bar chart: 67.7 % of VisDrone test-dev objects are small, 29.1 % medium, 3.2 % large" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:28px;line-height:1.4">VisDrone test-dev [1]: 1,610 aerial images, 75,102 labelled objects, a median of 36 per image.</p>
+<p style="font-size:28px;line-height:1.4">“Small” is COCO’s bucket [2]: under 32 × 32 pixels in the original image.</p>
+<p style="font-size:28px;line-height:1.4">Small objects are the hardest case for detectors [3].</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s01_objects · runs/gt/visdrone-test-640.json, COCO area buckets</p>
+<aside>Start with the data, not the models. A drone flying at altitude sees mostly tiny objects: in VisDrone’s test-dev split, 50,837 of the 75,102 labelled objects, 67.7 %, are COCO-small, under 32 by 32 pixels. Only 3.2 % are large. Images are dense: a median of 36 objects, up to 461. So any detector we put on a drone lives or dies on AP-small, and that is the metric this study reports throughout, beside AP. Source: the ground truth our evaluator builds for test-dev (runs/gt/visdrone-test-640.json), areas in original image pixels.</aside>
+</section>

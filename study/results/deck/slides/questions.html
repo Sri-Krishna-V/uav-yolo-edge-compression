@@ -1,0 +1,29 @@
+<section id="questions" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Research questions</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">Four questions, and one bar we set in advance</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#ffffff;padding:32px 36px;border:1px solid rgba(10,22,40,0.10);border-left:8px solid #2563eb">
+<h3 style="font-size:32px;font-weight:600;color:#2563eb">A · Main question</h3>
+<p style="font-size:28px;line-height:1.4;color:#0a1628">At equal latency, does a compressed model at a larger input resolution beat a baseline at a smaller one on AP-small?</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#ffffff;padding:32px 36px;border:1px solid rgba(10,22,40,0.10);border-left:8px solid #0a1628">
+<h3 style="font-size:32px;font-weight:600">B · NMS cost</h3>
+<p style="font-size:28px;line-height:1.4;color:#0a1628">What does NMS cost on the Pi 5 as images get denser, and is the NMS-free head worth it?</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#ffffff;padding:32px 36px;border:1px solid rgba(10,22,40,0.10);border-left:8px solid #0a1628">
+<h3 style="font-size:32px;font-weight:600">C · YOLO11s vs YOLO26s</h3>
+<p style="font-size:28px;line-height:1.4;color:#0a1628">Is the newer model more accurate, and is it faster, on a real platform?</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#ffffff;padding:32px 36px;border:1px solid rgba(10,22,40,0.10);border-left:8px solid #0a1628">
+<h3 style="font-size:32px;font-weight:600">D · INT8 and the runtime</h3>
+<p style="font-size:28px;line-height:1.4;color:#0a1628">How much speed does INT8 buy, what accuracy does it cost, and how much does the runtime matter?</p>
+</div>
+</div>
+<div style="background:#f1f5f9;padding:28px 36px">
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Set on 15 October, before any compressed result:</b> small-object degradation counts as confirmed only if AP-small drops at least 2× as much as AP, with a confidence interval excluding 0.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">Small-object bar: issue #9 · re-centring on A and B: issue #10, 20 October</p>
+<aside>Be honest about the history. The study began with a small-object hypothesis. The bar was fixed on 15 October before any INT8 or pruned result: below 1.3× absent, 1.3 to 2× weak, 2× or more with a CI excluding 0 confirmed. The first check, on a consumer-grade laptop, came out weak for INT8 (1.40×) and absent for pruning (1.17×). So on 20 October the paper was re-centred on the equal-latency comparison (A) and NMS (B). C and D come from the same cells. Questions A to D were not pre-registered predictions; only the small-object bar was. Sources: #9 comments of 15 and 17 October; #10 decision of 20 October; #1 and #18.</aside>
+</section>

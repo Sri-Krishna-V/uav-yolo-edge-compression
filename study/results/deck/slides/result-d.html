@@ -1,0 +1,25 @@
+<section id="result-d" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result D · INT8 and the runtime</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">INT8 is 1.4 to 1.5× faster on the Pi 5. The recipe decides what it costs.</h2>
+</div>
+<div style="display:flex;gap:44px;align-items:start">
+<img src="/_blob/709beb5534210b9dc4be243b67d18e05" alt="INT8 speed-up, AP change and AP-small change per checkpoint and input resolution, per-channel against stock" style="width:1090px;height:683px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:52px;font-weight:700;letter-spacing:-1px;color:#2563eb">2 to 10 %</p>
+<p style="font-size:26px;line-height:1.35">AP lost with per-channel INT8</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:52px;font-weight:700;letter-spacing:-1px;color:#0a1628">up to 20 %</p>
+<p style="font-size:26px;line-height:1.35">AP YOLO26s lost with the stock recipe</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:52px;font-weight:700;letter-spacing:-1px;color:#0a1628">2.0 to 2.3×</p>
+<p style="font-size:26px;line-height:1.35">NCNN FP16’s speed-up over ONNX Runtime FP32: the runtime beats INT8</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">fig_d_int8 · tables/result_d_int8.csv · tables/result_d_runtimes.csv</p>
+<aside>Claim: on the Pi 5, INT8 does give a speed-up, the same with either recipe (1.38 to 1.51×); how much accuracy it costs depends on the recipe; and a different runtime beats it outright. Per-channel AP cost: 9.5, 6.3, 6.4, 4.8, 2.2 % for YOLO11s and 7.6, 6.5, 4.7, 5.3 % for YOLO26s. The stock recipe cost YOLO26s 14.1 to 20.3 % of AP, which is why per-channel weights are the matrix’s INT8. The 1120 rows (§) set a session 7 INT8 cell against a session 6 FP32 cell that ran about 6 % slow, so their per-channel speed-up reads high. The FP32 side throttled, so the speed-ups are if anything high. Runtime: NCNN FP16 is 1.98 to 2.28× faster than ONNX Runtime FP32 and 28 to 37 % faster than ONNX Runtime INT8, with higher AP; OpenVINO FP32 is 1.12 to 1.33× faster. NCNN’s gain bundles the runtime and its FP16 arithmetic, which cannot be separated here. On the consumer-grade phone (provisional), INT8 is 2.01× and 1.93× faster.</aside>
+</section>

@@ -1,0 +1,16 @@
+<section id="story-recipe" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result D · the INT8 recipe</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">How INT8 is calibrated decides its cost: the default recipe cost YOLO26s a fifth of its AP</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/9d01600f4d902a3eb8d27155cb5383b3" alt="AP lost to INT8 at 640: YOLO11s per-channel 9.5 %, stock 10.3 %; YOLO26s per-channel 7.6 %, stock 20.3 %" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:28px;line-height:1.4">Stock: one weight scale per layer. Per-channel: one per output channel [14, 15].</p>
+<p style="font-size:28px;line-height:1.4">YOLO26s’s box branch has channels whose ranges differ 4 to 10×; one scale rounds the small ones away (#41).</p>
+<p style="font-size:28px;line-height:1.4"><span style="color:#2563eb">Same speed, either recipe: 1.4 to 1.5×.</span></p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s09_recipe · tables/result_d_int8.csv · ONNX Runtime INT8 at 640, Raspberry Pi 5</p>
+<aside>Result D, part two. Our first INT8 cells used ONNX Runtime’s default, one weight scale per layer. YOLO26s lost 20.3 % of its AP that way, against 10.3 % for YOLO11s, which first looked like a property of the model. Issue #41 traced it to YOLO26s’s 32-channel box branch, whose channel ranges differ 4 to 10 times, so one shared scale rounds the small channels away. Per-channel weight scales, the standard remedy in the quantization literature [14, 15], with the same calibration data and the same speed, cut the loss to 7.6 %. YOLO11s barely changed (9.5 %). The lesson for the paper: the quantization recipe, not the architecture’s headline features, decided YOLO26s’s INT8 cost; and every INT8 result we report uses per-channel weights. The speed-up is the same either way: 1.38 to 1.51× on the Pi 5. The remaining 2 to 10 % loss is not examined. Source: tables/result_d_int8.csv; #41.</aside>
+</section>

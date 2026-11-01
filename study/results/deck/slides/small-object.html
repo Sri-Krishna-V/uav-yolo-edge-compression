@@ -1,0 +1,22 @@
+<section id="small-object" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Small-object degradation</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">Compression costs small objects 1.1 to 1.5× more than AP: real, but under the 2× bar</h2>
+</div>
+<div style="display:flex;gap:56px;align-items:start">
+<img src="/_blob/d2f4b701dba3684f8eb23e11396cb754" alt="AP-small drop against AP drop for each compressed configuration, with y = x, 1.3x and 2x lines" style="width:700px;height:683px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#2563eb">1.13 to 1.47×</p>
+<p style="font-size:27px;line-height:1.35">AP-small drop over AP drop on the Pi 5. No configuration reaches 2×.</p>
+</div>
+<p style="font-size:27px;line-height:1.4">INT8: 1.43× and 1.44× per-channel, 1.45× and 1.47× stock. The recipe changes the size of the loss, not its small-object share.</p>
+<p style="font-size:27px;line-height:1.4">Pruning: 1.13× for YOLO11s, 1.31× for YOLO26s.</p>
+<div style="background:#f1f5f9;padding:20px 24px">
+<p style="font-size:24px;line-height:1.4">Consumer-grade laptop check (#9), with 95 % intervals: INT8 1.40× [1.27, 1.64], pruning 1.17× [0.99, 1.32]. No Pi 5 intervals yet (#48).</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">fig_small_object · tables/small_object.csv · Pi 5, input resolution 640, ONNX Runtime</p>
+<aside>Claim: the effect exists, in the expected direction, but it is modest, so the paper does not rest on it. Ratios from tables/small_object.csv: quantized per-channel YOLO11s 9.5 % AP and 13.6 % AP-small (1.43×), YOLO26s 7.6 % and 11.0 % (1.44×); stock 10.3 / 15.0 (1.45×) and 20.3 / 29.9 (1.47×); pruned 16.1 / 18.3 (1.13×, absent) and 18.5 / 24.2 (1.31×, weak); combined per-channel 1.31× and 1.37×. The bar was set in advance: below 1.3× absent, 1.3 to 2× weak, 2× or more with a CI excluding 0 confirmed. Without Pi 5 intervals the rows can be placed only by their ratio, not confirmed. The Pi 5 reproduces the laptop: A1 stock INT8 drops 10.3 % AP and 15.0 % AP-small, against the laptop’s 10.2 % and 14.3 %. A combined cell mixes three steps, so its drop is not attributable to one of them.</aside>
+</section>

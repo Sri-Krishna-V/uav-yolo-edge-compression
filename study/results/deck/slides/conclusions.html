@@ -1,0 +1,26 @@
+<section id="conclusions" data-transition="fade" style="background:#0a1628;color:#ffffff;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.56)">Conclusions</p>
+<h2 style="font-size:64px;font-weight:700;line-height:1.12;letter-spacing:-1px;color:#ffffff">On the Pi 5, spend an INT8 budget on input resolution. <span style="color:#6f9cf7">Pruning does not pay.</span></h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,255,255,0.24);padding:24px 0 0 0">
+<h3 style="font-size:30px;font-weight:600;color:#ffffff">A · INT8 wins, pruning loses</h3>
+<p style="font-size:27px;line-height:1.4;color:rgba(255,255,255,0.72)">INT8 pairs +0.0044 to +0.0145 AP-small; pruned pairs −0.0027 to −0.0042</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,255,255,0.24);padding:24px 0 0 0">
+<h3 style="font-size:30px;font-weight:600;color:#ffffff">B · NMS is about 1 ms</h3>
+<p style="font-size:27px;line-height:1.4;color:rgba(255,255,255,0.72)">At the deployment threshold; the NMS-free head does not pay for itself on the Pi 5</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,255,255,0.24);padding:24px 0 0 0">
+<h3 style="font-size:30px;font-weight:600;color:#ffffff">C · YOLO26s: a little better, a little slower</h3>
+<p style="font-size:27px;line-height:1.4;color:rgba(255,255,255,0.72)">Its latency gap grows to +9.0 % at 1280 on NCNN</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid rgba(255,255,255,0.24);padding:24px 0 0 0">
+<h3 style="font-size:30px;font-weight:600;color:#ffffff">D · The recipe sets INT8’s cost</h3>
+<p style="font-size:27px;line-height:1.4;color:rgba(255,255,255,0.72)">1.38 to 1.51× faster; per-channel costs 2 to 10 % of AP, stock up to 20 %</p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:rgba(255,255,255,0.72)">Small objects lose 1.13 to 1.47× more than AP: real, but under the 2× bar.</p>
+<aside>Restate the reasoning chain. The budget is measured latency. INT8 buys it cheaply (1.38 to 1.51× for 2 to 10 % of AP); pruning buys more speed (about 1.5 to 1.6×) but at about 13 to 14 % of AP at 960. Per unit of speed-up, INT8 is the cheapest way to buy latency, a lower input resolution is dearer, and pruning is dearest. The practical rule for a drone on a Pi-class CPU: quantize with per-channel weights, run NCNN if you can, raise the input resolution with what you save, and do not expect NMS or the model choice to be the lever. On the consumer-grade phone the INT8 step is bigger (+0.0355 AP-small), but that result is provisional.</aside>
+</section>

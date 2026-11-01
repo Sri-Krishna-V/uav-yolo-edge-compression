@@ -1,0 +1,16 @@
+<section id="story-b" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result B · what NMS costs</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">NMS is 0.4 % of the time, so removing it saves nothing on the Pi 5</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/fe7cf367d5070dc12e033da5f252eccf" alt="Latency of one image split into pre-processing, network and post-processing, for the one-to-many head and the NMS-free head" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:28px;line-height:1.4">The network is 98 % of each image’s latency. NMS takes about 1 ms at the 0.25 deployment threshold.</p>
+<p style="font-size:28px;line-height:1.4">The NMS-free head [13, 20] removes that 1 ms, but its network is 3 ms slower, and its AP is 0.0056 lower.</p>
+<p style="font-size:28px;line-height:1.4"><span style="color:#2563eb">Even in the densest images NMS stays under 1 %.</span></p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s06_time · tables/result_b_heads.csv · YOLO26s A2, ONNX Runtime per-channel INT8, 640, Pi 5</p>
+<aside>YOLO26 offers an NMS-free head, the one-to-one head introduced with YOLOv10 [20], whose selling point is skipping NMS. On the Pi 5 that buys nothing. For YOLO26s at 640 with per-channel INT8, one image takes 277 ms; the network is 273 ms of it, pre-processing 3.3 ms, and post-processing with NMS 1.07 ms, 0.4 %. The NMS-free head cuts post-processing to 0.18 ms but its network takes about 3 ms more, so it ends 2.1 ms slower overall, and its AP is 0.0056 lower. It is slower in all four sessions measured, by 2.1 to 8.4 ms. NMS grows with density, from 0.56 ms in the sparsest images (1 to 12 objects) to 2.22 ms in the densest (88 to 461), still under 1 % of latency. At the 0.001 evaluation threshold NMS takes about 15 ms, but that is the scoring pass, not deployment. The detailed figure is in the backup. Source: tables/result_b_heads.csv, tables/result_b_bins.csv.</aside>
+</section>

@@ -1,0 +1,24 @@
+<section id="story-a" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result A · the main result · Raspberry Pi 5</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">At equal latency, every per-channel INT8 pair wins on small objects. Every pruned pair loses.</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/72558aa01e79d86db68df4765ceb3d89" alt="AP-small change of each equal-latency pair: INT8 pairs +3 to +16 %, pruned pairs −2 to −4 %" style="width:1000px;height:600px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#2563eb">5 of 5</p>
+<p style="font-size:27px;line-height:1.35">INT8 pairs gain AP-small: +0.0044 to +0.0145</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px">0 of 6</p>
+<p style="font-size:27px;line-height:1.35">pruned pairs gain, on all three runtimes</p>
+</div>
+<div style="background:#f1f5f9;padding:20px 24px">
+<p style="font-size:24px;line-height:1.4">One seed, no confidence intervals yet (#48). The FP32 baselines throttled, which decides which pairs fall within 10 %.</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s03_pairs · tables/equal_latency.csv, the 11 Pi 5 headline pairs · INT8 is per-channel</p>
+<aside>This is the answer to the main question. Each bar is one equal-latency pair: a compressed model at a larger input resolution against the plain model at a smaller one, both within 10 % in measured latency on the Pi 5. The INT8 pairs gain AP-small in all five cases, by 3 to 16 % of the plain model’s AP-small (+0.0044 to +0.0145). The gain shrinks as resolution grows: +16 % from 640 to 800, +3 to 4 % from 960 to 1120. Pruning buys the same step from 800 to 960 but loses 2 to 4 % on every runtime. So the budget is worth spending on resolution with INT8, and not with pruning. Two honest qualifications. First, this holds for per-channel INT8: with the stock recipe YOLO26s’s pairs gave +0.0008 and −0.0140 (−10 %). Second, the six pruned bars are two models on three runtimes, and ONNX Runtime and OpenVINO give identical accuracy, so they are two accuracy results; the pruned loss holds on the clean OpenVINO and NCNN pairs too. Some pairs compare a checkpoint at an input resolution it was not trained at (800 and 1120). Caveats: single seed; YOLO11s’s three seeds at 640 spread 0.0027 AP-small, so the two smallest gains (+0.0044, +0.0049) are only about 1.6 to 1.8× that; the ONNX Runtime FP32 baselines throttled, so their latencies may read a few percent high, which moves how far apart each pair is (RESULTS.md, Result A caveats); intervals come from #48. Source: tables/equal_latency.csv.</aside>
+</section>

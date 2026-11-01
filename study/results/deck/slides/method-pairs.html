@@ -1,0 +1,29 @@
+<section id="method-pairs" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:112px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Method · 3 of 3</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.15;letter-spacing:-1px">An equal-latency pair spends the saved latency on input resolution</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:22px;background:#ffffff;padding:40px;border:1px solid rgba(10,22,40,0.10)">
+<div style="display:flex;align-items:center;gap:24px">
+<p style="width:330px;font-size:27px;color:#0a1628">Baseline FP32 at 960</p>
+<div style="width:1150px;height:44px;background:#64748b"></div>
+<p style="font-size:27px;color:#0a1628">909.7 ms</p>
+</div>
+<div style="display:flex;align-items:center;gap:24px">
+<p style="width:330px;font-size:27px;color:#0a1628">INT8 at 960</p>
+<div style="width:780px;height:44px;background:#2563eb"></div>
+<p style="font-size:27px;color:#0a1628">617.2 ms, 32 % saved</p>
+</div>
+<div style="display:flex;align-items:center;gap:24px">
+<p style="width:330px;font-size:27px;color:#0a1628">Baseline FP32 at 800</p>
+<div style="width:796px;height:44px;background:#0a1628"></div>
+<p style="font-size:27px;color:#0a1628">629.9 ms, 2.1 % apart</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>Pair rule:</b> same platform, model, runtime and head; median latencies within 10 % of the smaller. Distilled models never pair: they save no latency.</p>
+<p style="font-size:28px;line-height:1.4;color:#0a1628"><b>We read</b> AP-small of the compressed cell minus the baseline’s. 12 pairs: 11 on the Pi 5, 1 on the phone. Closest prior designs: [10, 11].</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">YOLO11s · ONNX Runtime · Raspberry Pi 5 · tables/equal_latency.csv</p>
+<aside>This is the reasoning behind the main result. A compressed model is useful only if, at the same latency, it beats what you could have had by running a plain model at a smaller input resolution. So we pair cells by measured latency, never by FLOPs or parameters. The 10 % rule is issue #8’s. Example (YOLO11s, ONNX Runtime, Pi 5): B1 INT8 at 960 runs in 617.2 ms; B1 FP32 at 800 runs in 629.9 ms; they are 2.1 % apart, so they form a pair. The INT8 cell saves 32 % of the FP32 latency at 960 (617.2 against 909.7 ms). Distilled cells run at the baseline’s latency (388.1 against 389.8 ms) and so never enter a pair. Sources: tables/equal_latency.csv (headline = 1: 7 ONNX Runtime, 2 OpenVINO, 2 NCNN on the Pi 5, 1 on the phone), cells.csv.</aside>
+</section>

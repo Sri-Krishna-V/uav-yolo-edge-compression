@@ -1,0 +1,25 @@
+<section id="result-a" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result A · Raspberry Pi 5</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">INT8 buys a resolution step that wins on small objects. Pruning does not.</h2>
+</div>
+<div style="display:flex;gap:44px;align-items:start">
+<img src="/_blob/4893c8b9a3ec9b0253603821919cf878" alt="AP-small against latency for each model on ONNX Runtime, and a forest plot of all 11 Pi 5 equal-latency pairs" style="width:792px;height:683px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#2563eb">5 of 5</p>
+<p style="font-size:27px;line-height:1.35">INT8 pairs gain AP-small: <b>+0.0044 to +0.0145</b></p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#0a1628">0 of 6</p>
+<p style="font-size:27px;line-height:1.35">pruned pairs gain: <b>−0.0027 to −0.0042</b>, on all three runtimes</p>
+</div>
+<p style="font-size:26px;line-height:1.4">The gain shrinks with resolution: +0.0145 from 640 to 800, +0.0044 from 960 to 1120.</p>
+<div style="background:#f1f5f9;padding:20px 24px">
+<p style="font-size:24px;line-height:1.4">One seed, no intervals yet (#48). † marks throttled FP32 baselines.</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">fig_a_pi5 · tables/equal_latency.csv, headline pairs · INT8 is per-channel</p>
+<aside>Claim: on the Pi 5, a compression budget spent on input resolution pays off for INT8 and not for pruning. Point at panel (c) first, then at one connector in panel (a). The five INT8 pairs (per-channel): YOLO11s INT8 at 800 vs FP32 at 640: +0.0145, 6.8 % apart; INT8 at 960 vs FP32 at 800: +0.0096, 2.1 %; INT8 at 1120 vs FP32 at 960: +0.0049, 9.3 %; YOLO26s INT8 at 960 vs FP32 at 800: +0.0125, 5.6 %; INT8 at 1120 vs FP32 at 960: +0.0044, 5.2 %. Relative gains are 3.2 to 16.1 % of the baseline’s AP-small. Why INT8 wins: at 960, from the same ONNX Runtime FP32 baseline, INT8 per-channel buys 1.47× for −6.4 % AP; dropping to 800 buys 1.44× for −8.4 %; pruning buys 1.58× for −14.1 % (YOLO11s; YOLO26s agrees: 1.43× −4.7 %, 1.51× −7.9 %, 1.62× −12.8 %). INT8 is the cheapest latency per point of AP lost. The stock INT8 recipe gave YOLO26s a tie and a loss (+0.0008, −0.0140), which is why the per-channel fix matters. Source: tables/equal_latency.csv; cells.csv.</aside>
+</section>

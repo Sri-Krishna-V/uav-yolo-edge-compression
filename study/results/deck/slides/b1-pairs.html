@@ -1,0 +1,21 @@
+<section id="b1-pairs" data-transition="fade" style="background:#f1f5f9;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 160px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Backup · all 12 headline pairs</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">Every pair, its latency gap and its AP-small difference</h2>
+</div>
+<table style="font-size:24px;color:#0a1628;background:#ffffff">
+<tr><th style="width:21%">Platform, runtime</th><th style="width:10%">Model</th><th style="width:25%">Compressed cell (ms)</th><th style="width:22%">Baseline (ms)</th><th style="width:9%">Apart</th><th style="width:13%">AP-small diff</th></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO11s</td><td>B1 INT8 at 800 (416.2)</td><td>A1 FP32 at 640 (389.8)</td><td>6.8 %</td><td>+0.0145</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO11s</td><td>B1 INT8 at 960 (617.2)</td><td>B1 FP32 at 800 (629.9)</td><td>2.1 %</td><td>+0.0096</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO11s</td><td>B3 INT8 at 1120 (832.0)</td><td>B1 FP32 at 960 (909.7)</td><td>9.3 %</td><td>+0.0049</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO26s</td><td>B2 INT8 at 960 (646.0)</td><td>B2 FP32 at 800 (611.9)</td><td>5.6 %</td><td>+0.0125</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO26s</td><td>B4 INT8 at 1120 (880.6)</td><td>B2 FP32 at 960 (926.5)</td><td>5.2 %</td><td>+0.0044</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO11s</td><td>P2 pruned at 960 (574.6)</td><td>B1 FP32 at 800 (629.9)</td><td>9.6 %</td><td>−0.0042</td></tr>
+<tr><td>Pi 5, ONNX Runtime</td><td>YOLO26s</td><td>P4 pruned at 960 (571.7)</td><td>B2 FP32 at 800 (611.9)</td><td>7.0 %</td><td>−0.0027</td></tr>
+<tr><td>Pi 5, OpenVINO</td><td>11s · 26s</td><td>P2 · P4 pruned at 960</td><td>B1 · B2 at 800</td><td>0.0 · 4.0 %</td><td>−0.0042 · −0.0027</td></tr>
+<tr><td>Pi 5, NCNN FP16</td><td>11s · 26s</td><td>P2 · P4 pruned at 960</td><td>B1 · B2 at 800</td><td>2.1 · 1.1 %</td><td>−0.0035 · −0.0032</td></tr>
+<tr><td>Phone (provisional)</td><td>YOLO11s</td><td>B1 INT8 at 960 (733.5)</td><td>A1 FP32 at 640 (675.2)</td><td>8.6 %</td><td>+0.0355</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">tables/equal_latency.csv, headline = 1 · INT8 is per-channel · phone: Galaxy M34, a consumer-grade phone</p>
+<aside>Source: tables/equal_latency.csv, rows with headline = 1. The stock INT8 rows (headline = 0) give +0.0137, +0.0095, +0.0025, +0.0008 and −0.0140 for the five INT8 pairs, which is why the per-channel fix matters for YOLO26s. Throttling: the ONNX Runtime FP32 baselines (A1 at 640, B1 at 800 and 960, B2 at 800 and 960) were all flagged throttled; no INT8 cell was. OpenVINO and NCNN baselines are clean or nearly so. A tighter pair rule than 10 % would drop B3 INT8 at 1120 (9.3 %) and P2 (9.6 %).</aside>
+</section>

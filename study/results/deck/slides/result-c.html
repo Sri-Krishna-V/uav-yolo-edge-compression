@@ -1,0 +1,24 @@
+<section id="result-c" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:column;gap:14px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result C · YOLO11s against YOLO26s</p>
+<h2 style="font-size:48px;font-weight:700;line-height:1.15;letter-spacing:-1px">YOLO26s is a little more accurate, a little slower, and its gap grows with resolution</h2>
+</div>
+<div style="display:flex;gap:56px;align-items:start">
+<img src="/_blob/f04edbdfea9f59884fb00bbbb9b5a659" alt="Latency ratio of YOLO26s to YOLO11s against input resolution, one line per runtime" style="width:600px;height:683px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#2563eb">+1.3 % to +9.0 %</p>
+<p style="font-size:27px;line-height:1.35">YOLO26s’s extra latency on NCNN FP16, 640 to 1280. Per-channel INT8: +1.9 % to +5.8 %, 640 to 1120.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<p style="font-size:64px;font-weight:700;letter-spacing:-1px;color:#0a1628">+0.0016 to +0.0069</p>
+<p style="font-size:27px;line-height:1.35">YOLO26s’s AP lead in FP32. Its AP-small leads of +0.0021 to +0.0026 are within one seed spread.</p>
+</div>
+<div style="background:#f1f5f9;padding:20px 24px">
+<p style="font-size:24px;line-height:1.4">Read the clean lines. The ONNX Runtime FP32 and OpenVINO lines (†) carry throttled cells, so their ratios swing.</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">fig_c_ratio · tables/result_c.csv · Raspberry Pi 5</p>
+<aside>Claim: the YOLO11 against YOLO26 accuracy story is modest, and the speed story goes against YOLO26s. Read the gap from the clean runtimes (NCNN FP16 and per-channel INT8), because the ONNX Runtime FP32 and OpenVINO pairs carry the throttle: their ratios swing from −2.9 % to +6.3 % (ONNX Runtime) and +2.8 % to +7.5 % (OpenVINO). NCNN FP16 from 640 to 1280: +1.31, +3.34, +4.04, +6.14, +8.97 %. Per-channel INT8 from 640 to 1120: +1.89, +3.39, +4.67, +5.85 %. YOLO26s has about 5 % more GFLOPs than YOLO11s, so it is not a lighter model; the latency gap stays under the FLOP gap up to 960, then reaches 9.0 % at 1280, and nothing in the records explains the growth. Seeds: YOLO11s’s three seeds spread 0.0027 AP-small (#9); YOLO26s’s spread is not measured, so the AP-small leads are a yardstick, not a test. Source: tables/result_c.csv.</aside>
+</section>

@@ -1,0 +1,16 @@
+<section id="story-why" data-transition="fade" style="background:#f8fafc;color:#0a1628;font-family:'Space Grotesk', Arial, sans-serif;padding:96px 128px 144px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:#2563eb">Result A · why</p>
+<h2 style="font-size:52px;font-weight:700;line-height:1.15;letter-spacing:-1px">Per-channel INT8 buys speed at about half the small-object cost of the alternatives</h2>
+</div>
+<div style="display:flex;gap:48px;align-items:start">
+<img src="/_blob/b785aeac5837e61066ba5b11ac12bd3d" alt="Three ways to make a 960 model faster, and the AP-small each costs: INT8 6 to 8 %, a smaller input 15 %, pruning 17 to 18 %" style="width:1080px;height:560px;object-fit:contain;background:#ffffff;border:1px solid rgba(10,22,40,0.10)">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:28px;line-height:1.4">Same starting point: the plain model at 960 on ONNX Runtime FP32.</p>
+<p style="font-size:28px;line-height:1.4">All three buy 1.4 to 1.6× speed. INT8 loses 6 to 8 % of AP-small; dropping to 800 loses 15 %; pruning 17 to 18 %.</p>
+<p style="font-size:28px;line-height:1.4"><span style="color:#2563eb">So INT8 leaves room for more pixels; pruning does not.</span></p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:56px;width:1664px;font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#64748b">s04_price · cells.csv · Raspberry Pi 5, input resolution 960</p>
+<aside>This slide explains result A. From the same plain model at 960, there are three ways to make it 1.4 to 1.6 times faster on the Pi 5: quantize it to INT8 (1.47× for YOLO11s), run it at the smaller input resolution 800 (1.44×), or prune it (1.58×). INT8 costs 7.8 % of AP-small, the smaller input 14.8 %, pruning 17.9 %; YOLO26s agrees (5.9, 14.9 and 16.9 %). INT8 is the cheapest speed per point of small-object accuracy, so its saving can be spent on resolution and still come out ahead; pruning costs more than simply lowering the resolution, so spending its saving on resolution cannot win. Caveats: the speed-ups are against throttled FP32 baselines, so they may be slightly high, equally for all three; the 800 cell is the 960 checkpoint run at a resolution it was not trained at, so part of its loss is that mismatch. The percentages are relative: INT8’s −8 % is 0.1365 to 0.1259, about one AP-small point. On the unthrottled OpenVINO runtime the 800 and pruned speed-ups are about 1.5×, so the ranking holds. With the stock INT8 recipe YOLO26s loses 14 %, as much as dropping to 800: the claim is about per-channel INT8. Source: cells.csv.</aside>
+</section>
