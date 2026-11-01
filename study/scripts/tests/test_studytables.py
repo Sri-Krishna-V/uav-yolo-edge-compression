@@ -331,8 +331,9 @@ def test_real_int8():
         check(f"2 result D, session 6's stock table, {name} {imgsz}: {ap_lost}, {small_lost}, {speedup}", got == (ap_lost, small_lost, speedup, False), f"{got}")
     m34 = {r["checkpoint"]: r for r in rows if r["platform"] == "m34"}
     got = {c: (round(r["per_channel_speedup"], 2) if r["fp32"] else None) for c, r in m34.items()}
-    check("2 result D, m34_matrix_1_record.md: the phone's per-channel INT8 is 2.01x (A1) and 1.93x (A2) faster; B1, B2, C1, C2 have "
-          "no FP32 cell", got == {"A1": 2.01, "A2": 1.93, "B1": None, "B2": None, "C1": None, "C2": None}, f"{got}")
+    check("2 result D, m34_matrix_1 and _3_record.md: the phone's per-channel INT8 is 2.01x (A1), 1.93x (A2), 1.91x (B1) and 1.85x (B2) "
+          "faster; B3, B4, C1, C2 have no FP32 cell",
+          got == {"A1": 2.01, "A2": 1.93, "B1": 1.91, "B2": 1.85, "B3": None, "B4": None, "C1": None, "C2": None}, f"{got}")
     check("2 result D: C1 and C2 have INT8 rows with no FP32 cell", all(pi5[(c, 640, "one-to-many")]["fp32"] is None for c in ("C1", "C2")))
 
 

@@ -1,0 +1,21 @@
+/data/data/com.termux/files/home/sb/bin/python -u /data/data/com.termux/files/home/uav/study/scripts/studybench.py --artifact exports/yolo11s-960-s0-prune30/960/onnxruntime-fp32 --runtime onnxruntime --imgsz 960 --images datasets/VisDrone/images/test --out bench/m34/m34-matrix-3/runs/yolo11s-960-s0-prune30/960/onnxruntime-fp32/attempt-1 --threads 4 --warmup 20 --platform-tag m34
+/data/data/com.termux/files/usr/lib/python3.14/site-packages/onnxruntime/capi/onnxruntime_validation.py:66: UserWarning: Unsupported platform (android). ONNX Runtime supports Linux, macOS, AIX and Windows platforms, only.
+  warnings.warn(
+[100/1610] 0000118_02632_d_0000077.jpg pre 18.6 net 838.4 post 54.8 (at 0.25: 4.8) ms, 500 dets (78 at 0.25)
+[200/1610] 0000320_00750_d_0000007.jpg pre 20.8 net 890.3 post 31.4 (at 0.25: 4.0) ms, 500 dets (52 at 0.25)
+[300/1610] 9999938_00000_d_0000048.jpg pre 21.0 net 839.2 post 15.5 (at 0.25: 2.1) ms, 263 dets (18 at 0.25)
+[400/1610] 9999938_00000_d_0000148.jpg pre 20.6 net 842.5 post 10.8 (at 0.25: 0.8) ms, 203 dets (0 at 0.25)
+[500/1610] 9999938_00000_d_0000248.jpg pre 21.0 net 830.6 post 31.1 (at 0.25: 3.5) ms, 500 dets (42 at 0.25)
+[600/1610] 9999938_00000_d_0000348.jpg pre 20.6 net 834.4 post 21.5 (at 0.25: 2.4) ms, 370 dets (20 at 0.25)
+[700/1610] 9999938_00000_d_0000448.jpg pre 20.6 net 843.8 post 7.7 (at 0.25: 1.5) ms, 125 dets (4 at 0.25)
+[800/1610] 9999941_00000_d_0000032.jpg pre 20.2 net 900.2 post 16.6 (at 0.25: 2.1) ms, 289 dets (15 at 0.25)
+[900/1610] 9999952_00000_d_0000066.jpg pre 38.0 net 900.6 post 88.6 (at 0.25: 2.1) ms, 500 dets (17 at 0.25)
+[1000/1610] 9999952_00000_d_0000166.jpg pre 18.3 net 822.2 post 9.5 (at 0.25: 1.7) ms, 181 dets (13 at 0.25)
+[1100/1610] 9999952_00000_d_0000266.jpg pre 17.2 net 796.1 post 3.0 (at 0.25: 1.4) ms, 50 dets (4 at 0.25)
+[1200/1610] 9999963_00000_d_0000021.jpg pre 18.9 net 775.4 post 37.0 (at 0.25: 2.5) ms, 500 dets (32 at 0.25)
+[1300/1610] 9999973_00000_d_0000044.jpg pre 17.8 net 774.9 post 29.1 (at 0.25: 1.7) ms, 500 dets (16 at 0.25)
+[1400/1610] 9999973_00000_d_0000144.jpg pre 18.5 net 786.7 post 26.8 (at 0.25: 1.8) ms, 500 dets (15 at 0.25)
+[1500/1610] 9999986_00000_d_0000001.jpg pre 18.1 net 792.3 post 28.6 (at 0.25: 2.6) ms, 500 dets (35 at 0.25)
+[1600/1610] 9999996_00000_d_0000019.jpg pre 18.8 net 797.4 post 6.1 (at 0.25: 1.9) ms, 111 dets (17 at 0.25)
+[1610/1610] 9999996_00000_d_0000029.jpg pre 19.6 net 780.1 post 32.6 (at 0.25: 4.5) ms, 500 dets (72 at 0.25)
+done: 1610 images, onnxruntime FP32, head raw; median pre 19.668 net 835.11 ms; latency (e2e_deploy, conf 0.25) 858.861 ms (p95 988.41), post 2.506 ms; at conf 0.001: total 884.841, post 31.541 ms

@@ -25,13 +25,23 @@ Standard library and matplotlib only; no torch, no ultralytics.
 import argparse
 import csv
 import math
+import re
 from pathlib import Path
 
 import studyfig as sf
 import studypairs as sp
 
 STUDY = Path(__file__).resolve().parents[1]
-DRIFT = 0.05  # the phone's drift checks failed by +3.4 % and +4.9 % (#34): a +/-5 % bar on its latencies
+DRIFT = 0.05  # the bound of the +/- bar on the phone's latencies (#34); main sets it from the drift notes in cells.csv
+DRIFT_MOVES = []  # the phone sessions' drift checks, smallest first, as their cells.csv notes give them
+DRIFT_NOTE = re.compile(r"^drift ([+-][\d.]+) %")
+
+
+def phone_drift(cells):
+    """The phone sessions' failed drift checks, from the notes studyresults.SESSION_NOTES gives their cells, smallest first,
+    and the bar's bound: the largest, rounded up to a whole per cent."""
+    moves = sorted({float(m[1]) for c in cells if c["platform"] == "m34" and (m := DRIFT_NOTE.match(c.get("note") or ""))})
+    return moves, math.ceil(max(moves, default=5)) / 100
 B_CELL = ("pi5-matrix-7-int8pc", "onnxruntime-int8pc")  # result B's pair: the matrix's INT8 (INVARIANTS.md section 8)
 
 
@@ -110,11 +120,17 @@ def scatter_panel(ax, panel, ylim, xlim, models=None, drift=None):
                         xytext=(-4, 7) if up else (5, -8), ha="right" if up else "left", va="center", color=colour,
                         path_effects=sf.halo(), zorder=6)
         gain = {id(p["compressed"]): p["ap_small_diff"] >= 0 for p in panel["connectors"]}
+        drawn = [p["compressed"] for p in panel["connectors"] if p["compressed"]["model"] in models]
         for c in s["points"]:
             if id(c) in paired:  # a gain sits above the baselines' line, labelled above-left; a loss below it, labelled under it
                 _cell_marker(ax, c, xerr=drift)
+                # a gain with another drawn paired cell just to its left (within 10 % latency, 0.005 AP-small), whose label
+                # takes the space above-left, is labelled straight above
+                top = gain[id(c)] and any(o is not c and o["latency_ms"] < c["latency_ms"] < 1.1 * o["latency_ms"]
+                                          and abs(o["ap_small"] - c["ap_small"]) < 0.005 for o in drawn)
                 ax.annotate(res(c["imgsz"]) + _tag(c), (c["latency_ms"], c["ap_small"]), textcoords="offset points",
-                            xytext=(-5, 6) if gain[id(c)] else (0, -10), ha="right" if gain[id(c)] else "center", va="center",
+                            xytext=(0, 9) if top else (-5, 6) if gain[id(c)] else (0, -10),
+                            ha="center" if top else "right" if gain[id(c)] else "center", va="center",
                             color=sf.INK, path_effects=sf.halo(), zorder=6)
     _log_latency(ax, *xlim)
     ax.set_ylim(*ylim)
@@ -264,13 +280,14 @@ def result_a(cells, pairs, eq_rows, out):
         m34 = sp.figure_data(cells, pairs, "m34")
         if m34:
             phone = [p for p in pairs if p["headline"] and p["compressed"]["platform"] == "m34"]
-            fig = sf.figure(sf.SINGLE, 40 + 70 + 7 * len(phone))
-            top, bottom = fig.subplots(2, 1, height_ratios=(70, 14 + 7 * len(phone)))
+            fig = sf.figure(sf.SINGLE, 40 + 70 + 11 * len(phone))  # 11 mm a row: room for a three-line note on the right
+            top, bottom = fig.subplots(2, 1, height_ratios=(70, 14 + 11 * len(phone)))
             panel = m34[0]
             scatter_panel(top, panel, ylim, _xlim(m34), drift=DRIFT)
             sf.tint(top)
             sf.panel_label(top, "a", "Galaxy M34, a consumer-grade phone")
-            top.text(0.03, 0.97, f"Latency provisional:\ndrift +3.4 % and +4.9 %,\nbars {chr(177)}5 %", transform=top.transAxes,
+            moves = f"{DRIFT_MOVES[0]:+.1f} % to {DRIFT_MOVES[-1]:+.1f} %" if len(DRIFT_MOVES) > 1 else f"{DRIFT * 100:+.0f} %"
+            top.text(0.03, 0.97, f"Latency provisional:\ndrift {moves},\nbars {chr(177)}{DRIFT * 100:.0f} %", transform=top.transAxes,
                      ha="left", va="top", color=sf.MUTED)
             forest_panel(bottom, phone, ci, nbins=3, drift=DRIFT)
             sf.tint(bottom)
@@ -279,7 +296,7 @@ def result_a(cells, pairs, eq_rows, out):
             drawn = [c for p in m34 for s in p["models"].values() for c in s["baselines"]]
             lines = any(len(s["baselines"]) > 1 for p in m34 for s in p["models"].values())
             bar = Line2D([], [], color=sf.MUTED, marker="|", markersize=6, linestyle="-", linewidth=0.75,
-                         label=f"{chr(177)}5 % drift bar on latency")
+                         label=f"{chr(177)}{DRIFT * 100:.0f} % drift bar on latency")
             _legend(fig, configs(m34), hollow=any(c["untrained_imgsz"] for c in drawn), ncols=2, lines=lines, extra=[bar])
             sf.save(fig, out / "fig_a_m34")
 
@@ -434,6 +451,8 @@ def result_d(rows, out):
                                     elinewidth=0.75, capsize=1.5, zorder=2)
                 if pc is not None:
                     ax.scatter([pc], [yi], marker="s", s=20, color=colour, edgecolors="white", linewidths=0.5, zorder=4)
+                    if drift and r["per_channel_session"] != r["fp32_session"]:
+                        ax.annotate(DAG2, (pc, yi), textcoords="offset points", xytext=(3, 7), va="center", ha="left")
                 if st is not None:  # drawn over the square, so a stock value equal to the per-channel one still shows
                     ax.scatter([st], [yi], marker="x", s=30, color=sf.INK, linewidths=1.1, zorder=5)
                     if drift and r["stock_session"] != r["fp32_session"]:
@@ -464,7 +483,7 @@ def result_d(rows, out):
              Line2D([], [], color=sf.MODEL_COLOR["YOLO26s"], marker="o", linestyle="none", label="YOLO26s"),
              Line2D([], [], color=sf.TINT, marker="s", markersize=8, linestyle="none",  # column 2
                     label="* Galaxy M34, a consumer-grade phone:"),
-             sf.text_entry(f"   latency provisional, bars {chr(177)}5 %"),
+             sf.text_entry(f"   latency provisional, bars {chr(177)}{DRIFT * 100:.0f} %"),
              sf.text_entry(f"(u) untrained input resolution · {sf.SECTION} spans session 6"),
              sf.text_entry(f"{DAG2} INT8 and FP32 from different phone sessions")]
         fig.legend(handles=h, loc="outside lower center", ncols=2)
@@ -533,6 +552,8 @@ def main(argv=None):
     t = a.results / "tables"
     out = a.results / "figures" / "paper"
     cells, _ = sp.usable(sp.load_cells(a.results / "cells.csv"))
+    global DRIFT, DRIFT_MOVES  # result_a's and result_d's phone bars
+    DRIFT_MOVES, DRIFT = phone_drift(cells)
     pairs = sp.sort_pairs(sp.equal_latency_pairs(cells))
     result_a(cells, pairs, read(t / "equal_latency.csv"), out)
     result_b(read(t / "result_b_bins.csv"), out)

@@ -1,0 +1,345 @@
+{
+  "tool": "studysession.py",
+  "plan": {
+    "platform": "m34",
+    "note": "the phone's matrix, session 3 (#27, #46, #47): the phone's equal-latency candidates past 640, B1 and B2 in FP32 at 800 against B3 and B4 in per-channel INT8 at 1120, each pair back to back; then B1 and B2 in FP32 at 960 (their INT8 speed-up, #47) and the pruned P2 and P4 in FP32 at 960; ONNX Runtime only, all 1,610 test-dev images; about 5 h with the fixed 3-minute start waits. Seed 1638 runs them by value, so a cut takes the pruned cells first: the two pairs, the FP32 cells at 960, then the pruned cells",
+    "seed": 1638,
+    "images": "datasets/VisDrone/images/test",
+    "cells": [
+      {
+        "name": "yolo11s-960-s0/800/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-960-s0/800/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 800,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-1280-s0/1120/onnxruntime-int8pc",
+        "artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-int8pc",
+        "runtime": "onnxruntime",
+        "imgsz": 1120,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-960-s0/800/onnxruntime-fp32",
+        "artifact": "exports/yolo26s-960-s0/800/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 800,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-1280-s0/1120/onnxruntime-int8pc",
+        "artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-int8pc",
+        "runtime": "onnxruntime",
+        "imgsz": 1120,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0/960/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-960-s0/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-960-s0/960/onnxruntime-fp32",
+        "artifact": "exports/yolo26s-960-s0/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo11s-960-s0-prune30/960/onnxruntime-fp32",
+        "artifact": "exports/yolo11s-960-s0-prune30/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      },
+      {
+        "name": "yolo26s-960-s0-prune30/960/onnxruntime-fp32",
+        "artifact": "exports/yolo26s-960-s0-prune30/960/onnxruntime-fp32",
+        "runtime": "onnxruntime",
+        "imgsz": 960,
+        "limit": null
+      }
+    ]
+  },
+  "plan_sha256": "b0c86749ac79a804e1ffbf76c494db39267b824b4fbe845ad6927565f2f45bde",
+  "dry_run": false,
+  "seed": 1638,
+  "order": [
+    "yolo11s-960-s0/800/onnxruntime-fp32",
+    "yolo11s-1280-s0/1120/onnxruntime-int8pc",
+    "yolo26s-960-s0/800/onnxruntime-fp32",
+    "yolo26s-1280-s0/1120/onnxruntime-int8pc",
+    "yolo11s-960-s0/960/onnxruntime-fp32",
+    "yolo26s-960-s0/960/onnxruntime-fp32",
+    "yolo11s-960-s0-prune30/960/onnxruntime-fp32",
+    "yolo26s-960-s0-prune30/960/onnxruntime-fp32"
+  ],
+  "units": {
+    "drift-start": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-start/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 31.9
+          },
+          "start": "2026-11-01T10:39:28+00:00",
+          "result": "complete",
+          "latency_ms": 609.301,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T10:41:58+00:00"
+        }
+      ]
+    },
+    "drift-end": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/drift-end/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.6
+          },
+          "start": "2026-11-01T15:28:18+00:00",
+          "result": "complete",
+          "latency_ms": 645.477,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T15:30:57+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/800/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/800/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 31.9
+          },
+          "start": "2026-11-01T10:45:00+00:00",
+          "result": "complete",
+          "latency_ms": 1043.691,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T11:22:52+00:00"
+        }
+      ]
+    },
+    "yolo11s-1280-s0/1120/onnxruntime-int8pc": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-1280-s0/1120/onnxruntime-int8pc/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.6
+          },
+          "start": "2026-11-01T11:25:54+00:00",
+          "result": "complete",
+          "latency_ms": 987.001,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-11-01T11:54:09+00:00"
+        }
+      ]
+    },
+    "yolo26s-960-s0/800/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-960-s0/800/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.6
+          },
+          "start": "2026-11-01T11:57:11+00:00",
+          "result": "complete",
+          "latency_ms": 1007.332,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T12:27:03+00:00"
+        }
+      ]
+    },
+    "yolo26s-1280-s0/1120/onnxruntime-int8pc": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-1280-s0/1120/onnxruntime-int8pc/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.6
+          },
+          "start": "2026-11-01T12:30:05+00:00",
+          "result": "complete",
+          "latency_ms": 1045.137,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "INT8",
+          "end": "2026-11-01T13:01:15+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.2
+          },
+          "start": "2026-11-01T13:04:17+00:00",
+          "result": "complete",
+          "latency_ms": 1397.571,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T13:44:04+00:00"
+        }
+      ]
+    },
+    "yolo26s-960-s0/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-960-s0/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 34.6
+          },
+          "start": "2026-11-01T13:47:05+00:00",
+          "result": "complete",
+          "latency_ms": 1411.888,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T14:28:04+00:00"
+        }
+      ]
+    },
+    "yolo11s-960-s0-prune30/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo11s-960-s0-prune30/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.3
+          },
+          "start": "2026-11-01T14:31:06+00:00",
+          "result": "complete",
+          "latency_ms": 858.861,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T14:56:23+00:00"
+        }
+      ]
+    },
+    "yolo26s-960-s0-prune30/960/onnxruntime-fp32": {
+      "attempts": [
+        {
+          "n": 1,
+          "pass": "main",
+          "dir": "runs/yolo26s-960-s0-prune30/960/onnxruntime-fp32/attempt-1",
+          "gate": {
+            "waited_s": 180.0,
+            "opened": "fixed 3 min wait (the phone shows no CPU temperature)",
+            "cpu_temp_c": null,
+            "battery_temp_c": 33.5
+          },
+          "start": "2026-11-01T14:59:25+00:00",
+          "result": "complete",
+          "latency_ms": 862.269,
+          "latency_source": "e2e_deploy",
+          "throttle": "unknown",
+          "precision": "FP32",
+          "end": "2026-11-01T15:25:16+00:00"
+        }
+      ]
+    }
+  },
+  "invocations": [
+    {
+      "start": "2026-11-01T10:36:27+00:00",
+      "facts": {
+        "governors": [
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware",
+          "energy_aware"
+        ],
+        "desktop": [],
+        "update_units": null,
+        "packages": {
+          "numpy": "2.5.4",
+          "opencv-python-headless": "5.0.0.93",
+          "onnxruntime": "1.31.1",
+          "openvino": null,
+          "ncnn": null,
+          "opencv-python": "5.0.0.93"
+        },
+        "python": "3.14.8",
+        "os": "Android-16-aarch64-64bit-ELF",
+        "kernel": "16",
+        "rpi_issue": null,
+        "device_model": null
+      },
+      "checks": [],
+      "override": null,
+      "ambient_c": null
+    }
+  ],
+  "status": "complete",
+  "drift": {
+    "start_ms": 609.301,
+    "end_ms": 645.477,
+    "change_pct": 5.9,
+    "throttled": [],
+    "verdict": "re-run"
+  }
+}
