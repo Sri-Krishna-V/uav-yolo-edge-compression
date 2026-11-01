@@ -1,0 +1,31 @@
+% Result A (#46): the equal-latency pairs on the Pi 5. Written by studypairs.py from results/cells.csv.
+\begin{tabular}{lllrlrrrrrrrcc}
+\toprule
+Runtime & Model & Compressed cell & ms & Baseline & ms & Ratio & Apart (\%) & $\Delta$AP-small & $\Delta$AP & $\Delta$AP-medium & $\Delta$AP-large & Images below 2000 MHz & Median clock (MHz) \\
+\midrule
+ONNX Runtime & YOLO11s & B1 INT8 at 800$^{\dagger}$ & 416.2 & A1 FP32 at 640 & 389.8 t & 1.068 & 6.8 & +0.0145 & +0.0178 & +0.0251 & +0.0590 & 0 / 381 & 2000 / 2000 \\
+ & YOLO11s & B1 INT8 at 800, stock$^{\dagger}$ & 416.7 & A1 FP32 at 640 & 389.8 t & 1.069 & 6.9 & +0.0137 & +0.0166 & +0.0246 & +0.0340 & 0 / 381 & 2000 / 2000 \\
+ & YOLO11s & B1 INT8 at 960 & 617.2 & B1 FP32 at 800$^{\dagger}$ & 629.9 t & 0.980 & 2.1 & +0.0096 & +0.0049 & +0.0026 & $-$0.0010 & 0 / 351 & 2000 / 2000 \\
+ & YOLO11s & B1 INT8 at 960, stock & 614.0 & B1 FP32 at 800$^{\dagger}$ & 629.9 t & 0.975 & 2.6 & +0.0095 & +0.0036 & +0.0012 & $-$0.0054 & 0 / 351 & 2000 / 2000 \\
+ & YOLO11s & P2 FP32 at 960 & 574.6 & B1 FP32 at 800$^{\dagger}$ & 629.9 t & 0.912 & 9.6 & $-$0.0042 & $-$0.0135 & $-$0.0244 & $-$0.0695 & 6 / 351 & 2000 / 2000 \\
+ & YOLO11s & B3 INT8 at 1120$^{\dagger}$ & 832.0 & B1 FP32 at 960 & 909.7 t & 0.915 & 9.3 & +0.0049 & +0.0027 & +0.0026 & +0.0241 & 0 / 680 & 2000 / 2000 \\
+ & YOLO11s & B3 INT8 at 1120, stock$^{\dagger}$ & 883.5$^{\S}$ & B1 FP32 at 960 & 909.7 t & 0.971 & 3.0 & +0.0025 & +0.0009 & +0.0019 & $-$0.0093 & 0 / 680 & 2000 / 2000 \\
+ & YOLO26s & B2 INT8 at 960 & 646.0 & B2 FP32 at 800$^{\dagger}$ & 611.9 t & 1.056 & 5.6 & +0.0125 & +0.0077 & +0.0082 & $-$0.0190 & 0 / 388 & 2000 / 2000 \\
+ & YOLO26s & B2 INT8 at 960, stock & 644.4 & B2 FP32 at 800$^{\dagger}$ & 611.9 t & 1.053 & 5.3 & +0.0008 & $-$0.0149 & $-$0.0221 & $-$0.0994 & 0 / 388 & 2000 / 2000 \\
+ & YOLO26s & P4 FP32 at 960 & 571.7 t & B2 FP32 at 800$^{\dagger}$ & 611.9 t & 0.934 & 7.0 & $-$0.0027 & $-$0.0119 & $-$0.0212 & $-$0.0513 & 1381 / 388 & 1911 / 2000 \\
+ & YOLO26s & B4 INT8 at 1120$^{\dagger}$ & 880.6 & B2 FP32 at 960 & 926.5 t & 0.951 & 5.2 & +0.0044 & +0.0063 & +0.0094 & $-$0.0048 & 0 / 1377 & 2000 / 1911 \\
+ & YOLO26s & B4 INT8 at 1120, stock$^{\dagger}$ & 943.1$^{\S}$ & B2 FP32 at 960 & 926.5 t & 1.018 & 1.8 & $-$0.0140 & $-$0.0173 & $-$0.0201 & $-$0.0562 & 0 / 1377 & 2000 / 1911 \\
+\midrule
+OpenVINO & YOLO11s & P2 FP32 at 960 & 474.7 & B1 FP32 at 800$^{\dagger}$ & 474.6 & 1.000 & 0.0 & $-$0.0042 & $-$0.0135 & $-$0.0244 & $-$0.0695 & 0 / 5 & 2000 / 2000 \\
+ & YOLO26s & P4 FP32 at 960 & 509.4 t & B2 FP32 at 800$^{\dagger}$ & 489.6 & 1.040 & 4.0 & $-$0.0027 & $-$0.0119 & $-$0.0212 & $-$0.0513 & 425 / 37 & 2000 / 2000 \\
+\midrule
+NCNN & YOLO11s & P2 FP16 at 960 & 271.0 & B1 FP16 at 800$^{\dagger}$ & 276.8 & 0.979 & 2.1 & $-$0.0035 & $-$0.0131 & $-$0.0236 & $-$0.0524 & 0 / 0 & 2000 / 2000 \\
+ & YOLO26s & P4 FP16 at 960 & 289.3 & B2 FP16 at 800$^{\dagger}$ & 286.0 & 1.011 & 1.1 & $-$0.0032 & $-$0.0117 & $-$0.0204 & $-$0.0403 & 0 / 0 & 2000 / 2000 \\
+\bottomrule
+\multicolumn{14}{l}{\footnotesize Equal latency: median latencies 10\% apart or less, the difference divided by the smaller of the two (Apart).} \\
+\multicolumn{14}{l}{\footnotesize Ratio: the compressed cell's latency over the baseline's. Differences: compressed cell minus baseline.} \\
+\multicolumn{14}{l}{\footnotesize INT8 cells are ONNX Runtime per-channel unless marked stock; a stock row follows its per-channel pair.} \\
+\multicolumn{14}{l}{\footnotesize $^{\dagger}$ A checkpoint run at an input resolution it was not trained at (800 from the 960 models, 1120 from the 1280 ones): its accuracy there is a little lower.} \\
+\multicolumn{14}{l}{\footnotesize t: the cell was flagged throttled. Images below 2000 MHz and the median clock: compressed / baseline.} \\
+\multicolumn{14}{l}{\footnotesize $^{\S}$ The pair spans session 6, whose latencies are about 6\% high against the other sessions' (kept as measured).} \\
+\end{tabular}

@@ -1,5 +1,108 @@
 # Results
 
+## Result A: the equal-latency comparisons on the Pi 5
+
+Built by `study/scripts/studypairs.py` (#46) from `cells.csv`; nothing was run. Re-run it after `studyresults.py` when a
+session lands. An **equal-latency comparison** here is a compressed configuration at a larger input resolution against
+a baseline at a smaller one: same platform, model, runtime and head, and median latencies 10 % apart or less, the
+difference divided by the smaller of the two (#8). Distilled cells save no latency, so they are never the compressed side. INT8 is ONNX Runtime's,
+so the INT8 cells pair with ONNX Runtime FP32 baselines. Differences are the compressed cell minus the baseline.
+
+Files: `tables/equal_latency.csv` / `.tex` (the pairs; the `.tex` holds the Pi 5's), `tables/equal_latency_all.csv`
+(every pair of cells within 10 % on a platform, across runtimes too: for the writer, not a paper table) and
+`figures/result_a_pi5.pdf` / `.png` (AP-small against latency, one panel per runtime). The phone has 2 cells, so it has
+no figure yet. It gets one once it has three.
+
+**The answer.** On the Pi 5, a compression budget spent on input resolution pays off for INT8 and not for pruning.
+In every ONNX Runtime pair, for both study models, INT8 at the larger input resolution beats the FP32 baseline in
+AP-small, by +0.0044 to +0.0145. Pruned at 960, against the baseline at 800, loses 0.0027-0.0042 AP-small on every
+runtime. The INT8 cells are the per-channel ones (INVARIANTS.md section 8).
+
+| Model | Compressed cell | ms | Baseline | ms | Apart | AP-small diff (stock) | AP diff | AP-large diff |
+|---|---|---|---|---|---|---|---|---|
+| YOLO11s | B1 INT8 at 800 † | 416.2 | A1 FP32 at 640 | 389.8 t | 6.8 % | **+0.0145** (+0.0137) | +0.0178 | +0.0590 |
+| YOLO11s | B1 INT8 at 960 | 617.2 | B1 FP32 at 800 † | 629.9 t | 2.1 % | **+0.0096** (+0.0095) | +0.0049 | −0.0010 |
+| YOLO11s | B3 INT8 at 1120 † | 832.0 | B1 FP32 at 960 | 909.7 t | 9.3 % | **+0.0049** (+0.0025 §) | +0.0027 | +0.0241 |
+| YOLO26s | B2 INT8 at 960 | 646.0 | B2 FP32 at 800 † | 611.9 t | 5.6 % | **+0.0125** (+0.0008) | +0.0077 | −0.0190 |
+| YOLO26s | B4 INT8 at 1120 † | 880.6 | B2 FP32 at 960 | 926.5 t | 5.2 % | **+0.0044** (−0.0140 §) | +0.0063 | −0.0048 |
+| YOLO11s | P2 FP32 at 960 | 574.6 | B1 FP32 at 800 † | 629.9 t | 9.6 % | −0.0042 | −0.0135 | −0.0695 |
+| YOLO26s | P4 FP32 at 960 | 571.7 t | B2 FP32 at 800 † | 611.9 t | 7.0 % | −0.0027 | −0.0119 | −0.0513 |
+
+ONNX Runtime. †: a checkpoint run at an input resolution it was not trained at. t: flagged throttled. (stock): the same
+pair with the stock INT8 cell; §: that stock cell is session 6's. AP-medium and each cell's clock are in the CSV.
+
+- **The INT8 gain is +3.2 to +16.1 % of the baseline's AP-small**, and AP rises too (+0.0027 to +0.0178).
+- **The gain shrinks as the input resolution grows.** One step up from 640 gives +0.0145 (YOLO11s). From 800 it gives
+  +0.0096 and +0.0125, and from 960 +0.0049 and +0.0044.
+- **The INT8 gain is in the small objects.** AP-small rises in all five INT8 pairs. AP-large falls in three of them (B1
+  and B2 at 960, B4 at 1120: −0.0010 to −0.0190).
+- **Pruning loses on every runtime.** P2 and P4 at 960 against the baseline at 800 give AP-small −0.0042 and −0.0027 on
+  ONNX Runtime and OpenVINO, and −0.0035 and −0.0032 on NCNN (FP16). On OpenVINO they are 0.0 % and 4.0 % apart, on NCNN
+  2.1 % and 1.1 %. AP falls by 0.0117-0.0135.
+- **The stock INT8 recipe (sessions 1-6) gave YOLO26s a tie and a loss**: B2 INT8 at 960 +0.0008, B4 INT8 at 1120
+  −0.0140. The per-channel recipe turns them into gains. YOLO11s's pairs barely move. The table keeps each stock row
+  after its per-channel one, as a row of its own.
+- **No pair.** B2 INT8 at 800 is 12.3 % above A2 FP32 at 640 (430.3 against 383.1 ms). The combined cells run only at
+  640, the smallest input resolution. OpenVINO has no INT8 cell on the Pi 5 (#38), and NCNN has none, so their only pairs
+  are the pruned ones.
+
+Caveats:
+
+- **The FP32 baselines throttled; the INT8 cells did not.** Every ONNX Runtime baseline in a pair was flagged throttled.
+  Their images below 2000 MHz: A1 at 640, 381; B1 at 800, 351; B1 at 960, 680; B2 at 800, 388; B2 at 960, 1,377 (median
+  clock 1911 MHz). No INT8 cell has an image below 2000 MHz. P4 at 960 throttled too (1,381 images, median 1911 MHz).
+  - A throttled latency is if anything high. So an unthrottled baseline would sit further from the two INT8 cells that
+    are slower than their baseline (B1 at 800, B2 at 960), and nearer the others.
+  - Those two pairs stay pairs. A1 at 640 (389.8 ms) is 0.3 % above the pilot's unthrottled 388.5 ms (session 1's
+    record), which puts B1 INT8 at 800 7.1 % above it.
+  - B2 at 800 would have to be 4.0 % faster for its pair to pass 10 %. The throttle re-runs moved medians by −3.6 to
+    +1.9 % (INVARIANTS.md section 4.7).
+- **Session 6.** No headline pair has a session 6 cell. The INT8 cells at 1120 are session 7's, and session 6's baselines
+  at 1120 pair with nothing as measured. The two stock rows at 1120 are session 6's (§).
+  - B3 INT8 at 1280 (1153.2 ms) and B3 FP32 at 1120 (1315.4, session 6) are 14.1 % apart as measured. With session 6's
+    latency taken as 6 % high, they are 7.6 % apart.
+  - Session 6's latencies stay as measured (decided on #46), so this is not a pair. It is a footnoted row of
+    `equal_latency_all.csv` (AP-small +0.0085).
+  - That CSV has 243 rows, and 10 of them are within 10 % only with the offset taken out.
+- **Untrained input resolutions.** Every pair has a cell at 800 or 1120: a checkpoint from the 960 or 1280 models, run
+  at an input resolution it was not trained at (†; hollow in the figure). The paper says its accuracy there is a little
+  lower (#8).
+  - Where that cell is the compressed one (B1 INT8 at 800, B3 and B4 INT8 at 1120), it understates the gain.
+  - Where it is the baseline (B1 and B2 FP32 at 800), it overstates the INT8 gain and understates the pruned loss.
+- **No error bars yet.** Each number is one seed (s0) and one pass over test-dev; the paired bootstrap is #48's.
+
+Reading the figure:
+
+- Each line joins a model's baselines from 640 to 1280, and its numbers are their input resolutions.
+- A compressed cell is labelled with its input resolution unless it is at 640.
+- An arrow runs from a baseline to the compressed cell it pairs with.
+- The marker's shape is the configuration. Hollow markers are untrained input resolutions.
+- Only the one-to-many head is drawn: the NMS-free head is result B's.
+- Each stock INT8 cell is left out, since its per-channel cell is drawn.
+
+### How it was checked
+
+`study/scripts/tests/test_studypairs.py`:
+
+- **The rule, on literal cells.**
+  - Same platform, model, runtime and head; the compressed side at the larger input resolution.
+  - 10.0 % is in, and a pair 10.3 % apart over the smaller (9.3 % over the larger) is out.
+  - A distilled cell is never the compressed side.
+- **The INT8 headline, on literal cells.** The per-channel pair takes over from the stock one once it exists, with no
+  code change.
+- **The real `cells.csv`, without session 7.** The ONNX Runtime pairs are exactly #46's check list of seven, each the
+  headline.
+- **The real `cells.csv`, with session 7.** The five pairs of `verification/pi5_matrix_7_record.md`'s table, parsed from
+  the record, equal it on:
+  - both latencies and the baseline's throttle flag;
+  - how far apart they are;
+  - the AP-small difference, per-channel and stock.
+- **The figure's data.**
+  - One panel per runtime, both models in each.
+  - Each line runs through 640, 800, 960, 1120 and 1280 in that order.
+  - One arrow per headline pair, and no stock or NMS-free cell drawn.
+  - The phone gets the figure only once it has three cells; a cell run again in a later session counts once.
+
 ## Result B: NMS time against objects per image on the Pi 5
 
 Built by `study/scripts/studynms.py` (#45) from the per-image `timings.csv`, `meta.json` and `score.json` of cells already

@@ -309,7 +309,7 @@ def figure_pair(pair, objects, k, out_dir):
                  f"{len(pts['objects']):,} VisDrone test-dev images", x=0.01, ha="left", fontsize=11.5, color=INK)
     fig.text(0.01, 0.905, f"Line: median of the images in a bin ({k} bins of about equal size); band: interquartile range.", fontsize=8.5, color=MUTED)
     fig.tight_layout(rect=(0, 0.11, 1, 0.9))
-    _save(fig, out_dir / "figures" / "result_b_nms")
+    save_figure(fig, out_dir / "figures" / "result_b_nms")
 
 
 def figure_pooled(cells, objects, k, out_dir):
@@ -338,10 +338,10 @@ def figure_pooled(cells, objects, k, out_dir):
     fig.suptitle(f"One-to-many head's NMS time against objects per image, all {len(cells)} Pi 5 cells at 640 "
                  f"({len({c['session'] for c in cells})} sessions)", x=0.01, ha="left", fontsize=11.5, color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
-    _save(fig, out_dir / "figures" / "result_b_nms_pooled")
+    save_figure(fig, out_dir / "figures" / "result_b_nms_pooled")
 
 
-def _save(fig, stem):
+def save_figure(fig, stem):
     import matplotlib.pyplot as plt
     stem.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(stem.with_suffix(".pdf"))
