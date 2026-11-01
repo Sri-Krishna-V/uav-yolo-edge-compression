@@ -1,0 +1,321 @@
+session,run,imgsz,variant,head,threshold,x,lo,hi,n,x_median,median,q1,q3
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.5665,0.48875,0.67425
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.774,0.665,0.878
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.879,0.757,1.0
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.986,0.80425,1.132
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,29,36,175,32.0,1.083,0.913,1.2475
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,36,43,161,39.0,1.235,1.034,1.434
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,43,52,164,47.0,1.3645,1.092,1.62325
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,52,63,158,56.0,1.501,1.22975,1.7245
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,63,88,169,72.0,1.762,1.384,2.087
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,88,461,163,123.0,2.323,1.805,3.0195
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,1,12,148,8.0,4.818,2.83225,8.58425
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,12,18,167,14.0,8.261,5.5175,11.7995
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,18,23,145,20.0,11.549,7.99,14.794
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,23,29,160,26.0,14.3035,11.0035,15.49625
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,29,36,175,32.0,15.211,13.464,16.3155
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,36,43,161,39.0,15.658,14.684,16.664
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,43,52,164,47.0,15.954,15.08775,17.117
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,52,63,158,56.0,16.659,15.58225,18.0645
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,63,88,169,72.0,17.338,15.88,18.498
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,88,461,163,123.0,19.459,17.4015,22.154
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.141,0.09,0.198
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.194,0.091,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.161,0.091,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.195,0.092,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,29,36,175,32.0,0.097,0.091,0.199
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,36,43,161,39.0,0.097,0.092,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,43,52,164,47.0,0.194,0.092,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,52,63,158,56.0,0.1655,0.093,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,63,88,169,72.0,0.143,0.092,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,88,461,163,123.0,0.102,0.092,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,1,12,148,8.0,0.1765,0.104,0.213
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,12,18,167,14.0,0.126,0.111,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,18,23,145,20.0,0.206,0.119,0.226
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,23,29,160,26.0,0.126,0.119,0.231
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,29,36,175,32.0,0.224,0.124,0.2335
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,36,43,161,39.0,0.226,0.123,0.233
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,43,52,164,47.0,0.133,0.123,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,52,63,158,56.0,0.178,0.124,0.233
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,63,88,169,72.0,0.223,0.122,0.233
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,88,461,163,123.0,0.225,0.123,0.231
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.601,0.4975,0.73025
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.7825,0.6555,0.92975
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.866,0.721,1.0425
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,0.984,0.8235,1.16925
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,1.085,0.894,1.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,1.189,0.942,1.47
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,1.309,1.048,1.559
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,1.486,1.195,1.74875
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,1.697,1.367,2.164
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,2.087,1.718,2.908
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,41,525,160,408.0,4.1395,2.7535,5.43425
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,525,766,162,668.0,8.1005,6.746,9.63175
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,766,967,159,865.0,11.441,9.2445,13.8115
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,14.4525,12.93,15.08325
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,15.211,14.35,15.805
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,15.702,15.055,16.424
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,16.168,15.489,17.271
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,16.9995,15.94425,17.93275
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,17.748,16.963,18.8
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,20.168,18.934,22.507
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.184,0.089,0.198
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.192,0.091,0.199
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.181,0.091,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,0.193,0.092,0.19975
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,0.194,0.092,0.199
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,0.195,0.092,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,0.098,0.092,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,0.1,0.092,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,0.103,0.092,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,0.102,0.093,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.146,0.09875,0.20825
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.1255,0.111,0.22175
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.167,0.118,0.23
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,0.134,0.121,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,0.131,0.122,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,0.13,0.123,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,0.227,0.125,0.235
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,0.224,0.123,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,0.225,0.124,0.232
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,0.224,0.123,0.233
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.5755,0.46325,0.6795
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.757,0.659,0.863
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.861,0.724,0.98
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.98,0.79375,1.13825
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,29,36,175,32.0,1.107,0.921,1.2375
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,36,43,161,39.0,1.222,0.991,1.456
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,43,52,164,47.0,1.3325,1.07275,1.6095
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,52,63,158,56.0,1.485,1.18125,1.7215
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,63,88,169,72.0,1.722,1.301,2.081
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,88,461,163,123.0,2.288,1.7335,2.925
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,1,12,148,8.0,7.8155,4.87825,13.0045
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,12,18,167,14.0,11.609,7.776,14.042
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,18,23,145,20.0,13.728,10.346,14.679
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,23,29,160,26.0,14.399,13.53375,15.60075
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,29,36,175,32.0,14.963,14.1655,16.156
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,36,43,161,39.0,15.492,14.801,16.699
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,43,52,164,47.0,15.62,14.96675,17.30875
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,52,63,158,56.0,16.6695,15.59,17.61575
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,63,88,169,72.0,17.047,16.083,18.083
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,88,461,163,123.0,19.458,17.6815,21.957
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.1715,0.085,0.219
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.199,0.085,0.22
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.147,0.086,0.22
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.2165,0.086,0.222
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,29,36,175,32.0,0.094,0.086,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,36,43,161,39.0,0.089,0.087,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,43,52,164,47.0,0.2025,0.087,0.222
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,52,63,158,56.0,0.145,0.088,0.223
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,63,88,169,72.0,0.091,0.088,0.223
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,88,461,163,123.0,0.095,0.09,0.225
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,1,12,148,8.0,0.193,0.105,0.235
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,12,18,167,14.0,0.118,0.11,0.244
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,18,23,145,20.0,0.212,0.116,0.248
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,23,29,160,26.0,0.119,0.117,0.252
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,29,36,175,32.0,0.246,0.1175,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,36,43,161,39.0,0.249,0.118,0.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,43,52,164,47.0,0.1605,0.118,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,52,63,158,56.0,0.2065,0.118,0.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,63,88,169,72.0,0.23,0.117,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,88,461,163,123.0,0.25,0.118,0.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,128,626,161,488.0,0.635,0.492,0.748
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,626,845,160,744.0,0.7695,0.63175,0.91575
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,845,1030,160,932.5,0.826,0.704,1.0245
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1030,1216,162,1127.0,1.0035,0.818,1.177
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1216,1414,161,1313.0,1.096,0.909,1.297
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1414,1639,162,1533.5,1.1255,0.88375,1.38
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1639,1902,160,1742.5,1.26,1.027,1.60575
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1902,2229,161,2038.0,1.516,1.214,1.778
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2229,2733,161,2451.0,1.713,1.354,2.165
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2733,7469,162,3226.0,2.055,1.54075,2.71
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,128,626,161,488.0,6.214,4.296,8.16
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,626,845,160,744.0,10.8595,9.0475,13.14275
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,845,1030,160,932.5,13.904,12.78,14.4665
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1030,1216,162,1127.0,14.549,13.9675,15.143
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1216,1414,161,1313.0,15.058,14.556,15.794
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1414,1639,162,1533.5,15.7395,14.8625,16.65625
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1639,1902,160,1742.5,15.9055,15.24375,16.971
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1902,2229,161,2038.0,16.88,15.759,18.009
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2229,2733,161,2451.0,17.358,16.68,18.564
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2733,7469,162,3226.0,20.192,18.54175,22.70525
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,128,626,161,488.0,0.199,0.085,0.22
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,626,845,160,744.0,0.09,0.086,0.22
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,845,1030,160,932.5,0.2015,0.086,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1030,1216,162,1127.0,0.199,0.086,0.222
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1216,1414,161,1313.0,0.203,0.087,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1414,1639,162,1533.5,0.091,0.086,0.221
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1639,1902,160,1742.5,0.089,0.08675,0.222
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1902,2229,161,2038.0,0.129,0.088,0.223
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2229,2733,161,2451.0,0.092,0.088,0.223
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2733,7469,162,3226.0,0.1155,0.089,0.224
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,128,626,161,488.0,0.148,0.101,0.233
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,626,845,160,744.0,0.2225,0.11,0.247
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,845,1030,160,932.5,0.1195,0.116,0.252
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1030,1216,162,1127.0,0.119,0.117,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1216,1414,161,1313.0,0.12,0.118,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1414,1639,162,1533.5,0.236,0.117,0.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1639,1902,160,1742.5,0.2495,0.118,0.25325
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1902,2229,161,2038.0,0.23,0.118,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2229,2733,161,2451.0,0.249,0.118,0.254
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2733,7469,162,3226.0,0.2375,0.118,0.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.566,0.49775,0.6715
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.768,0.686,0.878
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.875,0.757,1.01
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.983,0.8065,1.13725
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,29,36,175,32.0,1.105,0.9465,1.253
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,36,43,161,39.0,1.264,1.043,1.42
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,43,52,164,47.0,1.3915,1.10375,1.62975
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,52,63,158,56.0,1.5265,1.23525,1.73375
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,63,88,169,72.0,1.794,1.407,2.083
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,88,461,163,123.0,2.371,1.8835,3.1235
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,1,12,148,8.0,5.028,2.92825,8.50475
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,12,18,167,14.0,8.239,5.6305,12.038
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,18,23,145,20.0,11.249,8.156,15.107
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,23,29,160,26.0,14.608,11.42475,15.875
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,29,36,175,32.0,15.589,13.6345,16.5405
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,36,43,161,39.0,15.851,14.978,17.055
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,43,52,164,47.0,16.142,15.4025,17.61325
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,52,63,158,56.0,16.826,15.91025,18.048
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,63,88,169,72.0,17.495,16.405,18.738
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,88,461,163,123.0,19.967,17.8575,22.164
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.132,0.09,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.161,0.091,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.113,0.091,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.162,0.091,0.16725
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,29,36,175,32.0,0.097,0.092,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,36,43,161,39.0,0.099,0.091,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,43,52,164,47.0,0.16,0.09275,0.168
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,52,63,158,56.0,0.1465,0.093,0.168
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,63,88,169,72.0,0.104,0.092,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,88,461,163,123.0,0.101,0.093,0.17
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,1,12,148,8.0,0.163,0.104,0.17925
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,12,18,167,14.0,0.126,0.112,0.1875
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,18,23,145,20.0,0.174,0.121,0.195
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,23,29,160,26.0,0.1325,0.122,0.197
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,29,36,175,32.0,0.193,0.126,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,36,43,161,39.0,0.192,0.126,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,43,52,164,47.0,0.133,0.125,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,52,63,158,56.0,0.17,0.126,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,63,88,169,72.0,0.191,0.123,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,88,461,163,123.0,0.193,0.125,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.607,0.5165,0.727
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.779,0.681,0.938
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.875,0.725,1.0545
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,1.002,0.83925,1.1915
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,1.112,0.885,1.246
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,1.182,0.962,1.474
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,1.319,1.056,1.597
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,1.505,1.1875,1.79675
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,1.71,1.381,2.169
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,2.08,1.663,2.935
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,41,525,160,408.0,4.1685,2.8595,5.609
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,525,766,162,668.0,8.168,6.8015,9.735
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,766,967,159,865.0,11.694,9.5985,14.119
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,14.678,13.15575,15.403
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,15.333,14.733,16.147
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,15.996,15.321,16.705
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,16.307,15.752,17.316
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,16.995,16.1025,18.0035
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,17.993,17.147,19.302
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,20.557,18.94,22.384
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.1545,0.09,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.159,0.091,0.16875
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.158,0.091,0.168
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,0.1595,0.092,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,0.161,0.092,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,0.162,0.093,0.168
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,0.098,0.092,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,0.1075,0.092,0.166
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,0.1,0.092,0.167
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,0.103,0.093,0.168
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,41,525,160,408.0,0.145,0.103,0.176
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,525,766,162,668.0,0.127,0.116,0.189
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,766,967,159,865.0,0.14,0.1215,0.197
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,967,1163,162,1066.0,0.137,0.123,0.199
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1163,1351,161,1258.0,0.133,0.126,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1351,1561,161,1458.0,0.134,0.126,0.202
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1561,1829,161,1701.0,0.193,0.126,0.201
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1829,2180,162,1988.5,0.1915,0.124,0.2
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2180,2690,161,2409.0,0.193,0.126,0.199
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2690,7452,161,3344.0,0.192,0.125,0.201
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.5555,0.449,0.65725
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.728,0.631,0.8355
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.835,0.702,0.954
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.946,0.775,1.09725
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,29,36,175,32.0,1.043,0.902,1.1535
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,36,43,161,39.0,1.187,1.041,1.391
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,43,52,164,47.0,1.32,1.0785,1.5695
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,52,63,158,56.0,1.4735,1.182,1.6945
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,63,88,169,72.0,1.751,1.296,2.046
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,88,461,163,123.0,2.224,1.8055,2.9725
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,1,12,148,8.0,5.001,3.259,9.61025
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,12,18,167,14.0,9.046,6.043,13.0585
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,18,23,145,20.0,12.199,8.375,14.202
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,23,29,160,26.0,13.9795,11.99525,14.90425
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,29,36,175,32.0,14.597,13.718,15.6015
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,36,43,161,39.0,15.065,14.397,16.091
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,43,52,164,47.0,15.2595,14.6275,16.693
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,52,63,158,56.0,16.1585,15.184,17.2095
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,63,88,169,72.0,16.804,15.558,18.027
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,88,461,163,123.0,18.986,17.0255,20.9755
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,1,12,148,8.0,0.172,0.087,0.223
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,12,18,167,14.0,0.221,0.088,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,18,23,145,20.0,0.092,0.088,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,23,29,160,26.0,0.221,0.089,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,29,36,175,32.0,0.091,0.089,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,36,43,161,39.0,0.091,0.089,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,43,52,164,47.0,0.2215,0.09,0.226
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,52,63,158,56.0,0.178,0.091,0.226
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,63,88,169,72.0,0.152,0.091,0.227
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,88,461,163,123.0,0.102,0.093,0.229
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,1,12,148,8.0,0.1725,0.103,0.23825
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,12,18,167,14.0,0.122,0.111,0.246
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,18,23,145,20.0,0.229,0.119,0.256
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,23,29,160,26.0,0.127,0.12,0.25725
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,29,36,175,32.0,0.253,0.121,0.261
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,36,43,161,39.0,0.252,0.121,0.258
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,43,52,164,47.0,0.149,0.121,0.26025
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,52,63,158,56.0,0.1895,0.121,0.261
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,63,88,169,72.0,0.253,0.121,0.261
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,88,461,163,123.0,0.254,0.121,0.2635
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,78,571,160,412.0,0.6095,0.469,0.715
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,571,794,160,684.5,0.738,0.6,0.88475
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,794,1012,160,904.5,0.827,0.69325,0.95925
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1012,1212,163,1102.0,0.974,0.765,1.119
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1212,1414,162,1314.5,1.066,0.8935,1.26425
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1414,1643,161,1533.0,1.134,0.901,1.387
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1643,1925,159,1771.0,1.224,1.0525,1.5265
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1925,2249,162,2078.0,1.4985,1.23025,1.77425
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2249,2799,161,2508.0,1.623,1.314,2.011
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,2799,7561,162,3365.5,2.026,1.61725,2.7215
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,78,571,160,412.0,4.3195,3.1085,5.6465
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,571,794,160,684.5,8.737,7.155,10.216
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,794,1012,160,904.5,12.29,10.51025,13.70925
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1012,1212,163,1102.0,14.006,13.578,14.6105
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1212,1414,162,1314.5,14.678,14.1365,15.25775
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1414,1643,161,1533.0,15.078,14.513,15.677
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1643,1925,159,1771.0,15.398,14.9625,16.342
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1925,2249,162,2078.0,16.364,15.505,17.30775
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2249,2799,161,2508.0,17.041,16.439,18.429
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,2799,7561,162,3365.5,19.622,18.26,21.455
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,78,571,160,412.0,0.2185,0.088,0.223
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,571,794,160,684.5,0.092,0.088,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,794,1012,160,904.5,0.092,0.088,0.224
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1012,1212,163,1102.0,0.218,0.089,0.2245
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1212,1414,162,1314.5,0.222,0.089,0.225
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1414,1643,161,1533.0,0.204,0.089,0.225
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1643,1925,159,1771.0,0.096,0.09,0.225
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1925,2249,162,2078.0,0.095,0.09,0.226
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2249,2799,161,2508.0,0.22,0.091,0.228
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,2799,7561,162,3365.5,0.0995,0.092,0.229
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,78,571,160,412.0,0.1135,0.1,0.23325
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,571,794,160,684.5,0.23,0.111,0.24825
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,794,1012,160,904.5,0.241,0.119,0.256
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1012,1212,163,1102.0,0.17,0.121,0.259
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1212,1414,162,1314.5,0.128,0.12,0.259
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1414,1643,161,1533.0,0.175,0.121,0.261
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1643,1925,159,1771.0,0.255,0.123,0.262
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1925,2249,162,2078.0,0.2535,0.12125,0.26
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2249,2799,161,2508.0,0.129,0.121,0.258
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,2799,7561,162,3365.5,0.255,0.121,0.263

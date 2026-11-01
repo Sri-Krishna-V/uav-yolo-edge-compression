@@ -1,0 +1,23 @@
+% result B (#45): the one-to-many head against the NMS-free head, one block per pair. Written by studynms.py.
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Cell & Head & Pre (ms) & Net (ms) & Post at 0.25 (ms) & Post at 0.001 (ms) & Latency (ms) & Post at 0.25, share of latency (\%) & AP & AP-small \\
+\midrule
+ONNX Runtime FP32 (session 2) & One-to-many head & 3.3 & 378.4 & 1.11 & 15.35 & 383.1 t & 0.29 & 0.1943 & 0.0995 \\
+ & NMS-free head & 3.6 & 383.1 & 0.17 & 0.20 & 386.9 t & 0.04 & 0.1891 & 0.0991 \\
+ & Difference & +0.3 & +4.7 & $-$0.94 & $-$15.15 & +3.9 & $-$0.25 & $-$0.0052 & $-$0.0004 \\
+\midrule
+ONNX Runtime INT8 (session 2) & One-to-many head & 3.3 & 271.3 & 1.10 & 15.27 & 275.9 & 0.40 & 0.1549 & 0.0698 \\
+ & NMS-free head & 3.6 & 275.3 & 0.18 & 0.20 & 279.1 & 0.06 & 0.1540 & 0.0770 \\
+ & Difference & +0.3 & +4.0 & $-$0.92 & $-$15.07 & +3.2 & $-$0.33 & $-$0.0008 & +0.0073 \\
+\midrule
+OpenVINO FP32 (session 2) & One-to-many head & 3.3 & 297.8 & 1.12 & 15.59 & 302.2 t & 0.37 & 0.1943 & 0.0995 \\
+ & NMS-free head & 3.3 & 307.0 & 0.15 & 0.16 & 310.5 t & 0.05 & 0.1891 & 0.0991 \\
+ & Difference & +0.1 & +9.2 & $-$0.97 & $-$15.43 & +8.4 & $-$0.32 & $-$0.0052 & $-$0.0004 \\
+\midrule
+ONNX Runtime INT8 per-channel (session 7) & One-to-many head & 3.3 & 272.9 & 1.07 & 14.82 & 277.4 & 0.39 & 0.1795 & 0.0886 \\
+ & NMS-free head & 3.6 & 275.8 & 0.18 & 0.20 & 279.5 & 0.07 & 0.1739 & 0.0881 \\
+ & Difference & +0.3 & +2.9 & $-$0.89 & $-$14.62 & +2.1 & $-$0.32 & $-$0.0056 & $-$0.0005 \\
+\bottomrule
+\end{tabular}
+% t: the cell throttled (summary.csv). Difference: NMS-free head minus one-to-many head.

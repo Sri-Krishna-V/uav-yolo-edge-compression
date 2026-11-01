@@ -1,0 +1,33 @@
+session,run,imgsz,variant,head,threshold,x,images,slope_ms_per,slope_ms,intercept_ms,r
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),objects per image,1610,100 objects,1.205611,0.722545,0.657844
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),objects per image,1610,100 objects,7.303851,10.708778,0.634897
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),objects per image,1610,100 objects,0.00032,0.147439,0.002519
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),objects per image,1610,100 objects,0.008038,0.172396,0.061096
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.561561,0.422029,0.651617
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,4.481824,7.229005,0.828487
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,-0.000264,0.147994,-0.004414
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.006333,0.166414,0.102374
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),objects per image,1610,100 objects,1.14906,0.720081,0.715997
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),objects per image,1610,100 objects,5.950912,12.041035,0.612092
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),objects per image,1610,100 objects,0.001696,0.154866,0.010931
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),objects per image,1610,100 objects,0.007433,0.180705,0.047429
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.525193,0.417026,0.689406
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,3.804909,8.738158,0.824452
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.000418,0.154989,0.005674
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,onnxruntime-int8,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.004766,0.176558,0.06406
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),objects per image,1610,100 objects,1.227994,0.711397,0.747449
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),objects per image,1610,100 objects,7.374075,10.873589,0.636328
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),objects per image,1610,100 objects,0.00103,0.129654,0.011849
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),objects per image,1610,100 objects,0.007682,0.155854,0.08597
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.576867,0.397805,0.746691
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,4.516482,7.373341,0.828807
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,-2.7e-05,0.130176,-0.000659
+pi5-matrix-2-yolo26s,yolo26s-640-s0,640,openvino-fp32,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.005532,0.150937,0.131653
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),objects per image,1610,100 objects,1.167843,0.684867,0.742536
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),objects per image,1610,100 objects,6.679047,10.780764,0.636873
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),objects per image,1610,100 objects,0.001976,0.158203,0.012569
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),objects per image,1610,100 objects,0.010649,0.184848,0.065457
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.533943,0.375245,0.743218
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,one_to_many,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,4.01618,7.469863,0.838378
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.25 (deployment threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.000449,0.158406,0.006254
+pi5-matrix-7-int8pc,yolo26s-640-s0,640,onnxruntime-int8pc,nms_free,0.001 (evaluation threshold),candidates entering NMS at 0.001,1610,1000 candidates,0.00672,0.179063,0.090426
