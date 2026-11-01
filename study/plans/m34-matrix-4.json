@@ -1,16 +1,11 @@
 {
   "platform": "m34",
-  "note": "the phone's matrix, session 4 (#27, #45, #46, #47): the rest of the Pi 5's ONNX Runtime cells, overnight. A2 at 640 with the NMS-free head in FP32 and per-channel INT8, back to back; B1 and B2 at 800 in per-channel INT8; B3 at 1280 in per-channel INT8; then B3 and B4 in FP32 at 1120 and at 1280; ONNX Runtime only, all 1,610 test-dev images; about 7.5 h with the fixed 3-minute start waits. Seed 35633 runs them by value, so a cut takes the FP32 cells at 1280 first: the NMS-free cells, the INT8 cells at 800, B3 at 1280 in INT8, the FP32 cells at 1120, then the FP32 cells at 1280",
-  "seed": 35633,
+  "note": "the phone's matrix, session 4 (#27, #46, #47): the important cells left, about 2 h 10 min with the fixed 3-minute start waits. B1 in FP32 at 960 against B3 in per-channel INT8 at 1280, back to back (the phone's equal-latency candidate past 1120: session 3 measured B1 FP32 at 960 at 1397.6 ms, and B3 INT8 at 1280 scales to about 1290 ms); then B1 and B2 in per-channel INT8 at 800 (their INT8 speed-up against session 3's FP32 cells at 800). ONNX Runtime only, all 1,610 test-dev images. Seed 5 runs the pair first, so a cut takes the INT8 cells at 800. The rest of the Pi 5's cells moved to session 5",
+  "seed": 5,
   "cells": [
-    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-fp32-e2e", "runtime": "onnxruntime", "imgsz": 640},
-    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8pc-e2e", "runtime": "onnxruntime", "imgsz": 640},
-    {"artifact": "exports/yolo11s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800},
-    {"artifact": "exports/yolo26s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo11s-960-s0/960/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 960},
     {"artifact": "exports/yolo11s-1280-s0/1280/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 1280},
-    {"artifact": "exports/yolo11s-1280-s0/1120/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1120},
-    {"artifact": "exports/yolo26s-1280-s0/1120/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1120},
-    {"artifact": "exports/yolo11s-1280-s0/1280/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1280},
-    {"artifact": "exports/yolo26s-1280-s0/1280/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 1280}
+    {"artifact": "exports/yolo11s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800},
+    {"artifact": "exports/yolo26s-960-s0/800/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 800}
   ]
 }
