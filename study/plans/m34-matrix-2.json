@@ -1,0 +1,14 @@
+{
+  "platform": "m34",
+  "note": "the phone's matrix, session 2 (#27, #46, #47): the rest of the matrix resolution on the phone, the pruned, distilled and combined configurations of both study models at 640, and B2 at 960 in per-channel INT8; ONNX Runtime only, all 1,610 test-dev images; about 2.5 h with the fixed 3-minute start waits. Seed 376 runs them by value, so a cut takes the distilled cells first: B2 at 960, the combined cells, the pruned cells, then the distilled cells",
+  "seed": 376,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0-prune30-distill/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30-distill/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-960-s0/960/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo11s-640-s0-prune30/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-prune30/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo11s-640-s0-distill/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0-distill/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}

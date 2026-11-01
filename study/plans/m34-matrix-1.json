@@ -1,0 +1,12 @@
+{
+  "platform": "m34",
+  "note": "the phone's matrix, session 1 (#27, #46, #47), on the reinstalled Termux (OpenCV 5.0.0 and ONNX Runtime 1.31.1, against 4.14.0 and 1.31.0 on 25 October): A1 at 640 in FP32 again, so that B1 at 960 in per-channel INT8 has its equal-latency partner in the same session and software, and the 25 October cell measures the software change; A1 at 640 in per-channel INT8; and A2 at 640 in FP32 and per-channel INT8 for YOLO11s against YOLO26s. ONNX Runtime only, all 1,610 test-dev images; about 2 h with the fixed 3-minute start waits. Seed 5 runs the pair first, back to back",
+  "seed": 5,
+  "cells": [
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo11s-960-s0/960/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 960},
+    {"artifact": "exports/yolo11s-640-s0/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-fp32", "runtime": "onnxruntime", "imgsz": 640},
+    {"artifact": "exports/yolo26s-640-s0/640/onnxruntime-int8pc", "runtime": "onnxruntime", "imgsz": 640}
+  ]
+}
