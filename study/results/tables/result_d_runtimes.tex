@@ -1,0 +1,33 @@
+% Result D (#47): the three Pi 5 runtimes side by side. Written by studytables.py from results/cells.csv.
+\begin{tabular}{llrrrrr}
+\toprule
+Cell & Configuration & NCNN FP16 (ms) & OpenVINO FP32 (ms) & ONNX Runtime FP32 (ms) & ONNX Runtime INT8 (ms) & AP: NCNN / FP32 / INT8 \\
+\midrule
+\multicolumn{7}{l}{\textit{YOLO11s}} \\
+A1 at 640 & Baseline & 171.5 (2.27$\times$) & 294.0 [1] (1.33$\times$) & 389.8 [381] & 272.3 (1.43$\times$) & 0.1866 / 0.1875 / 0.1696 \\
+P1 at 640 & Pruned & 112.2 (2.14$\times$) & 193.1 (1.24$\times$) & 239.7 [16] & -- & 0.1565 / 0.1573 / -- \\
+D1 at 640 & Distilled & 171.6 (2.26$\times$) & 293.7 [2] (1.32$\times$) & 388.1 [368] & -- & 0.1943 / 0.1950 / -- \\
+C1 at 640 & Combined & -- & -- & -- & 193.2 & -- / -- / 0.1442 \\
+B1 at 800$^{\dagger}$ & Baseline & 276.8 (2.28$\times$) & 474.6 [5] (1.33$\times$) & 629.9 [351] & 416.2 (1.51$\times$) & 0.2179 / 0.2190 / 0.2053 \\
+B1 at 960 & Baseline & 411.3 (2.21$\times$) & 712.6 [54] (1.28$\times$) & 909.7 [680] & 617.2 (1.47$\times$) & 0.2381 / 0.2392 / 0.2239 \\
+P2 at 960 & Pruned & 271.0 (2.12$\times$) & 474.7 (1.21$\times$) & 574.6 [6] & -- & 0.2047 / 0.2055 / -- \\
+B3 at 1120$^{\dagger}$ & Baseline & 596.8$^{\mathrm{S}}$ (2.20$\times$) & 1012.5 [193]$^{\mathrm{S}}$ (1.30$\times$) & 1315.4 [513]$^{\mathrm{S}}$ & 832.0 (1.58$\times$)$^{\mathrm{S}}$ & 0.2528 / 0.2541 / 0.2418 \\
+B3 at 1280 & Baseline & 775.7 (2.19$\times$) & 1308.2 [974] (1.30$\times$) & 1695.1 [1{,}220] & 1153.2 (1.47$\times$) & 0.2638 / 0.2652 / 0.2593 \\
+\midrule
+\multicolumn{7}{l}{\textit{YOLO26s}} \\
+A2 at 640 & Baseline & 173.8 (2.20$\times$) & 302.2 [624] (1.27$\times$) & 383.1 [1{,}373] & 277.4 (1.38$\times$) & 0.1932 / 0.1943 / 0.1795 \\
+P3 at 640 & Pruned & 113.8 (2.05$\times$) & 193.1 [15] (1.21$\times$) & 232.9 [1{,}101] & -- & 0.1580 / 0.1583 / -- \\
+D2 at 640 & Distilled & 174.3 (2.23$\times$) & 306.8 [965] (1.27$\times$) & 388.4 [1{,}418] & -- & 0.1973 / 0.1979 / -- \\
+C2 at 640 & Combined & -- & -- & -- & 194.1 & -- / -- / 0.1446 \\
+B2 at 800$^{\dagger}$ & Baseline & 286.0 (2.14$\times$) & 489.6 [37] (1.25$\times$) & 611.9 [388] & 430.3 (1.42$\times$) & 0.2208 / 0.2218 / 0.2074 \\
+B2 at 960 & Baseline & 427.9 (2.17$\times$) & 766.3 [1{,}262] (1.21$\times$) & 926.5 [1{,}377] & 646.0 (1.43$\times$) & 0.2399 / 0.2408 / 0.2295 \\
+P4 at 960 & Pruned & 289.3 (1.98$\times$) & 509.4 [425] (1.12$\times$) & 571.7 [1{,}381] & -- & 0.2090 / 0.2100 / -- \\
+B4 at 1120$^{\dagger}$ & Baseline & 633.4$^{\mathrm{S}}$ (2.21$\times$) & 1082.7 [264]$^{\mathrm{S}}$ (1.29$\times$) & 1397.8 [19]$^{\mathrm{S}}$ & 880.6 (1.59$\times$)$^{\mathrm{S}}$ & 0.2591 / 0.2610 / 0.2471 \\
+B4 at 1280 & Baseline & 845.3 (1.98$\times$) & 1400.7 [1{,}022] (1.20$\times$) & 1675.1 [1{,}367] & -- & 0.2673 / 0.2690 / -- \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize Median latency on the Pi 5 at 2000 MHz; in brackets, the speed-up over ONNX Runtime FP32 (its latency over the cell's). One-to-many head.} \\
+\multicolumn{7}{l}{\footnotesize OpenVINO FP32 and ONNX Runtime FP32 give the same AP to 4 digits. INT8: per-channel, or stock where marked; the stock cells are in the CSV.} \\
+\multicolumn{7}{l}{\footnotesize [n]: the cell ran n of its 1,610 images below 2000 MHz (INVARIANTS.md section 4.7); the median clocks are in the latency table.} \\
+\multicolumn{7}{l}{\footnotesize $^{\dagger}$ A checkpoint run at an input resolution it was not trained at (800 from the 960 models, 1120 from the 1280 ones): its accuracy there is a little lower (\#8).} \\
+\multicolumn{7}{l}{\footnotesize $^{\mathrm{S}}$ After a latency: session 6's cell (about 6\% high). After a speed-up: its two cells span session 6, so it is about 6\% off.} \\
+\end{tabular}

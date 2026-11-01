@@ -1,0 +1,15 @@
+model,configuration,checkpoint,imgsz,runtime,precision,int8_recipe,headline,ap,ap50,ap_small,ap_medium,ap_large,session,note
+YOLO11s,baseline,A1,640,onnxruntime,FP32,,1,0.187479,0.326521,0.090394,0.283724,0.420299,pi5-matrix-1-yolo11s,
+YOLO11s,quantized,A1,640,onnxruntime,INT8,per-channel,1,0.169622,0.306784,0.078119,0.259338,0.404436,pi5-matrix-7-int8pc,
+YOLO11s,quantized,A1,640,onnxruntime,INT8,stock,0,0.16819,0.30555,0.076869,0.255677,0.401273,pi5-matrix-1-yolo11s,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+YOLO11s,pruned,P1,640,onnxruntime,FP32,,1,0.157279,0.280828,0.073871,0.239533,0.364004,pi5-matrix-1-yolo11s,
+YOLO11s,distilled,D1,640,onnxruntime,FP32,,1,0.194985,0.340449,0.096261,0.297913,0.461677,pi5-matrix-1-yolo11s,
+YOLO11s,combined,C1,640,onnxruntime,INT8,per-channel,1,0.14418,0.2678,0.063105,0.222698,0.367522,pi5-matrix-7-int8pc,
+YOLO11s,combined,C1,640,onnxruntime,INT8,stock,0,0.141998,0.263641,0.060688,0.221455,0.340268,pi5-matrix-1-yolo11s,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+YOLO26s,baseline,A2,640,onnxruntime,FP32,,1,0.194331,0.339365,0.099529,0.287708,0.397154,pi5-matrix-2-yolo26s,
+YOLO26s,quantized,A2,640,onnxruntime,INT8,per-channel,1,0.179518,0.322687,0.08857,0.270381,0.381666,pi5-matrix-7-int8pc,
+YOLO26s,quantized,A2,640,onnxruntime,INT8,stock,0,0.154874,0.293289,0.069785,0.239668,0.33057,pi5-matrix-2-yolo26s,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+YOLO26s,pruned,P3,640,onnxruntime,FP32,,1,0.158312,0.285558,0.075424,0.239916,0.343091,pi5-matrix-3-yolo26s-compressed,
+YOLO26s,distilled,D2,640,onnxruntime,FP32,,1,0.197894,0.351431,0.102687,0.291916,0.409259,pi5-matrix-3-yolo26s-compressed,
+YOLO26s,combined,C2,640,onnxruntime,INT8,per-channel,1,0.144579,0.270344,0.06453,0.220569,0.338711,pi5-matrix-7-int8pc,
+YOLO26s,combined,C2,640,onnxruntime,INT8,stock,0,0.128453,0.253326,0.053803,0.19892,0.323402,pi5-matrix-3-yolo26s-compressed,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)

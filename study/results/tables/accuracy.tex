@@ -1,0 +1,27 @@
+% The accuracy table (#47): the Pi 5, the matrix resolution (640), one-to-many head. Written by studytables.py from results/cells.csv.
+\begin{tabular}{lllrrrrr}
+\toprule
+Configuration & Cell & Precision & AP & AP50 & AP-small & AP-medium & AP-large \\
+\midrule
+\multicolumn{8}{l}{\textit{YOLO11s}} \\
+Baseline & A1 & FP32 & 0.1875 & 0.3265 & 0.0904 & 0.2837 & 0.4203 \\
+Quantized & A1 & INT8 & 0.1696 & 0.3068 & 0.0781 & 0.2593 & 0.4044 \\
+Quantized, stock & A1 & INT8 & 0.1682 & 0.3056 & 0.0769 & 0.2557 & 0.4013 \\
+Pruned & P1 & FP32 & 0.1573 & 0.2808 & 0.0739 & 0.2395 & 0.3640 \\
+Distilled & D1 & FP32 & 0.1950 & 0.3404 & 0.0963 & 0.2979 & 0.4617 \\
+Combined & C1 & INT8 & 0.1442 & 0.2678 & 0.0631 & 0.2227 & 0.3675 \\
+Combined, stock & C1 & INT8 & 0.1420 & 0.2636 & 0.0607 & 0.2215 & 0.3403 \\
+\midrule
+\multicolumn{8}{l}{\textit{YOLO26s}} \\
+Baseline & A2 & FP32 & 0.1943 & 0.3394 & 0.0995 & 0.2877 & 0.3972 \\
+Quantized & A2 & INT8 & 0.1795 & 0.3227 & 0.0886 & 0.2704 & 0.3817 \\
+Quantized, stock & A2 & INT8 & 0.1549 & 0.2933 & 0.0698 & 0.2397 & 0.3306 \\
+Pruned & P3 & FP32 & 0.1583 & 0.2856 & 0.0754 & 0.2399 & 0.3431 \\
+Distilled & D2 & FP32 & 0.1979 & 0.3514 & 0.1027 & 0.2919 & 0.4093 \\
+Combined & C2 & INT8 & 0.1446 & 0.2703 & 0.0645 & 0.2206 & 0.3387 \\
+Combined, stock & C2 & INT8 & 0.1285 & 0.2533 & 0.0538 & 0.1989 & 0.3234 \\
+\bottomrule
+\multicolumn{8}{l}{\footnotesize COCO AP at maxDets 500 on VisDrone test-dev, scored from the Pi 5's detections at the evaluation threshold (0.001).} \\
+\multicolumn{8}{l}{\footnotesize Baseline, pruned and distilled: the ONNX Runtime FP32 cells. INT8 is ONNX Runtime's, per-channel (INVARIANTS.md section 8) unless marked stock; a stock row follows its per-channel row.} \\
+\multicolumn{8}{l}{\footnotesize Combined: pruned, recovered by distillation, then INT8.} \\
+\end{tabular}

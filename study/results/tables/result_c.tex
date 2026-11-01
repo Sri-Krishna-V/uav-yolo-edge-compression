@@ -1,0 +1,38 @@
+% Result C (#47): YOLO11s against YOLO26s on the Pi 5. Written by studytables.py from results/cells.csv.
+\begin{tabular}{llrrrrrrc}
+\toprule
+Runtime & Precision & Input res. & YOLO11s (ms) & YOLO26s (ms) & YOLO26s / YOLO11s & $\Delta$AP & $\Delta$AP-small & Below 2000 MHz \\
+\midrule
+\multicolumn{9}{l}{\textit{Baselines at their runtime's precision}} \\
+ONNX Runtime & FP32 & 640 & 389.8 t & 383.1 t & 0.983 & +0.0069 & +0.0091 & 381 / 1{,}373 \\
+ONNX Runtime & FP32 & 800 & 629.9 t & 611.9 t & 0.971 & +0.0028 & +0.0021 & 351 / 388 \\
+ONNX Runtime & FP32 & 960 & 909.7 t & 926.5 t & 1.019 & +0.0016 & +0.0026 & 680 / 1{,}377 \\
+ONNX Runtime & FP32 & 1120 & 1315.4 t & 1397.8 & 1.063 & +0.0068 & +0.0042 & 513 / 19 \\
+ONNX Runtime & FP32 & 1280 & 1695.1 t & 1675.1 t & 0.988 & +0.0038 & +0.0039 & 1{,}220 / 1{,}367 \\
+OpenVINO & FP32 & 640 & 294.0 & 302.2 t & 1.028 & +0.0069 & +0.0091 & 1 / 624 \\
+OpenVINO & FP32 & 800 & 474.6 & 489.6 & 1.032 & +0.0028 & +0.0021 & 5 / 37 \\
+OpenVINO & FP32 & 960 & 712.6 t & 766.3 t & 1.075 & +0.0016 & +0.0026 & 54 / 1{,}262 \\
+OpenVINO & FP32 & 1120 & 1012.5 t & 1082.7 t & 1.069 & +0.0068 & +0.0042 & 193 / 264 \\
+OpenVINO & FP32 & 1280 & 1308.2 t & 1400.7 t & 1.071 & +0.0038 & +0.0039 & 974 / 1{,}022 \\
+NCNN & FP16 & 640 & 171.5 & 173.8 & 1.013 & +0.0066 & +0.0092 & 0 / 0 \\
+NCNN & FP16 & 800 & 276.8 & 286.0 & 1.033 & +0.0029 & +0.0020 & 0 / 0 \\
+NCNN & FP16 & 960 & 411.3 & 427.9 & 1.040 & +0.0017 & +0.0024 & 0 / 0 \\
+NCNN & FP16 & 1120 & 596.8 & 633.4 & 1.061 & +0.0063 & +0.0030 & 0 / 0 \\
+NCNN & FP16 & 1280 & 775.7 & 845.3 & 1.090 & +0.0035 & +0.0031 & 0 / 0 \\
+\midrule
+\multicolumn{9}{l}{\textit{INT8 (quantized)}} \\
+ONNX Runtime & INT8 & 640 & 272.3 & 277.4 & 1.019 & +0.0099 & +0.0105 & 0 / 0 \\
+ONNX Runtime & INT8 & 800 & 416.2 & 430.3 & 1.034 & +0.0021 & +0.0034 & 0 / 0 \\
+ONNX Runtime & INT8 & 960 & 617.2 & 646.0 & 1.047 & +0.0056 & +0.0050 & 0 / 0 \\
+ONNX Runtime & INT8 & 1120 & 832.0 & 880.6 & 1.058 & +0.0052 & +0.0021 & 0 / 0 \\
+ONNX Runtime & INT8, stock & 640 & 272.5 & 275.9 & 1.012 & $-$0.0133 & $-$0.0071 & 0 / 0 \\
+ONNX Runtime & INT8, stock & 800 & 416.7 & 431.2 & 1.035 & $-$0.0183 & $-$0.0089 & 0 / 0 \\
+ONNX Runtime & INT8, stock & 960 & 614.0 & 644.4 & 1.049 & $-$0.0157 & $-$0.0066 & 0 / 0 \\
+ONNX Runtime & INT8, stock & 1120 & 883.5 & 943.1 & 1.067 & $-$0.0166 & $-$0.0139 & 0 / 0 \\
+\bottomrule
+\multicolumn{9}{l}{\footnotesize The same configuration, runtime, precision and input resolution for both study models; one-to-many head.} \\
+\multicolumn{9}{l}{\footnotesize Ratio: YOLO26s's median latency over YOLO11s's. Differences: YOLO26s minus YOLO11s. Below 2000 MHz: images, YOLO11s / YOLO26s.} \\
+\multicolumn{9}{l}{\footnotesize Clean latency comparisons, with no image below 2000 MHz in either cell: NCNN FP16, ONNX Runtime INT8 (per-channel), ONNX Runtime INT8, stock. t: the cell was flagged throttled (INVARIANTS.md section 4.7).} \\
+\multicolumn{9}{l}{\footnotesize No pair spans session 6: its cells pair only with each other, so its offset cancels in the ratio.} \\
+\multicolumn{9}{l}{\footnotesize INT8: per-channel unless marked stock. The pruned, distilled and combined pairs are in result\_c.csv.} \\
+\end{tabular}

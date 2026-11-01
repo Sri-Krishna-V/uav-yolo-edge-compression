@@ -223,7 +223,7 @@ def _value(v):
     return "" if v is None else int(v) if isinstance(v, bool) else round(v, 6) if isinstance(v, float) else v
 
 
-def _write(path, rows):
+def write_csv(path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, list(rows[0]))
@@ -409,10 +409,10 @@ def main(argv=None):
     for c, why in aside:
         print(f"set aside: {c['session']} {c['cell']}: {why}")
     pairs = sort_pairs(equal_latency_pairs(cells))
-    _write(a.out / "tables" / "equal_latency.csv", [pair_row(p) for p in pairs])
+    write_csv(a.out / "tables" / "equal_latency.csv", [pair_row(p) for p in pairs])
     write_tex(pairs, a.out / "tables" / "equal_latency.tex")
     every = sorted(all_pairs(cells), key=lambda p: (p["a"]["platform"], p["a"]["latency_ms"], p["b"]["latency_ms"]))
-    _write(a.out / "tables" / "equal_latency_all.csv", [all_row(p) for p in every])
+    write_csv(a.out / "tables" / "equal_latency_all.csv", [all_row(p) for p in every])
     platforms = figure_platforms(cells)
     for platform in platforms:
         figure(figure_data(cells, pairs, platform), platform, a.out)

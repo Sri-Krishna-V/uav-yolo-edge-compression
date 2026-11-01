@@ -1,0 +1,77 @@
+platform,runtime,model,checkpoint,configuration,imgsz,trained_imgsz,untrained_imgsz,precision,int8_recipe,head,cell_name,headline,latency_ms,pre_ms,net_ms,post_deploy_ms,post_eval_ms,throttled,below_2000_mhz,clock_median_mhz,session,session_6,note
+pi5,onnxruntime,YOLO11s,A1,baseline,640,640,0,FP32,,one-to-many,A1 FP32 at 640,1,389.752,3.246,385.197,1.056,14.736,throttled,381,2000,pi5-matrix-1-yolo11s,0,
+pi5,onnxruntime,YOLO11s,B1,baseline,800,960,1,FP32,,one-to-many,B1 FP32 at 800,1,629.937,4.771,623.658,1.187,14.531,throttled,351,2000,pi5-matrix-5-800,0,
+pi5,onnxruntime,YOLO11s,B1,baseline,960,960,0,FP32,,one-to-many,B1 FP32 at 960,1,909.664,6.655,901.455,1.3,14.788,throttled,680,2000,pi5-matrix-1-yolo11s,0,
+pi5,onnxruntime,YOLO11s,B3,baseline,1120,1280,1,FP32,,one-to-many,B3 FP32 at 1120,1,1315.424,9.328,1304.336,1.394,14.938,throttled,513,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,onnxruntime,YOLO11s,B3,baseline,1280,1280,0,FP32,,one-to-many,B3 FP32 at 1280,1,1695.085,11.528,1681.756,1.535,15.415,throttled,1220,1966,pi5-matrix-4-1280-baselines,0,
+pi5,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,per-channel,one-to-many,A1 INT8 at 640,1,272.297,3.256,267.786,1.098,15.36,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,B1,quantized,800,960,1,INT8,per-channel,one-to-many,B1 INT8 at 800,1,416.229,4.781,410.164,1.083,14.248,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,B1,quantized,960,960,0,INT8,per-channel,one-to-many,B1 INT8 at 960,1,617.174,6.641,609.107,1.214,14.401,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,B3,quantized,1120,1280,1,INT8,per-channel,one-to-many,B3 INT8 at 1120,1,831.987,8.981,821.289,1.387,15.027,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,B3,quantized,1280,1280,0,INT8,per-channel,one-to-many,B3 INT8 at 1280,1,1153.206,11.527,1140.057,1.488,15.027,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,stock,one-to-many,A1 INT8 at 640,0,272.486,3.296,267.871,1.097,15.522,none,0,2000,pi5-matrix-1-yolo11s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO11s,B1,quantized,800,960,1,INT8,stock,one-to-many,B1 INT8 at 800,0,416.659,4.772,410.543,1.131,14.689,none,0,2000,pi5-matrix-5-800,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO11s,B1,quantized,960,960,0,INT8,stock,one-to-many,B1 INT8 at 960,0,614.003,6.715,605.623,1.246,14.721,none,0,2000,pi5-matrix-1-yolo11s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO11s,B3,quantized,1120,1280,1,INT8,stock,one-to-many,B3 INT8 at 1120,0,883.538,9.433,872.324,1.433,15.043,none,0,2000,pi5-matrix-6-1120,1,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8); latency about 6 % high against the other sessions' (measured by session 7)
+pi5,onnxruntime,YOLO11s,B3,quantized,1280,1280,0,INT8,stock,one-to-many,B3 INT8 at 1280,0,1152.284,11.579,1138.901,1.526,14.835,none,0,2000,pi5-matrix-1-yolo11s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO11s,P1,pruned,640,640,0,FP32,,one-to-many,P1 FP32 at 640,1,239.66,3.294,235.233,0.998,15.308,none,16,2000,pi5-matrix-1-yolo11s,0,
+pi5,onnxruntime,YOLO11s,P2,pruned,960,960,0,FP32,,one-to-many,P2 FP32 at 960,1,574.632,6.678,566.454,1.212,15.3,none,6,2000,pi5-matrix-1-yolo11s,0,
+pi5,onnxruntime,YOLO11s,D1,distilled,640,640,0,FP32,,one-to-many,D1 FP32 at 640,1,388.082,3.292,383.505,1.077,15.114,throttled,368,2000,pi5-matrix-1-yolo11s,0,
+pi5,onnxruntime,YOLO11s,C1,combined,640,640,0,INT8,per-channel,one-to-many,C1 INT8 at 640,1,193.204,3.318,188.64,1.02,15.466,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO11s,C1,combined,640,640,0,INT8,stock,one-to-many,C1 INT8 at 640,0,192.763,3.311,188.1,1.073,16.585,none,0,2000,pi5-matrix-1-yolo11s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO26s,A2,baseline,640,640,0,FP32,,one-to-many,A2 FP32 at 640,1,383.063,3.308,378.42,1.111,15.35,throttled,1373,1911,pi5-matrix-2-yolo26s,0,
+pi5,onnxruntime,YOLO26s,A2,baseline,640,640,0,FP32,,NMS-free,A2 FP32 NMS-free at 640,1,386.919,3.612,383.081,0.172,0.198,throttled,1408,1911,pi5-matrix-2-yolo26s,0,
+pi5,onnxruntime,YOLO26s,B2,baseline,800,960,1,FP32,,one-to-many,B2 FP32 at 800,1,611.903,4.831,605.649,1.2,14.973,throttled,388,2000,pi5-matrix-5-800,0,
+pi5,onnxruntime,YOLO26s,B2,baseline,960,960,0,FP32,,one-to-many,B2 FP32 at 960,1,926.505,6.793,918.148,1.335,15.258,throttled,1377,1911,pi5-matrix-2-yolo26s,0,
+pi5,onnxruntime,YOLO26s,B4,baseline,1120,1280,1,FP32,,one-to-many,B4 FP32 at 1120,1,1397.828,9.521,1386.575,1.361,14.21,none,19,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,onnxruntime,YOLO26s,B4,baseline,1280,1280,0,FP32,,one-to-many,B4 FP32 at 1280,1,1675.06,11.8,1661.535,1.466,14.293,throttled,1367,1911,pi5-matrix-4-1280-baselines,0,
+pi5,onnxruntime,YOLO26s,A2,quantized,640,640,0,INT8,per-channel,one-to-many,A2 INT8 at 640,1,277.445,3.295,272.875,1.072,14.816,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,A2,quantized,640,640,0,INT8,per-channel,NMS-free,A2 INT8 NMS-free at 640,1,279.54,3.572,275.804,0.182,0.198,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,B2,quantized,800,960,1,INT8,per-channel,one-to-many,B2 INT8 at 800,1,430.332,4.77,424.096,1.178,14.722,none,0,2000,pi5-matrix-7-int8pc,0,an earlier attempt was interrupted; run_dir's attempt counts; drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,B2,quantized,960,960,0,INT8,per-channel,one-to-many,B2 INT8 at 960,1,646.026,6.638,637.963,1.232,14.254,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,B4,quantized,1120,1280,1,INT8,per-channel,one-to-many,B4 INT8 at 1120,1,880.649,8.849,870.068,1.42,15.052,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,A2,quantized,640,640,0,INT8,stock,one-to-many,A2 INT8 at 640,0,275.892,3.256,271.307,1.096,15.268,none,0,2000,pi5-matrix-2-yolo26s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO26s,A2,quantized,640,640,0,INT8,stock,NMS-free,A2 INT8 NMS-free at 640,0,279.07,3.568,275.271,0.176,0.197,none,0,2000,pi5-matrix-2-yolo26s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO26s,B2,quantized,800,960,1,INT8,stock,one-to-many,B2 INT8 at 800,0,431.187,4.8,425.02,1.188,14.066,none,0,2000,pi5-matrix-5-800,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO26s,B2,quantized,960,960,0,INT8,stock,one-to-many,B2 INT8 at 960,0,644.37,6.66,636.111,1.248,14.364,none,0,2000,pi5-matrix-2-yolo26s,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,onnxruntime,YOLO26s,B4,quantized,1120,1280,1,INT8,stock,one-to-many,B4 INT8 at 1120,0,943.135,9.192,932.273,1.434,15.623,none,0,2000,pi5-matrix-6-1120,1,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8); latency about 6 % high against the other sessions' (measured by session 7)
+pi5,onnxruntime,YOLO26s,P3,pruned,640,640,0,FP32,,one-to-many,P3 FP32 at 640,1,232.95,3.367,228.329,1.052,15.942,throttled,1101,1966,pi5-matrix-3-yolo26s-compressed,0,
+pi5,onnxruntime,YOLO26s,P4,pruned,960,960,0,FP32,,one-to-many,P4 FP32 at 960,1,571.732,6.704,563.427,1.3,16.174,throttled,1381,1911,pi5-matrix-3-yolo26s-compressed,0,
+pi5,onnxruntime,YOLO26s,D2,distilled,640,640,0,FP32,,one-to-many,D2 FP32 at 640,1,388.353,3.344,383.661,1.163,16.14,throttled,1418,1911,pi5-matrix-3-yolo26s-compressed,0,
+pi5,onnxruntime,YOLO26s,C2,combined,640,640,0,INT8,per-channel,one-to-many,C2 INT8 at 640,1,194.134,3.28,189.741,1.0,16.418,none,0,2000,pi5-matrix-7-int8pc,0,drift flagged across a restart; kept (#37)
+pi5,onnxruntime,YOLO26s,C2,combined,640,640,0,INT8,stock,one-to-many,C2 INT8 at 640,0,193.207,3.291,188.774,0.993,15.752,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,stock INT8 recipe: the per-channel cell is the headline (INVARIANTS.md section 8)
+pi5,openvino,YOLO11s,A1,baseline,640,640,0,FP32,,one-to-many,A1 FP32 at 640,1,294.008,3.256,289.533,1.044,14.782,none,1,2000,pi5-matrix-1-yolo11s,0,
+pi5,openvino,YOLO11s,B1,baseline,800,960,1,FP32,,one-to-many,B1 FP32 at 800,1,474.621,4.825,468.38,1.179,14.578,none,5,2000,pi5-matrix-5-800,0,
+pi5,openvino,YOLO11s,B1,baseline,960,960,0,FP32,,one-to-many,B1 FP32 at 960,1,712.608,6.885,704.141,1.292,14.796,throttled,54,2000,pi5-matrix-1-yolo11s,0,
+pi5,openvino,YOLO11s,B3,baseline,1120,1280,1,FP32,,one-to-many,B3 FP32 at 1120,1,1012.526,10.135,1000.707,1.409,15.322,throttled,193,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,openvino,YOLO11s,B3,baseline,1280,1280,0,FP32,,one-to-many,B3 FP32 at 1280,1,1308.233,11.379,1295.075,1.544,15.978,throttled,974,1966,pi5-matrix-4-1280-baselines,0,
+pi5,openvino,YOLO11s,P1,pruned,640,640,0,FP32,,one-to-many,P1 FP32 at 640,1,193.113,3.29,188.74,0.991,15.366,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,openvino,YOLO11s,P2,pruned,960,960,0,FP32,,one-to-many,P2 FP32 at 960,1,474.726,6.583,466.745,1.187,15.387,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,openvino,YOLO11s,D1,distilled,640,640,0,FP32,,one-to-many,D1 FP32 at 640,1,293.748,3.282,289.237,1.073,15.139,none,2,2000,pi5-matrix-1-yolo11s,0,
+pi5,openvino,YOLO26s,A2,baseline,640,640,0,FP32,,one-to-many,A2 FP32 at 640,1,302.17,3.257,297.769,1.123,15.591,throttled,624,2000,pi5-matrix-2-yolo26s,0,
+pi5,openvino,YOLO26s,A2,baseline,640,640,0,FP32,,NMS-free,A2 FP32 NMS-free at 640,1,310.526,3.322,307.015,0.154,0.164,throttled,1255,1911,pi5-matrix-2-yolo26s,0,
+pi5,openvino,YOLO26s,B2,baseline,800,960,1,FP32,,one-to-many,B2 FP32 at 800,1,489.572,4.783,483.197,1.185,14.869,none,37,2000,pi5-matrix-5-800,0,
+pi5,openvino,YOLO26s,B2,baseline,960,960,0,FP32,,one-to-many,B2 FP32 at 960,1,766.275,6.708,757.931,1.368,15.797,throttled,1262,1911,pi5-matrix-2-yolo26s,0,
+pi5,openvino,YOLO26s,B4,baseline,1120,1280,1,FP32,,one-to-many,B4 FP32 at 1120,1,1082.7,9.479,1071.72,1.39,14.509,throttled,264,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,openvino,YOLO26s,B4,baseline,1280,1280,0,FP32,,one-to-many,B4 FP32 at 1280,1,1400.741,11.366,1387.727,1.518,15.046,throttled,1022,1966,pi5-matrix-4-1280-baselines,0,
+pi5,openvino,YOLO26s,P3,pruned,640,640,0,FP32,,one-to-many,P3 FP32 at 640,1,193.06,3.317,188.664,0.998,15.221,none,15,2000,pi5-matrix-3-yolo26s-compressed,0,
+pi5,openvino,YOLO26s,P4,pruned,960,960,0,FP32,,one-to-many,P4 FP32 at 960,1,509.354,6.616,501.269,1.258,15.808,throttled,425,2000,pi5-matrix-3-yolo26s-compressed,0,
+pi5,openvino,YOLO26s,D2,distilled,640,640,0,FP32,,one-to-many,D2 FP32 at 640,1,306.755,3.238,302.063,1.163,16.233,throttled,965,1966,pi5-matrix-3-yolo26s-compressed,0,
+pi5,ncnn,YOLO11s,A1,baseline,640,640,0,FP16,,one-to-many,A1 FP16 at 640,1,171.51,3.241,167.146,1.019,14.523,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,ncnn,YOLO11s,B1,baseline,800,960,1,FP16,,one-to-many,B1 FP16 at 800,1,276.8,4.819,270.755,1.126,14.317,none,0,2000,pi5-matrix-5-800,0,
+pi5,ncnn,YOLO11s,B1,baseline,960,960,0,FP16,,one-to-many,B1 FP16 at 960,1,411.293,6.767,403.113,1.226,14.399,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,ncnn,YOLO11s,B3,baseline,1120,1280,1,FP16,,one-to-many,B3 FP16 at 1120,1,596.778,9.438,585.765,1.339,14.874,none,0,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,ncnn,YOLO11s,B3,baseline,1280,1280,0,FP16,,one-to-many,B3 FP16 at 1280,1,775.682,11.574,762.276,1.413,14.732,none,0,2000,pi5-matrix-4-1280-baselines,0,
+pi5,ncnn,YOLO11s,P1,pruned,640,640,0,FP16,,one-to-many,P1 FP16 at 640,1,112.176,3.245,107.819,0.978,15.305,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,ncnn,YOLO11s,P2,pruned,960,960,0,FP16,,one-to-many,P2 FP16 at 960,1,271.043,6.696,263.013,1.146,15.047,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,ncnn,YOLO11s,D1,distilled,640,640,0,FP16,,one-to-many,D1 FP16 at 640,1,171.603,3.258,167.175,1.042,14.759,none,0,2000,pi5-matrix-1-yolo11s,0,
+pi5,ncnn,YOLO26s,A2,baseline,640,640,0,FP16,,one-to-many,A2 FP16 at 640,1,173.755,3.242,169.361,1.041,14.473,none,0,2000,pi5-matrix-2-yolo26s,0,
+pi5,ncnn,YOLO26s,B2,baseline,800,960,1,FP16,,one-to-many,B2 FP16 at 800,1,286.048,4.807,279.978,1.135,14.543,none,0,2000,pi5-matrix-5-800,0,
+pi5,ncnn,YOLO26s,B2,baseline,960,960,0,FP16,,one-to-many,B2 FP16 at 960,1,427.927,6.654,419.853,1.236,14.586,none,0,2000,pi5-matrix-2-yolo26s,0,
+pi5,ncnn,YOLO26s,B4,baseline,1120,1280,1,FP16,,one-to-many,B4 FP16 at 1120,1,633.424,9.415,622.501,1.315,14.087,none,0,2000,pi5-matrix-6-1120,1,latency about 6 % high against the other sessions' (measured by session 7)
+pi5,ncnn,YOLO26s,B4,baseline,1280,1280,0,FP16,,one-to-many,B4 FP16 at 1280,1,845.268,11.422,832.13,1.395,14.033,none,0,2000,pi5-matrix-4-1280-baselines,0,
+pi5,ncnn,YOLO26s,P3,pruned,640,640,0,FP16,,one-to-many,P3 FP16 at 640,1,113.773,3.256,109.415,0.984,15.171,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
+pi5,ncnn,YOLO26s,P4,pruned,960,960,0,FP16,,one-to-many,P4 FP16 at 960,1,289.287,6.735,281.161,1.192,15.257,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
+pi5,ncnn,YOLO26s,D2,distilled,640,640,0,FP16,,one-to-many,D2 FP16 at 640,1,174.274,3.238,169.887,1.061,14.801,none,0,2000,pi5-matrix-3-yolo26s-compressed,0,
+m34,onnxruntime,YOLO11s,A1,baseline,640,640,0,FP32,,one-to-many,A1 FP32 at 640,1,636.56,9.264,624.676,2.309,32.486,,,,m34-fullcell,0,
+m34,onnxruntime,YOLO11s,A1,quantized,640,640,0,INT8,stock,one-to-many,A1 INT8 at 640,1,304.779,9.323,292.659,2.373,35.01,,,,m34-fullcell-int8,0,stock INT8 recipe: no per-channel cell scored yet

@@ -1,0 +1,29 @@
+% Small-object degradation (#47, #9): the Pi 5 cells beside #9's laptop numbers. Written by studytables.py from results/cells.csv.
+\begin{tabular}{llrrrrrl}
+\toprule
+Compression & Cell & AP drop (\%) & AP-small (\%) & AP-medium (\%) & AP-large (\%) & Small / all & \#9's bar \\
+\midrule
+\multicolumn{8}{l}{\textit{Raspberry Pi 5, YOLO11s, against A1 FP32 at 640 (ONNX Runtime)}} \\
+Quantized & A1 INT8 at 640 & 9.5 & 13.6 & 8.6 & 3.8 & 1.43$\times$ & weak \\
+Quantized, stock & A1 INT8 at 640 & 10.3 & 15.0 & 9.9 & 4.5 & 1.45$\times$ & weak \\
+Pruned & P1 FP32 at 640 & 16.1 & 18.3 & 15.6 & 13.4 & 1.13$\times$ & absent \\
+Combined & C1 INT8 at 640 & 23.1 & 30.2 & 21.5 & 12.6 & 1.31$\times$ & weak \\
+Combined, stock & C1 INT8 at 640 & 24.3 & 32.9 & 21.9 & 19.0 & 1.35$\times$ & weak \\
+\midrule
+\multicolumn{8}{l}{\textit{Raspberry Pi 5, YOLO26s, against A2 FP32 at 640 (ONNX Runtime)}} \\
+Quantized & A2 INT8 at 640 & 7.6 & 11.0 & 6.0 & 3.9 & 1.44$\times$ & weak \\
+Quantized, stock & A2 INT8 at 640 & 20.3 & 29.9 & 16.7 & 16.8 & 1.47$\times$ & weak \\
+Pruned & P3 FP32 at 640 & 18.5 & 24.2 & 16.6 & 13.6 & 1.31$\times$ & weak \\
+Combined & C2 INT8 at 640 & 25.6 & 35.2 & 23.3 & 14.7 & 1.37$\times$ & weak \\
+Combined, stock & C2 INT8 at 640 & 33.9 & 45.9 & 30.9 & 18.6 & 1.36$\times$ & weak \\
+\midrule
+\multicolumn{8}{l}{\textit{Laptop CPU, \#9: YOLO11s A1 at 640 (95\% CI of the ratio, paired bootstrap)}} \\
+ONNX Runtime INT8 (stock), against its FP32 export &  & 10.2 & 14.3 & 9.6 & 1.9 & 1.40$\times$ [1.27, 1.64] & weak \\
+OpenVINO INT8 (NNCF), against its FP32 export$^{\ddagger}$ &  & 2.3 & 3.5 & 1.9 & $-$2.1 & 1.51$\times$ [1.05, 1.97] & weak \\
+pruned 30 \% and recovered, against A1's .pt &  & 17.1 & 20.0 & 16.6 & 20.7 & 1.17$\times$ [0.99, 1.32] & absent \\
+\bottomrule
+\multicolumn{8}{l}{\footnotesize Relative drop per bucket: (reference $-$ compressed) / reference, on test-dev. Small / all: the AP-small drop over the AP drop.} \\
+\multicolumn{8}{l}{\footnotesize \#9's pre-registered bar: below 1.3$\times$ absent, 1.3--2$\times$ weak, 2$\times$ or more and a CI that excludes 0 confirmed.} \\
+\multicolumn{8}{l}{\footnotesize The Pi 5 rows have no CI yet (\#48). Reference: the reference baseline, ONNX Runtime FP32 at 640. INT8 is ONNX Runtime's, per-channel (INVARIANTS.md section 8) unless marked stock; a stock row follows its per-channel row.} \\
+\multicolumn{8}{l}{\footnotesize $^{\ddagger}$ Its FP32 reference ran in bf16 (INVARIANTS.md section 8). \#23, which scores it again at true FP32, has not run.} \\
+\end{tabular}

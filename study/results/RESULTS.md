@@ -174,6 +174,242 @@ images below 2000 MHz) is not in this table; only whether the cell throttled is.
 checked against the YOLO label files under `datasets/VisDrone/labels/test`: for all 1,610 images, the ground-truth json's count
 for image id `i` equals the line count of the label file of `files[i]` (75,102 objects in all), so the id-to-file mapping holds.
 
+## Result C: YOLO11s against YOLO26s on the Pi 5
+
+Built by `study/scripts/studytables.py` (#47) from `cells.csv`; nothing was run. Re-run it after `studyresults.py` when a
+session lands. Each pair is the two study models in the same configuration, on the same runtime, at the same precision and
+input resolution, with the one-to-many head. The latency ratio is YOLO26s's median latency over YOLO11s's; differences are
+YOLO26s minus YOLO11s.
+
+Files: `tables/result_c.csv` / `.tex` (the `.tex` holds the Pi 5's baselines and quantized cells; the CSV also has the
+pruned, distilled and combined pairs) and `figures/result_c_pi5.pdf` / `.png` (the latency ratio against input
+resolution, one line per runtime and precision).
+
+**The answer.** YOLO26s is the more accurate study model at every input resolution, in FP32 and in per-channel INT8. It
+is also the slower one, and its latency gap grows with the input resolution. On the two clean runtimes, where no image
+ran below 2000 MHz:
+
+| | 640 | 800 | 960 | 1120 | 1280 |
+|---|---|---|---|---|---|
+| YOLO26s's latency, NCNN FP16 | +1.3 % | +3.3 % | +4.0 % | +6.1 % | +9.0 % |
+| YOLO26s's latency, ONNX Runtime INT8 | +1.9 % | +3.4 % | +4.7 % | +5.8 % | — |
+| AP difference, FP32 | +0.0069 | +0.0028 | +0.0016 | +0.0068 | +0.0038 |
+| AP-small difference, FP32 | +0.0091 | +0.0021 | +0.0026 | +0.0042 | +0.0039 |
+| AP difference, INT8 | +0.0099 | +0.0021 | +0.0056 | +0.0052 | — |
+| AP-small difference, INT8 | +0.0105 | +0.0034 | +0.0050 | +0.0021 | — |
+| AP difference, INT8 with the stock recipe | −0.0133 | −0.0183 | −0.0157 | −0.0166 | — |
+
+INT8 is per-channel unless the row says stock. FP32 is ONNX Runtime's; OpenVINO gives the same AP to 4 digits, and NCNN
+FP16 gives +0.0017 to +0.0066. B4 has no INT8 cell at 1280 (no stock export, INVARIANTS.md section 8).
+
+- **FP32 and INT8 apart.** In FP32, YOLO26s leads by +0.0016 to +0.0069 AP and +0.0021 to +0.0091 AP-small. With the
+  per-channel INT8 recipe it leads at every size too. With the stock recipe it trails at every size, by 0.0133-0.0183
+  AP, because stock INT8 costs YOLO26s 2.0-2.7× as many AP points as it costs YOLO11s (#41; result D).
+- **The latency gap grows with the input resolution**: on NCNN from +1.3 % at 640 to +9.0 % at 1280; on INT8 from
+  +1.9 % to +5.8 % (per-channel) and +1.2 % to +6.7 % (stock) at 640-1120. NCNN and per-channel INT8 agree within 0.7
+  points at every size they share. YOLO26s has 5.0 % more GFLOPs at 640 and 5.7 % more at 960 (session 2's record), so the
+  gap stays below the FLOP gap up to 960, then reaches 9.0 % at 1280 (the records have no FLOP count at 1280). Nothing in
+  the records explains the growth.
+- **The compressed configurations at 640** (CSV): YOLO26s's pruned, distilled and combined cells are within −2.8 to
+  +1.6 % of YOLO11s's latency on ONNX Runtime and NCNN, and +0.0004 to +0.0029 AP ahead, per-channel. The stock combined
+  pair is −0.0135 AP, A2's INT8 deficit carried through. P3 against P1 and P4 against P2 run within 10 % of each other's
+  latency on every runtime, which is #10's condition for comparing the pruned models.
+
+Caveats:
+
+- **The FP32 runtimes carry the throttle.** Every ONNX Runtime FP32 and OpenVINO pair has a cell that ran images below
+  2000 MHz (hollow in the figure). Their ratios swing: ONNX Runtime FP32 from −2.9 % (800) to +6.3 % (1120), OpenVINO
+  +2.8 % to +7.5 %. A2's ONNX Runtime attempt held a median 1911 MHz against A1's 2000 and was still 1.7 % faster (session
+  2's record). Read the gap from NCNN and INT8.
+- **Session 6.** At 1120 both cells of each pair ran in one session (6, or 7 for per-channel INT8), so session 6's
+  offset cancels in the ratio.
+- **Untrained input resolutions.** At 800 and 1120 both checkpoints run at an input resolution they were not trained at;
+  the latency is unaffected and both models are off their trained size alike.
+- **No error bars.** One seed (s0), one pass over test-dev (#48). Two trained models differ by seed noise too: YOLO11s's
+  three seeds at 640 spread 0.0007 AP and 0.0027 AP-small on test-dev (#9); YOLO26s's spread is not measured. A
+  three-seed range is a yardstick, not a test. The AP leads in the table (+0.0016 to +0.0099) are larger than it; the
+  AP-small leads of +0.0021 (800, FP32), +0.0026 (960, FP32) and +0.0021 (1120, INT8) are within it, and so is the
+  combined pair's +0.0004 AP.
+
+### How result C was checked
+
+`study/scripts/tests/test_studytables.py`:
+
+- **The pair rule, on literal cells.** Same configuration, runtime, precision, INT8 recipe, input resolution and head; the
+  ratio is YOLO26s over YOLO11s and the differences YOLO26s minus YOLO11s; a pair is clean only when neither cell ran an
+  image below 2000 MHz.
+- **Against the records.** All 23 baseline and quantized pairs on the Pi 5 equal the records' YOLO11s-against-YOLO26s
+  tables (sessions 2, 4, 5, 6 and 7) in both APs and YOLO26s's latency gap. Five of them: NCNN +1.3 % at 640 (session 2)
+  and +9.0 % at 1280 (session 4), per-channel INT8 +5.8 % at 1120 (session 7), OpenVINO +7.5 % at 960 (session 2), ONNX
+  Runtime FP32 +6.3 % at 1120 (session 6).
+- **The figure's data.** One line per runtime and precision through its input resolutions (NCNN +1.3, +3.3, +4.0, +6.1,
+  +9.0 %); the NCNN and INT8 points clean, the ONNX Runtime FP32 ones not; the stock INT8 line behind the per-channel one.
+- **Session 7 swaps in with no code change.** Without session 7's cells the INT8 headline pairs are the stock ones; with
+  them, the per-channel ones.
+
+## Result D: the runtime and INT8 on the Pi 5
+
+Built by `study/scripts/studytables.py` (#47). Each INT8 cell is set against the FP32 cell of the same checkpoint, input
+resolution and runtime (ONNX Runtime, the Pi 5's only INT8 runtime: #38). The speed-up is the FP32 latency over the INT8
+latency; the change is INT8 minus FP32, in % of FP32.
+
+Files: `tables/result_d_int8.csv` / `.tex` (INT8 against FP32, per-channel and stock side by side, the Pi 5 and the Galaxy
+M34) and `tables/result_d_runtimes.csv` / `.tex` (the three Pi 5 runtimes side by side for each checkpoint). These tables
+have no clock columns, so each latency carries the images it ran below 2000 MHz in square brackets (INVARIANTS.md section
+4.7); the median clocks are in the latency table.
+
+**The answer.** On the Pi 5, ONNX Runtime INT8 is 1.38-1.51× faster than ONNX Runtime FP32 with either recipe, where
+neither cell is session 6's. The per-channel recipe costs 2-10 % of AP; YOLO11s's loss falls as the input grows, and
+YOLO26s's levels off above 960. NCNN FP16 beats INT8 on both counts.
+
+| Checkpoint | Input resolution | Speed-up, per-channel (stock) | AP change, per-channel (stock) | AP-small change, per-channel (stock) |
+|---|---|---|---|---|
+| A1, YOLO11s | 640 | 1.43× (1.43×) | −9.5 % (−10.3 %) | −13.6 % (−15.0 %) |
+| B1 | 800 † | 1.51× (1.51×) | −6.3 % (−6.8 %) | −9.8 % (−10.5 %) |
+| B1 | 960 | 1.47× (1.48×) | −6.4 % (−6.9 %) | −7.8 % (−7.8 %) |
+| B3 | 1120 † | (1.58×) § (1.49×) | −4.8 % (−5.5 %) | −5.4 % (−7.0 %) |
+| B3 | 1280 | 1.47× (1.47×) | −2.2 % (−3.9 %) | −2.5 % (−3.7 %) |
+| A2, YOLO26s | 640 | 1.38× (1.39×) | −7.6 % (−20.3 %) | −11.0 % (−29.9 %) |
+| B2 | 800 † | 1.42× (1.42×) | −6.5 % (−16.3 %) | −8.5 % (−19.6 %) |
+| B2 | 960 | 1.43× (1.44×) | −4.7 % (−14.1 %) | −5.9 % (−14.3 %) |
+| B4 | 1120 † | (1.59×) § (1.48×) | −5.3 % (−14.3 %) | −6.5 % (−18.6 %) |
+
+†: a checkpoint run at an input resolution it was not trained at. §: session 7's per-channel cell against session 6's
+FP32 cell, so about 6 % high and not to be used. At 1120 the speed-up is the stock cells' from within session 6, 1.49×
+and 1.48× (#47's comment of 1 November); `result_d_int8.csv`'s `speedup` column gives it, with `speedup_recipe`.
+A2's NMS-free head gives 1.38× (1.39×) and −8.0 % (−18.5 %) AP. C1 and C2 have INT8 cells only: no FP32 export of
+them was run.
+
+- **The speed-up does not depend on the recipe**: 1.38-1.51× per-channel and 1.39-1.51× stock, where both cells ran
+  outside session 6. The two recipes have the same nodes and activation scales and differ only in their weights' scales
+  (INVARIANTS.md section 8).
+- **The per-channel recipe's loss falls as the input grows, for YOLO11s**: −9.5 % at 640 to −2.2 % at 1280. YOLO26s's
+  falls from −7.6 % at 640 to −4.7 % at 960, then −5.3 % at 1120. AP-small loses more than AP in every per-channel row,
+  and in every stock row but B3 at 1280 (see *Small-object degradation*).
+- **The stock recipe cost YOLO26s 14.1-20.3 % of its AP**, 2.0-2.7× as many AP points as YOLO11s lost (2.0-2.6× in % of
+  each model's AP). Per-channel brings it to 4.7-7.6 %, YOLO11s's level, and leaves YOLO11s's loss almost where it was
+  (#41).
+- **The Pi 5 against the Galaxy M34.** A1 at 640 with the stock recipe is 1.43× faster in INT8 on the Pi 5 and 2.09× on
+  the phone (304.8 against 636.6 ms), for the same AP (0.1682 on both). The phone's two cells ran in different sessions
+  (25 October); its speed test gave 2.31× within one session, over 200 images (`m34_fullcell_int8_record.md`). The phone
+  has no per-channel cell in `cells.csv` yet.
+- **The three Pi 5 runtimes** (`result_d_runtimes`): over ONNX Runtime FP32, NCNN FP16 is 1.98-2.28× faster and OpenVINO
+  FP32 1.12-1.33×, for every checkpoint. NCNN's FP16 costs 0.0003-0.0019 AP against FP32. **NCNN FP16 beats ONNX Runtime
+  INT8 at every size**: 33-37 % less latency and 0.0045-0.0169 more AP. At 1120 the gap reads 28 %, but that sets session
+  6's NCNN cells (about 6 % high) against session 7's INT8 cells, so it understates NCNN's lead there.
+
+Caveats:
+
+- **The FP32 side throttled.** Every ONNX Runtime FP32 cell in the INT8 table was flagged throttled (351-1,408 images
+  below 2000 MHz), except B4 at 1120 (19 images, not flagged). A throttled latency is if anything high, so the speed-ups
+  over ONNX Runtime FP32 (INT8's, NCNN's and OpenVINO's) are if anything high too. The throttle re-runs moved medians by
+  −3.6 to +1.9 % (INVARIANTS.md section 4.7). No NCNN or INT8 cell on the Pi 5 ran an image below 2000 MHz, so NCNN
+  against INT8 is clean.
+- **The phone has no clock lock or throttle signal**, and its INT8 cell slowed 18 % from its first tenth to its last
+  (`m34_fullcell_int8_record.md`).
+- One seed and one pass; no error bars (#48).
+
+### How result D was checked
+
+`study/scripts/tests/test_studytables.py`:
+
+- **The rules, on literal cells.** The speed-up is the same runtime's FP32 latency over INT8's, the change INT8 minus FP32
+  over FP32. A speed-up across session 6 is flagged, and then the stock one from within session 6 is the headline. A
+  checkpoint with no FP32 cell keeps its row, with no speed-up.
+- **Against the records.** All 10 rows of session 7's per-channel table: FP32 AP, both INT8 APs and their change, the
+  AP-small chain, both latencies, and which pair spans session 6. All 9 rows of session 6's stock table: the AP and
+  AP-small change and the speed-up, e.g. A1 at 640 1.43× and B4 at 1120 −0.0374 (−14.3 %). The phone's 2.09×
+  (`m34_fullcell_int8_record.md`).
+- **The runtime table against the records.** All 10 rows of session 6's two resolution ladders: ONNX Runtime FP32,
+  OpenVINO and NCNN latency, NCNN's AP, and the stock INT8 cell's AP and latency, e.g. A1 at 640 on NCNN 171.5 ms (AP
+  0.1866), B2 at 800 on OpenVINO 489.6 ms, B3 at 1280 on ONNX Runtime FP32 1695.1 ms, B4 at 1120 stock INT8 0.2235 AP at
+  943.1 ms; B4 at 1280 has no INT8 cell.
+
+## Small-object degradation (the supporting section)
+
+Built by `study/scripts/studytables.py` (#47) from the accuracy table's 640 cells. Each quantized, pruned and combined cell
+is set against its model's reference baseline (ONNX Runtime FP32 at 640). The relative drop is (reference − compressed) /
+reference, as #9 pre-registered it, and the ratio is the AP-small drop over the AP drop. #9's bar: below 1.3× absent,
+1.3-2× weak, and 2× or more, with a paired-bootstrap CI of (small drop − all drop) that excludes 0, confirmed.
+
+Files: `tables/small_object.csv` / `.tex` (the Pi 5 rows, with the AP-medium and AP-large drops, beside #9's laptop rows).
+
+| Compression | YOLO11s: AP drop, AP-small drop, ratio | YOLO26s: AP drop, AP-small drop, ratio |
+|---|---|---|
+| Quantized, per-channel | 9.5 %, 13.6 %, **1.43×** | 7.6 %, 11.0 %, **1.44×** |
+| Quantized, stock | 10.3 %, 15.0 %, 1.45× | 20.3 %, 29.9 %, 1.47× |
+| Pruned | 16.1 %, 18.3 %, **1.13×** | 18.5 %, 24.2 %, **1.31×** |
+| Combined, per-channel | 23.1 %, 30.2 %, **1.31×** | 25.6 %, 35.2 %, **1.37×** |
+| Combined, stock | 24.3 %, 32.9 %, 1.35× | 33.9 %, 45.9 %, 1.36× |
+| #9, laptop CPU (YOLO11s), 95 % CI | ONNX Runtime INT8 1.40× [1.27, 1.64], weak; OpenVINO INT8 1.51× [1.05, 1.97], weak ‡; pruned 1.17× [0.99, 1.32], absent | |
+
+‡: #9's OpenVINO FP32 reference ran in bf16 (INVARIANTS.md section 8). #23, which scores it again at true FP32, has not
+run, so the row is the bf16 one, footnoted.
+
+- **No compression reaches #9's 2× bar on the Pi 5.** The AP-small drop is 1.13-1.47× the AP drop. Every row but P1 is
+  weak by the ratio; P1 is absent, and P3 and C1 per-channel (both 1.31×) are just over the line.
+- **The Pi 5 gives #9's laptop numbers.** A1's stock INT8 drops 10.3 % AP and 15.0 % AP-small, against the laptop's 10.2 %
+  and 14.3 % (1.45× against 1.40×). P1 drops 16.1 % and 18.3 % (1.13×), against the laptop's 17.1 % and 20.0 % from the
+  `.pt` checkpoints (1.17×, absent).
+- **The INT8 recipe changes the size of the loss, not its small-object share.** Per-channel cuts YOLO26s's AP drop from
+  20.3 % to 7.6 %, and its ratio stays at 1.44-1.47×. Both models' quantized ratios sit at 1.43-1.47× in both recipes.
+- **Pruning costs YOLO26s's small objects more than YOLO11s's**: 1.31× against 1.13×. The combined cells give
+  1.31-1.37×.
+
+Caveats:
+
+- **No CI on the Pi 5 rows** (#48), so none of them can be "confirmed" by #9's rule, only placed by its ratio.
+- One seed (s0). AP-large is the noisy bucket (its seed spread on test-dev is 2.6 points, #9), so the CSV's AP-large
+  drops are context only.
+- A combined cell is pruned, distilled and quantized, so its drop against the reference baseline mixes three steps.
+- The OpenVINO laptop row is the bf16 one until #23 runs.
+
+### How the small-object numbers were checked
+
+`study/scripts/tests/test_studytables.py`:
+
+- **The rule, on literal cells.** Quantized (both recipes), pruned and combined against the reference baseline, no
+  distilled row; the drop is (reference − compressed) / reference; #9's bands (1.17× absent, 1.43× weak).
+- **Against the records.** A1's stock drops of 10.3 % and 15.0 % and A2's of 20.3 % and 29.9 % (session 6); P1's
+  −0.0302 and P3's −0.0360 AP against their baselines (session 2); and the ratios 1.43×, 1.44×, 1.45× and 1.47× of #47's
+  comment of 1 November.
+
+## The accuracy and latency tables
+
+Built by `study/scripts/studytables.py` (#47).
+
+- **`tables/accuracy.csv` / `.tex`**: configuration × study model at the matrix resolution (640) on the Pi 5, one-to-many
+  head. AP, AP50, AP-small, AP-medium, AP-large. Baseline, pruned and distilled come from the ONNX Runtime FP32 cells,
+  quantized and combined from ONNX Runtime INT8: per-channel as the headline, the stock row after it. 14 rows. At 640 the
+  distilled cells are the only compressed configuration above the reference baseline (D1 +0.0075 AP, D2 +0.0036); pruning
+  costs 0.0302 and 0.0360 AP; combined per-channel gives 0.1442 and 0.1446.
+- **`tables/latency.csv` / `.tex`**: every cell, platform × runtime × model × configuration × input resolution (76 rows:
+  74 on the Pi 5, 2 on the phone). Median latency, its pre-processing, network and post-processing at 0.25 (the CSV also has
+  post-processing at 0.001), precision, and the throttle columns of INVARIANTS.md section 4.7: images below 2000 MHz and
+  the median clock. Session 6's cells carry a footnote (latencies about 6 % high). The `.tex` is a `longtable`.
+- Both `.tex` files, and the result C and D ones, need `booktabs` (and `longtable` for the latency table). Their notes
+  are single-line `\multicolumn` rows, as in Result A's table, so a long one may need wrapping in the paper.
+
+### How the accuracy and latency tables were checked
+
+`study/scripts/tests/test_studytables.py`:
+
+- **The rules, on literal cells.** The accuracy table takes ONNX Runtime FP32 for baseline, pruned and distilled, and
+  ONNX Runtime INT8 for quantized and combined, per-channel first and stock after it; no other runtime, input resolution,
+  head or platform. The latency table holds every cell, and session 6's carry its footnote.
+- **The accuracy table against the records**: every AP and AP-small in it. A1 and A2 and their INT8 cells from session
+  7's per-channel table; the pruned, distilled and stock combined cells from session 3's table; the per-channel combined
+  cells from session 7's results table (C1 0.1442, C2 0.1446 AP); and A1's AP50, 0.3265 (session 1).
+- **The latency table against the records**, five cells:
+  - A1 at 640, ONNX Runtime FP32: 389.8 ms, 381 images below 2000 MHz, median 2000 MHz (session 1).
+  - A2 at 640, ONNX Runtime FP32: 383.1 ms, network 378.4 ms, post-processing at 0.25 1.11 ms, 1,373 images below, median
+    1911 MHz (session 2).
+  - B3 at 1120, ONNX Runtime FP32: 1315.4 ms, 513 images below, footnoted (session 6).
+  - A1 at 640, NCNN FP16: 171.5 ms, none below (session 1).
+  - The phone's A1 INT8: 304.8 ms (`m34_fullcell_int8_record.md`).
+- **Session 7 swaps in with no code change.** Without session 7's cells, the INT8 headline rows of the accuracy table,
+  result C and the small-object section are all stock; with them, all per-channel.
+
 ## The cells table: `cells.csv`
 
 Built by `study/scripts/studyresults.py` (#44): one row per cell, from every Pi 5 matrix session and every Galaxy M34
