@@ -1,0 +1,233 @@
+{
+  "tool": "studybench.py",
+  "status": "complete",
+  "platform_tag": "m34",
+  "config": {
+    "runtime": "onnxruntime",
+    "imgsz": 960,
+    "threads": 4,
+    "artifact_sha256": {
+      "model.onnx": "93f39353fae7a215bb0838c6f17073ebfee4ee42dd6489de107c652ed4c2e968"
+    },
+    "images": 1610,
+    "images_sha1": "00106accba1f0837a97fd3e812526ac819a44eec",
+    "deploy_conf": 0.25
+  },
+  "artifact": "exports/yolo11s-960-s0/960/onnxruntime-fp32",
+  "model_file": "exports/yolo11s-960-s0/960/onnxruntime-fp32/model.onnx",
+  "manifest": {
+    "run": "yolo11s-960-s0",
+    "variant": "onnxruntime-fp32",
+    "runtime": "onnxruntime",
+    "precision": "fp32",
+    "head": "raw",
+    "imgsz": 960,
+    "batch": 1,
+    "artifact": "model.onnx",
+    "files": {
+      "model.onnx": "93f39353fae7a215bb0838c6f17073ebfee4ee42dd6489de107c652ed4c2e968"
+    },
+    "source_weights": "C:\\Users\\srikr\\uav-yolo-checkpoints\\yolo11s-960-s0\\best.pt",
+    "source_sha256": "faaa6cb22d1ee714ad7a1243cfb5bf1813af11820414f6995dc93b1742c20fb9",
+    "export_args": {
+      "imgsz": 960,
+      "batch": 1,
+      "device": "cpu",
+      "format": "onnx"
+    },
+    "calibration": null,
+    "artifact_metadata": {
+      "version": "8.4.149",
+      "date": "2026-10-28T13:08:27.518191+05:30",
+      "stride": "32",
+      "task": "detect",
+      "head": "Detect",
+      "batch": "1",
+      "imgsz": "[960, 960]",
+      "end2end": "False",
+      "args": "{'data': None, 'batch': 1, 'fraction': 1.0, 'quantize': None, 'nms': None, 'dynamic': False, 'simplify': True, 'opset': None}",
+      "names": "{0: 'pedestrian', 1: 'people', 2: 'bicycle', 3: 'car', 4: 'van', 5: 'truck', 6: 'tricycle', 7: 'awning-tricycle', 8: 'bus', 9: 'motor'}"
+    },
+    "toolchain": {
+      "ultralytics": "8.4.149",
+      "torch": "2.14.0+cu130",
+      "onnx": "1.23.2",
+      "onnxruntime": "1.31.0",
+      "onnxslim": "0.1.98",
+      "openvino": "2026.4.1",
+      "nncf": "3.4.0",
+      "ncnn": "1.0.20260526",
+      "pnnx": "20260526"
+    },
+    "engine": null,
+    "export_seconds": 7.1,
+    "exported_utc": "2026-10-28T07:38:31+00:00",
+    "host": "Mr-W-R-A-T-H",
+    "git_commit": "302c56ad5128bbd11b7e3dbca01996ae3bff46d9"
+  },
+  "imgsz": 960,
+  "threads": 4,
+  "warmup": 20,
+  "limit": null,
+  "images_dir": "datasets/VisDrone/images/test",
+  "complete_testdev": true,
+  "preprocess": "validator rect=False batch 1: ceil long-side resize INTER_LINEAR, LetterBox pad 114 scaleup=False, BGR->RGB, CHW, /255",
+  "postprocess": {
+    "conf": 0.001,
+    "iou": 0.7,
+    "max_det": 500,
+    "max_nms": 30000,
+    "max_wh": 7680,
+    "multi_label": true,
+    "agnostic": false
+  },
+  "deploy_conf": 0.25,
+  "post_passes": "two per image on the same model output, each timed: at conf 0.001 (t_post_ms, saved for accuracy) and at 0.25 (t_post_deploy_ms, timed only); the 0.25 pass runs first on odd image indices",
+  "timed": "pre + net + post per image; image read/decode and COCO conversion excluded",
+  "latency": "e2e_deploy = pre + net + post at 0.25; t_total_ms is pre + net + post at 0.001",
+  "sessions": [
+    {
+      "index": 0,
+      "start": "2026-11-01T16:33:35+00:00",
+      "first_image": 0,
+      "model_load_s": 0.312,
+      "warmup": 20,
+      "warmup_done": "2026-11-01T16:34:03+00:00",
+      "last_image": 1599,
+      "last_update": "2026-11-01T17:15:20+00:00",
+      "end": "2026-11-01T17:15:35+00:00"
+    }
+  ],
+  "platform": {
+    "uname": {
+      "system": "Android",
+      "node": "localhost",
+      "release": "16",
+      "version": "#1 SMP PREEMPT Wed Aug 19 19:36:05 KST 2026",
+      "machine": "aarch64",
+      "processor": ""
+    },
+    "cpu_model": null,
+    "cpu_part": "0xd05",
+    "device_model": null,
+    "android": {
+      "ro.product.manufacturer": "samsung",
+      "ro.product.model": "SM-M346B",
+      "ro.soc.model": "s5e8825",
+      "ro.build.version.release": "16"
+    },
+    "cpu_count": 8,
+    "cpu_affinity": 8,
+    "cpu_max_mhz": [
+      2002,
+      2002,
+      2002,
+      2002,
+      2002,
+      2002,
+      2400,
+      2400
+    ],
+    "governor": "energy_aware",
+    "mem_total_kb": 5517824,
+    "jetson": null
+  },
+  "versions": {
+    "python": "3.14.8",
+    "numpy": "2.5.4",
+    "cv2": "5.0.0",
+    "onnxruntime": "1.31.1"
+  },
+  "runtime_info": {
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "intra_op_num_threads": 4,
+    "inter_op_num_threads": 1,
+    "input_type": "tensor(float)",
+    "outputs": [
+      [
+        "output0",
+        [
+          1,
+          14,
+          18900
+        ]
+      ]
+    ],
+    "precision_from": "the graph's operators: quantize/dequantize or integer operators mean INT8"
+  },
+  "precision": "FP32",
+  "cv2_threads": 4,
+  "cpu_clock": {
+    "source": "scaling_cur_freq (cpu0)",
+    "read": "every image, after its timing",
+    "failed_reads": 0,
+    "call_ms": null
+  },
+  "head": "raw",
+  "start": "2026-11-01T16:33:35+00:00",
+  "end": "2026-11-01T17:15:35+00:00",
+  "images_timed": 1610,
+  "detections": 656294,
+  "timing_ms": {
+    "t_pre_ms": {
+      "median": 20.943,
+      "p95": 24.203,
+      "mean": 21.229,
+      "min": 15.781,
+      "max": 48.752
+    },
+    "t_net_ms": {
+      "median": 1416.779,
+      "p95": 1663.335,
+      "mean": 1464.427,
+      "min": 1294.772,
+      "max": 4309.273
+    },
+    "t_post_ms": {
+      "median": 32.779,
+      "p95": 69.234,
+      "mean": 33.541,
+      "min": 1.894,
+      "max": 190.971
+    },
+    "t_total_ms": {
+      "median": 1466.768,
+      "p95": 1732.759,
+      "mean": 1519.198,
+      "min": 1322.055,
+      "max": 4383.561
+    },
+    "post_deploy": {
+      "median": 2.944,
+      "p95": 8.746,
+      "mean": 3.748,
+      "min": 0.829,
+      "max": 57.213
+    },
+    "e2e_deploy": {
+      "median": 1440.496,
+      "p95": 1685.274,
+      "mean": 1489.404,
+      "min": 1316.135,
+      "max": 4345.065
+    }
+  },
+  "device_state": {
+    "temp_c": null,
+    "cpu_mhz": {
+      "min": 960.0,
+      "max": 2002.0,
+      "median": 1920.0
+    },
+    "gpu_temp_c": null,
+    "gpu_mhz": null,
+    "n_cand_max": 7992,
+    "images_over_max_nms": 0
+  },
+  "throttle": null,
+  "jetson": null,
+  "max_rss_mb": 447.2,
+  "resumed": false
+}

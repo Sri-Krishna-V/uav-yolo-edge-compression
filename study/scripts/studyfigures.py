@@ -42,6 +42,15 @@ def phone_drift(cells):
     and the bar's bound: the largest, rounded up to a whole per cent."""
     moves = sorted({float(m[1]) for c in cells if c["platform"] == "m34" and (m := DRIFT_NOTE.match(c.get("note") or ""))})
     return moves, math.ceil(max(moves, default=5)) / 100
+
+
+def cell_drift(c, bound):
+    """A phone cell's own session's drift, from its cells.csv note, else the bound; None where no bar is drawn (bound None).
+    A pair runs within one session, so its bars and its robustness to drift go by that session's check, not the worst one."""
+    if bound is None:
+        return None
+    m = DRIFT_NOTE.match(c.get("note") or "")
+    return abs(float(m[1])) / 100 if m else bound
 B_CELL = ("pi5-matrix-7-int8pc", "onnxruntime-int8pc")  # result B's pair: the matrix's INT8 (INVARIANTS.md section 8)
 
 
@@ -114,7 +123,7 @@ def scatter_panel(ax, panel, ylim, xlim, models=None, drift=None):
         flip = {id(p["baseline"]) for p in panel["connectors"]
                 if p["ap_small_diff"] < 0 and p["compressed"]["latency_ms"] > p["baseline"]["latency_ms"]}
         for c in line:
-            _cell_marker(ax, c, xerr=drift)
+            _cell_marker(ax, c, xerr=cell_drift(c, drift))
             up = above or id(c) in flip
             ax.annotate(res(c["imgsz"]) + _tag(c), (c["latency_ms"], c["ap_small"]), textcoords="offset points",
                         xytext=(-4, 7) if up else (5, -8), ha="right" if up else "left", va="center", color=colour,
@@ -123,7 +132,7 @@ def scatter_panel(ax, panel, ylim, xlim, models=None, drift=None):
         drawn = [p["compressed"] for p in panel["connectors"] if p["compressed"]["model"] in models]
         for c in s["points"]:
             if id(c) in paired:  # a gain sits above the baselines' line, labelled above-left; a loss below it, labelled under it
-                _cell_marker(ax, c, xerr=drift)
+                _cell_marker(ax, c, xerr=cell_drift(c, drift))
                 # a gain with another drawn paired cell just to its left (within 10 % latency, 0.005 AP-small), whose label
                 # takes the space above-left, is labelled straight above
                 top = gain[id(c)] and any(o is not c and o["latency_ms"] < c["latency_ms"] < 1.1 * o["latency_ms"]
@@ -177,7 +186,8 @@ def forest_panel(ax, pairs, ci, nbins=7, drift=None):
                    edgecolors="white", linewidths=0.5, zorder=4)
         flag = (sf.DAGGER if _throttled(p) else "") + (sf.SECTION if p["spans_session_6"] else "")
         note = ""
-        if drift is not None and p["apart_pct"] + drift * 100 > sp.LIMIT * 100:  # the gap plus the drift passes the 10 % rule
+        own = drift is not None and max(cell_drift(p["compressed"], drift), cell_drift(p["baseline"], drift))
+        if own and p["apart_pct"] + own * 100 > sp.LIMIT * 100:  # the gap plus its session's drift passes the 10 % rule
             note = "\nnot robust\nto drift"
         ax.text(1.02, y, f"{p['apart_pct']:.1f} %{flag}{note}", transform=trans, ha="left", va="center")
     for y, name in groups:  # in the label column, right-aligned with the row labels, clear of the spine and the zero line
@@ -287,7 +297,7 @@ def result_a(cells, pairs, eq_rows, out):
             sf.tint(top)
             sf.panel_label(top, "a", "Galaxy M34, a consumer-grade phone")
             moves = f"{DRIFT_MOVES[0]:+.1f} % to {DRIFT_MOVES[-1]:+.1f} %" if len(DRIFT_MOVES) > 1 else f"{DRIFT * 100:+.0f} %"
-            top.text(0.03, 0.97, f"Latency provisional:\ndrift {moves},\nbars {chr(177)}{DRIFT * 100:.0f} %", transform=top.transAxes,
+            top.text(0.03, 0.97, f"Latency provisional:\nsession drift {moves};\nbar: its session's drift", transform=top.transAxes,
                      ha="left", va="top", color=sf.MUTED)
             forest_panel(bottom, phone, ci, nbins=3, drift=DRIFT)
             sf.tint(bottom)
@@ -296,7 +306,7 @@ def result_a(cells, pairs, eq_rows, out):
             drawn = [c for p in m34 for s in p["models"].values() for c in s["baselines"]]
             lines = any(len(s["baselines"]) > 1 for p in m34 for s in p["models"].values())
             bar = Line2D([], [], color=sf.MUTED, marker="|", markersize=6, linestyle="-", linewidth=0.75,
-                         label=f"{chr(177)}{DRIFT * 100:.0f} % drift bar on latency")
+                         label=f"{chr(177)}its session's drift, on latency")
             _legend(fig, configs(m34), hollow=any(c["untrained_imgsz"] for c in drawn), ncols=2, lines=lines, extra=[bar])
             sf.save(fig, out / "fig_a_m34")
 
