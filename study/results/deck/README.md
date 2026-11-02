@@ -4,6 +4,8 @@ A local copy of the Slides artifact https://claude.ai/artifact/Q7QQGnXeaS8rCniyF
 menu). For PowerPoint or PDF, open it and use Share > Export. 31 slides: the story (problem, gap, question, method, ten
 one-message results, limits, conclusions, references), then backup slides with the detailed figures and tables.
 
+- `results-deck.pptx`: the same 31 slides as a PowerPoint file, with the speaker notes, built from `slides/` and the
+  figures (Arial and Courier New, so it opens the same on any machine).
 - `deck.json`: the slide order, sections and fonts.
 - `slides/<id>.html`: one slide each; the speaker notes, with the reasoning and the source of every number, are the
   `<aside>` at the end of each.
